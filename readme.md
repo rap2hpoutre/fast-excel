@@ -1,94 +1,74 @@
-# Laravel Stripe Connect
+# Laravel Fast Excel [WIP]
 
-[![Packagist](https://img.shields.io/packagist/v/rap2hpoutre/laravel-stripe-connect.svg)]()
-[![Packagist](https://img.shields.io/packagist/l/rap2hpoutre/laravel-stripe-connect.svg)](https://packagist.org/packages/rap2hpoutre/laravel-stripe-connect)
-[![Build Status](https://travis-ci.org/rap2hpoutre/laravel-stripe-connect.svg?branch=master)](https://travis-ci.org/rap2hpoutre/laravel-stripe-connect)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/rap2hpoutre/laravel-stripe-connect/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/rap2hpoutre/laravel-stripe-connect/?branch=master)
+[![Packagist](https://img.shields.io/packagist/v/rap2hpoutre/fast-excel.svg)]()
+[![Packagist](https://img.shields.io/packagist/l/rap2hpoutre/fast-excel.svg)](https://packagist.org/packages/rap2hpoutre/fast-excel)
+[![Build Status](https://travis-ci.org/rap2hpoutre/fast-excel.svg?branch=master)](https://travis-ci.org/rap2hpoutre/fast-excel)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/rap2hpoutre/fast-excel/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/rap2hpoutre/fast-excel/?branch=master)
 
-> Marketplaces and platforms use Stripe Connect to accept money and pay out to third parties. Connect provides a complete set of building blocks to support virtually any business model, including on-demand businesses, e‑commerce, crowdfunding, fintech, and travel and events. 
-
-Create a marketplace application with this helper for [Stripe Connect](https://stripe.com/connect).
+Fast Excel import/export for Laravel, thanks to Spout. See benchmarks below.
 
 ## Installation
 
 Install via composer
 
 ```
-composer require rap2hpoutre/laravel-stripe-connect
+composer require rap2hpoutre/fast-excel
 ```
 
-Add your stripe credentials in `.env`:
+## Quick start
 
-```
-STRIPE_KEY=pk_test_XxxXXxXXX
-STRIPE_SECRET=sk_test_XxxXXxXXX
-```
+Export a Model to `.xlsx` file:
+ 
+```php
+use Rap2hpoutre\FastExcel\FastExcel;
+use App\User;
 
-Run migrations:
+// Load users
+$users = User::all();
 
-```
-php artisan migrate
+// Export
+(new FastExcel($users))->export('file.xlsx');
 ```
 
 ## Usage
 
-You can make a single payment from a user to another user
- or save a customer card for later use. Just remember to
- import the base class via:
- 
-```php
-use Rap2hpoutre\LaravelStripeConnect\StripeConnect;
-```
+### Export
 
-### Example #1: direct charge
-
-The customer gives his credentials via Stripe Checkout and is charged.
-It's a one shot process. `$customer` and `$vendor` must be `User` instances. The `$token` must have been created using [Checkout](https://stripe.com/docs/checkout/tutorial) or [Elements](https://stripe.com/docs/stripe-js).
+You can export a Model or a **Collection**:
 
 ```php
-StripeConnect::transaction($token)
-    ->amount(1000, 'usd')
-    ->from($customer)
-    ->to($vendor)
-    ->create(); 
+$list = collect([
+    [
+        'id' => 1,
+        'name' => 'Jane',
+    ],
+    [
+        'id' => 1,
+        'name' => 'John',
+    ],
+]);
+
+(new FastExcel($list))->export('file.xlsx');
 ```
 
-### Example #2: save a customer then charge later
-
-Sometimes, you may want to register a card then charge later.
-First, create the customer.
+You can export `xlsx`, `ods` and `csv`:
 
 ```php
-StripeConnect::createCustomer($token, $customer);
+$invoices = App\Invoice::orderBy('created_at', 'DESC')->get();
+
+(new FastExcel($invoices))->export('invoices.csv');
 ```
 
-Then, (later) charge the customer without token.
+### Import
+
+`import` returns a Collection:
 
 ```php
-StripeConnect::transaction()
-    ->amount(1000, 'usd')
-    ->useSavedCustomer()
-    ->from($customer)
-    ->to($vendor)
-    ->create(); 
+$collection = (new FastExcel($list))->export('file.xlsx');
 ```
 
-### Exemple #3: create a vendor account
+You can import `xlsx`, `ods` and `csv`.
 
-You may want to create the vendor account before charging anybody.
-Just call `createAccount` with a `User` instance.
+## Why?
 
-```php
-StripeConnect::createAccount($vendor);
-```
-
-### Exemple #4: Charge with application fee
-
-```php
-StripeConnect::transaction()
-    ->amount(1000, 'usd')
-    ->fee(50)
-    ->from($customer)
-    ->to($vendor)
-    ->create(); 
-```
+## Benchmarks
