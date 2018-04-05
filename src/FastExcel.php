@@ -114,7 +114,7 @@ class FastExcel
      */
     public function withoutHeaders()
     {
-        $this->with_headers = false;
+        $this->with_header = false;
         return $this;
     }
 
