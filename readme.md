@@ -71,4 +71,11 @@ You can import `xlsx`, `ods` and `csv`.
 
 ## Why?
 
+Laravel *Fast* Excel is intended at being Laravel-flavoured Spout: 
+a simple, but elegant wrapper around Spout with the goal of simplifying **imports and exports**. 
+
+It could be considered as a faster (and memory friendly) alternative to Laravel Excel, with many less features.
+
 ## Benchmarks
+
+TODO. It's ~3 times faster.
