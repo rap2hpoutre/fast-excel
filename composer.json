@@ -1,5 +1,5 @@
 {
-  "name": "rap2hpoutre/laravel-fast-excel",
+  "name": "rap2hpoutre/fast-excel",
   "type": "library",
   "keywords": ["laravel", "excel", "csv", "xls", "xlsx"],
   "require": {
