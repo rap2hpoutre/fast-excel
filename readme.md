@@ -86,14 +86,15 @@ Use it only for very simple tasks.
 
 ## Benchmarks
 
-> Tested on a MacBook Pro 2015 2,7 GHz Intel Core i5 16 Go 1867 MHz DDR3. *Don't trust benchmarks.*
+> Tested on a MacBook Pro 2015 2,7 GHz Intel Core i5 16 Go 1867 MHz DDR3. 
+Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iterations. **Don't trust benchmarks.**
 
-Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iterations.
+
 
 |   | Average memory peak usage  | Execution time |
 |---|---|---|
 | Laravel Excel  | 123.56 M  | 11.56 s |
 | Laravel Fast Excel  | 2.09 M 🍾 | 2.76 s 🏆 |
 
-Still, remember that Laravel Excel **has many more feature.**
+Still, remember that [Laravel Excel](https://laravel-excel.maatwebsite.nl/) **has many more feature.**
 Please help me improve benchmarks, more tests re coming. Feel free to criticize.
