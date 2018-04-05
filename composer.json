@@ -1,0 +1,31 @@
+{
+  "name": "rap2hpoutre/laravel-fast-excel",
+  "type": "library",
+  "keywords": ["laravel", "excel", "csv", "xls", "xlsx"],
+  "require": {
+    "illuminate/database": "^5.5",
+    "illuminate/support": "^5.5",
+    "box/spout": "^2.7"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^6.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Rap2hpoutre\\FastExcel\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Rap2hpoutre\\FastExcel\\Tests\\": "tests/"
+    }
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "rap2h",
+      "email": "raphaelht@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable"
+}
