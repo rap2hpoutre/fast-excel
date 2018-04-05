@@ -46,7 +46,7 @@ class FastExcel
 
     /**
      * FastExcel constructor.
-     * @param $data
+     * @param Collection $data
      */
     public function __construct($data = null)
     {
@@ -54,7 +54,7 @@ class FastExcel
     }
 
     /**
-     * @param $path
+     * @param string $path
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\InvalidArgumentException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
@@ -81,7 +81,7 @@ class FastExcel
 
     /**
      * @param $path
-     * @param $function
+     * @param string $function
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\InvalidArgumentException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
@@ -136,7 +136,7 @@ class FastExcel
     }
 
     /**
-     * @param $delimiter
+     * @param string $delimiter
      * @param string $enclosure
      * @param string $eol
      * @param string $encoding
@@ -151,7 +151,7 @@ class FastExcel
 
     /**
      *
-     * @param $path
+     * @param string $path
      * @return Collection
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
