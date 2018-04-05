@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 
 /**
  * Class FastExcel
- * @package App
+ * @package Rap2hpoutre\FastExcel
  */
 class FastExcel
 {
@@ -23,6 +23,7 @@ class FastExcel
      * @var int
      */
     private $sheet_number = 1;
+    
     /**
      * @var bool
      */

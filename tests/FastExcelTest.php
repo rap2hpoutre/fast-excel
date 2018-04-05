@@ -2,13 +2,12 @@
 namespace Rap2hpoutre\FastExcel\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Rap2hpoutre\FastExcel\FastExcel;
 
 /**
- * Class TransactionTest
- * @package Rap2hpoutre\LaravelStripeConnect\Tests
+ * Class FastExcelTest
+ * @package Rap2hpoutre\FastExcel\Tests
  */
-class TransactionTest extends TestCase
+class FastExcelTest extends TestCase
 {
     public function testTrue()
     {
