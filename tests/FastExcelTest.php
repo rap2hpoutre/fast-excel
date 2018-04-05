@@ -10,6 +10,19 @@ use Rap2hpoutre\FastExcel\FastExcel;
  */
 class FastExcelTest extends TestCase
 {
+
+    /**
+     * @return \Illuminate\Support\Collection
+     */
+    private function collection()
+    {
+        return collect([
+            ['col1' => 'row1 col1', 'col2' => 'row1 col2'],
+            ['col1' => 'row2 col1', 'col2' => ''],
+            ['col1' => 'row3 col1', 'col2' => 'row3 col2'],
+        ]);
+    }
+
     /**
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
@@ -18,11 +31,7 @@ class FastExcelTest extends TestCase
     public function testImportXlsx()
     {
         $collection = (new FastExcel)->import(__DIR__ . '/test1.xlsx');
-        $this->assertEquals(collect([
-            ['col1' => 'row1 col1', 'col2' => 'row1 col2'],
-            ['col1' => 'row2 col1', 'col2' => ''],
-            ['col1' => 'row3 col1', 'col2' => 'row3 col2'],
-        ]), $collection);
+        $this->assertEquals($this->collection(), $collection);
     }
 
     /**
@@ -32,11 +41,7 @@ class FastExcelTest extends TestCase
      */
     public function testImportCsv()
     {
-        $original_collection = collect([
-            ['col1' => 'row1 col1', 'col2' => 'row1 col2'],
-            ['col1' => 'row2 col1', 'col2' => ''],
-            ['col1' => 'row3 col1', 'col2' => 'row3 col2'],
-        ]);
+        $original_collection = $this->collection();
 
         $collection = (new FastExcel)->import(__DIR__ . '/test2.csv');
         $this->assertEquals($original_collection, $collection);
@@ -55,11 +60,7 @@ class FastExcelTest extends TestCase
      */
     public function testExportXlsx()
     {
-        $original_collection = collect([
-            ['col1' => 'row1 col1', 'col2' => 'row1 col2'],
-            ['col1' => 'row2 col1', 'col2' => ''],
-            ['col1' => 'row3 col1', 'col2' => 'row3 col2'],
-        ]);
+        $original_collection = $this->collection();
 
         (new FastExcel($original_collection))->export(__DIR__ . '/test2.xlsx');
         $this->assertEquals($original_collection, (new FastExcel)->import(__DIR__ . '/test2.xlsx'));
@@ -75,14 +76,10 @@ class FastExcelTest extends TestCase
      */
     public function testExportCsv()
     {
-        $original_collection = collect([
-            ['col1' => 'row1 col1', 'col2' => 'row1 col2'],
-            ['col1' => 'row2 col1', 'col2' => ''],
-            ['col1' => 'row3 col1', 'col2' => 'row3 col2'],
-        ]);
+        $original_collection = $this->collection();
 
-        (new FastExcel($original_collection))->export(__DIR__ . '/test3.csv');
-        $this->assertEquals($original_collection, (new FastExcel)->import(__DIR__ . '/test3.csv'));
+        (new FastExcel($original_collection))->configureCsv(';')->export(__DIR__ . '/test3.csv');
+        $this->assertEquals($original_collection, (new FastExcel)->configureCsv(';')->import(__DIR__ . '/test3.csv'));
         unlink(__DIR__ . '/test3.csv');
     }
 }
