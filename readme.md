@@ -7,15 +7,13 @@
 
 Fast Excel import/export for Laravel, thanks to Spout. See benchmarks below.
 
-## Installation
+## Quick start
 
 Install via composer
 
 ```
 composer require rap2hpoutre/fast-excel
 ```
-
-## Quick start
 
 Export a Model to `.xlsx` file:
  
@@ -26,11 +24,13 @@ use App\User;
 // Load users
 $users = User::all();
 
-// Export
+// Export all users
 (new FastExcel($users))->export('file.xlsx');
 ```
 
 ## Usage
+
+Use *Fast Excel* to import and export Excel files.
 
 ### Export
 
@@ -64,18 +64,18 @@ $invoices = App\Invoice::orderBy('created_at', 'DESC')->get();
 `import` returns a Collection:
 
 ```php
-$collection = (new FastExcel($list))->export('file.xlsx');
+$collection = (new FastExcel())->import('file.xlsx');
 ```
 
 You can import `xlsx`, `ods` and `csv`.
 
 ## Why?
 
-Laravel *Fast* Excel is intended at being Laravel-flavoured Spout: 
+Laravel *Fast Excel* is intended at being Laravel-flavoured Spout: 
 a simple, but elegant wrapper around Spout with the goal of simplifying **imports and exports**. 
 
 It could be considered as a faster (and memory friendly) alternative to Laravel Excel, with many less features.
 
 ## Benchmarks
 
-TODO. It's ~3 times faster.
+TODO. It's ~3 times faster and use less memory.
