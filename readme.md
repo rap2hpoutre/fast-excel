@@ -31,7 +31,7 @@ $users = User::all();
 
 ## Usage
 
-Use *Fast Excel* to import and export Excel files.
+Use Fast Excel to import and export Excel files.
 
 ### Export
 
@@ -76,13 +76,24 @@ $collection = (new FastExcel)->configureCsv(';', '#')->import('file.csv');
 
 ## Why?
 
-Laravel *Fast Excel* is intended at being Laravel-flavoured [Spout](https://github.com/box/spout): 
+Laravel Fast Excel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout): 
 a simple, but elegant wrapper around [Spout](https://github.com/box/spout) with the goal 
 of simplifying **imports and exports**. 
 
 It could be considered as a faster (and memory friendly) alternative 
-to [Laravel Excel](https://laravel-excel.maatwebsite.nl/), with many less features.
+to [Laravel Excel](https://laravel-excel.maatwebsite.nl/), with **many less** features. 
+Use it only for very simple tasks.
 
 ## Benchmarks
 
-TODO. It's ~3 times faster and use less memory.
+> Tested on a MacBook Pro 2015 2,7 GHz Intel Core i5 16 Go 1867 MHz DDR3. *Don't trust benchmarks.*
+
+Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iterations.
+
+|   | Average memory peak usage  | Execution time |
+|---|---|---|
+| Laravel Excel  | 123.56 M  | 11.56 s |
+| Laravel Fast Excel  | 2.09 M 🍾 | 2.76 s 🏆 |
+
+Still, remember that Laravel Excel **has many more feature.**
+Please help me improve benchmarks, more tests re coming. Feel free to criticize.
