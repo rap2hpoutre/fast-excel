@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "c8a5356ec0fc60ffda8bd25e816b5a1e",
+    "content-hash": "559884a1f47c9fe371a7595604a419ac",
     "packages": [
         {
             "name": "box/spout",
