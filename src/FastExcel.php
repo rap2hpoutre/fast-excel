@@ -179,7 +179,6 @@ class FastExcel
                     }
                     if (($count_header ?? 0) > $count_row = count($row)) {
                         $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
-                        dd($row, $headers);
                     }
                     $collection[] = array_combine($headers, $row);
                 }
