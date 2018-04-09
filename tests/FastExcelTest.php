@@ -50,6 +50,22 @@ class FastExcelTest extends TestCase
         $this->assertEquals($original_collection, $collection);
     }
 
+    /**
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\InvalidArgumentException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
+     */
+    private function export($file)
+    {
+        $original_collection = $this->collection();
+
+        (new FastExcel($original_collection))->export($file);
+        $this->assertEquals($original_collection, (new FastExcel)->import($file));
+        unlink($file);
+    }
+
 
     /**
      * @throws \Box\Spout\Common\Exception\IOException
@@ -60,11 +76,7 @@ class FastExcelTest extends TestCase
      */
     public function testExportXlsx()
     {
-        $original_collection = $this->collection();
-
-        (new FastExcel($original_collection))->export(__DIR__ . '/test2.xlsx');
-        $this->assertEquals($original_collection, (new FastExcel)->import(__DIR__ . '/test2.xlsx'));
-        unlink(__DIR__ . '/test2.xlsx');
+        $this->export(__DIR__ . '/test2.xlsx');
     }
 
     /**
@@ -76,11 +88,7 @@ class FastExcelTest extends TestCase
      */
     public function testExportCsv()
     {
-        $original_collection = $this->collection();
-
-        (new FastExcel($original_collection))->configureCsv(';')->export(__DIR__ . '/test3.csv');
-        $this->assertEquals($original_collection, (new FastExcel)->configureCsv(';')->import(__DIR__ . '/test3.csv'));
-        unlink(__DIR__ . '/test3.csv');
+        $this->export(__DIR__ . '/test3.csv');
     }
 
     /**
