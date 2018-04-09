@@ -104,7 +104,7 @@ Use it only for very simple tasks.
 ## Benchmarks
 
 > Tested on a MacBook Pro 2015 2,7 GHz Intel Core i5 16 Go 1867 MHz DDR3. 
-Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iterations. **Don't trust benchmarks.**
+Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iterations, 2018-04-05. **Don't trust benchmarks.**
 
 
 
