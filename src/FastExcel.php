@@ -4,10 +4,8 @@
 namespace Rap2hpoutre\FastExcel;
 
 use Box\Spout\Reader\CSV\Reader as CSVReader;
-use Box\Spout\Reader\ReaderInterface;
 use Box\Spout\Writer\CSV\Writer as CSVWriter;
 use Box\Spout\Common\Type;
-use Box\Spout\Writer\WriterInterface;
 use Illuminate\Support\Collection;
 
 /**
@@ -102,7 +100,7 @@ class FastExcel
     }
 
     /**
-     * @param ReaderInterface|WriterInterface $reader_or_writer
+     * @param \Box\Spout\Reader\ReaderInterface|\Box\Spout\Writer\WriterInterface $reader_or_writer
      */
     protected function setOptions(&$reader_or_writer)
     {

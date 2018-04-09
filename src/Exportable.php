@@ -17,13 +17,13 @@ trait Exportable
     protected $data;
 
     /**
-     * @param $path
+     * @param string $path
      * @return mixed
      */
     abstract protected function getType($path);
 
     /**
-     * @param $reader_or_writer
+     * @param \Box\Spout\Reader\ReaderInterface|\Box\Spout\Writer\WriterInterface $reader_or_writer
      * @return mixed
      */
     abstract protected function setOptions(&$reader_or_writer);
