@@ -39,14 +39,8 @@ You can export a Model or a **Collection**:
 
 ```php
 $list = collect([
-    [
-        'id' => 1,
-        'name' => 'Jane',
-    ],
-    [
-        'id' => 1,
-        'name' => 'John',
-    ],
+    [ 'id' => 1, 'name' => 'Jane' ],
+    [ 'id' => 2, 'name' => 'John' ],
 ]);
 
 (new FastExcel($list))->export('file.xlsx');
