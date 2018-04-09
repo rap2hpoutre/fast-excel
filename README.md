@@ -29,11 +29,7 @@ $users = User::all();
 (new FastExcel($users))->export('file.xlsx');
 ```
 
-## Usage
-
-Use Fast Excel to import and export Excel files.
-
-### Export
+## Export
 
 Export a Model or a **Collection**:
 
@@ -65,7 +61,7 @@ Export only some attributes and choose columns name:
 });
 ```
 
-### Import
+## Import
 
 `import` returns a Collection:
 
