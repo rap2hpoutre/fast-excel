@@ -154,5 +154,6 @@ class FastExcelTest extends TestCase
             collect([['test' => 'row1 col1'], ['test' => 'row2 col1'], ['test' => 'row3 col1']]),
             (new FastExcel)->import(__DIR__ . '/test2.xlsx')
         );
+        unlink(__DIR__ . '/test2.xlsx');
     }
 }

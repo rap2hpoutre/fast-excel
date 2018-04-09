@@ -48,8 +48,8 @@ trait Importable
         $collection = [];
 
         $reader = ReaderFactory::create($this->getType($path));
-        /** @var \Box\Spout\Reader\ReaderInterface $writer */
         $this->setOptions($reader);
+        /** @var \Box\Spout\Reader\ReaderInterface $reader */
         $reader->open($path);
 
         foreach ($reader->getSheetIterator() as $key => $sheet) {

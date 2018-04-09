@@ -72,8 +72,8 @@ trait Exportable
     private function exportOrDownload($path, $function, callable $callback = null)
     {
         $writer = WriterFactory::create($this->getType($path));
-        /** @var \Box\Spout\Writer\WriterInterface $writer */
         $this->setOptions($writer);
+        /** @var \Box\Spout\Writer\WriterInterface $writer */
         $writer->$function($path);
         if ($this->data instanceof Collection) {
             // Prepare collection (i.e remove non-string) only if there is no callback
