@@ -74,6 +74,18 @@ Import a `csv` with a specific delimiter and enclosure characters.
 $collection = (new FastExcel)->configureCsv(';', '#')->import('file.csv');
 ```
 
+Import and insert to database (aka "map" import):
+
+```php
+$users = (new FastExcel)->import('file.xlsx', function ($line) {
+    // Returns a User, just created in database. You could add your own rules here.
+    return User::create([
+        'name' => $line['Name'],
+        'email' => $line['Email']
+    ]);
+});
+```
+
 ## Why?
 
 Laravel Fast Excel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout): 
