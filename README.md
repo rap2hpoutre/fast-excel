@@ -60,6 +60,19 @@ $invoices = App\Invoice::orderBy('created_at', 'DESC')->get();
 (new FastExcel($invoices))->export('invoices.csv');
 ```
 
+Export only some attributes and choose columns name:
+
+```php
+
+(new FastExcel(User::all()))->export('users.csv', function ($user) {
+    return [
+        'Email' => $user->email,
+        'First Name' => $user->firstname,
+        'Last Name' => strtoupper($user->lastname),
+    ];
+});
+```
+
 ### Import
 
 `import` returns a Collection:
