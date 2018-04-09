@@ -46,6 +46,7 @@ trait Importable
     {
         $headers = [];
         $collection = [];
+        $count_header = 0;
 
         $reader = ReaderFactory::create($this->getType($path));
         $this->setOptions($reader);
@@ -63,7 +64,7 @@ trait Importable
                         $count_header = count($headers);
                         continue;
                     }
-                    if (($count_header ?? 0) > $count_row = count($row)) {
+                    if ($count_header > $count_row = count($row)) {
                         $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
                     }
                     $collection[] = $callback ? $callback(array_combine($headers, $row)) : array_combine($headers, $row);
