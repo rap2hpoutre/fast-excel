@@ -11,6 +11,22 @@ use Illuminate\Support\Collection;
  */
 trait Importable
 {
+    /**
+     * @var
+     */
+    protected $data;
+
+    /**
+     * @param $path
+     * @return mixed
+     */
+    abstract protected function getType($path);
+
+    /**
+     * @param $reader_or_writer
+     * @return mixed
+     */
+    abstract protected function setOptions(&$reader_or_writer);
 
     /**
      *

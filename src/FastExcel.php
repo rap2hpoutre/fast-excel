@@ -21,7 +21,7 @@ class FastExcel
     /**
      * @var
      */
-    private $data;
+    protected $data;
 
     /**
      * @var int
@@ -57,7 +57,7 @@ class FastExcel
      * @param $path
      * @return string
      */
-    private function getType($path)
+    protected function getType($path)
     {
         if (ends_with($path, Type::CSV)) {
             return Type::CSV;
@@ -104,7 +104,7 @@ class FastExcel
     /**
      * @param ReaderInterface|WriterInterface $reader_or_writer
      */
-    private function setOptions(&$reader_or_writer)
+    protected function setOptions(&$reader_or_writer)
     {
         if ($reader_or_writer instanceof CSVReader || $reader_or_writer instanceof CSVWriter) {
             $reader_or_writer->setFieldDelimiter($this->csv_configuration['delimiter']);
