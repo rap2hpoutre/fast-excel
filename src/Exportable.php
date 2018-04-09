@@ -17,6 +17,11 @@ trait Exportable
     protected $data;
 
     /**
+     * @var bool
+     */
+    private $with_header = true;
+
+    /**
      * @param string $path
      * @return mixed
      */
@@ -68,9 +73,11 @@ trait Exportable
         $this->setOptions($writer);
         $writer->$function($path);
         if ($this->data instanceof Collection) {
-            $first_row = $this->data->first();
-            $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
-            $writer->addRow($keys);
+            if ($this->with_header) {
+                $first_row = $this->data->first();
+                $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
+                $writer->addRow($keys);
+            }
             $writer->addRows($this->data->toArray());
         }
         $writer->close();

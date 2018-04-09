@@ -22,11 +22,6 @@ class FastExcel
     protected $data;
 
     /**
-     * @var int
-     */
-    private $sheet_number = 1;
-
-    /**
      * @var bool
      */
     private $with_header = true;
