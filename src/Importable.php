@@ -48,6 +48,7 @@ trait Importable
         $collection = [];
 
         $reader = ReaderFactory::create($this->getType($path));
+        /** @var \Box\Spout\Reader\ReaderInterface $writer */
         $this->setOptions($reader);
         $reader->open($path);
 

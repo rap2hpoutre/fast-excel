@@ -1,7 +1,6 @@
 <?php
 namespace Rap2hpoutre\FastExcel;
 
-
 use Box\Spout\Writer\WriterFactory;
 use Illuminate\Support\Collection;
 
@@ -70,6 +69,7 @@ trait Exportable
     private function exportOrDownload($path, $function)
     {
         $writer = WriterFactory::create($this->getType($path));
+        /** @var \Box\Spout\Writer\WriterInterface $writer */
         $this->setOptions($writer);
         $writer->$function($path);
         if ($this->data instanceof Collection) {
