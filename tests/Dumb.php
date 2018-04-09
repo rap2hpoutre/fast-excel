@@ -10,6 +10,8 @@ namespace Rap2hpoutre\FastExcel\Tests;
  */
 class Dumb
 {
+    public $data;
+
     /**
      * Dumb constructor.
      * @param $data
