@@ -34,46 +34,56 @@ trait Exportable
 
     /**
      * @param string $path
+     * @param callable|null $callback
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\InvalidArgumentException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
      * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
      */
-    public function export($path)
+    public function export($path, callable $callback = null)
     {
-        self::exportOrDownload($path, 'openToFile');
+        self::exportOrDownload($path, 'openToFile', $callback);
     }
 
     /**
      * @param $path
+     * @param callable|null $callback
      * @return string
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\InvalidArgumentException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
      * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
      */
-    public function download($path)
+    public function download($path, callable $callback = null)
     {
-        self::exportOrDownload($path, 'openToBrowser');
+        self::exportOrDownload($path, 'openToBrowser', $callback);
         return '';
     }
 
     /**
      * @param $path
      * @param string $function
+     * @param callable|null $callback
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\InvalidArgumentException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
      * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
      */
-    private function exportOrDownload($path, $function)
+    private function exportOrDownload($path, $function, callable $callback = null)
     {
         $writer = WriterFactory::create($this->getType($path));
         /** @var \Box\Spout\Writer\WriterInterface $writer */
         $this->setOptions($writer);
         $writer->$function($path);
         if ($this->data instanceof Collection) {
-            $this->prepareCollection();
+            // Prepare collection (i.e remove non-string) only if there is no callback
+            if (!$callback) {
+                $this->prepareCollection();
+            } else {
+                $this->data->transform(function ($value) use ($callback) {
+                    return $callback($value);
+                });
+            }
             // Add header row.
             if ($this->with_header) {
                 $first_row = $this->data->first();

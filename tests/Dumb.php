@@ -1,14 +1,15 @@
 <?php
 
-
 namespace Rap2hpoutre\FastExcel\Tests;
+
+use Illuminate\Database\Eloquent\Model;
 
 
 /**
  * Class Dumb
  * @package Rap2hpoutre\FastExcel\Tests
  */
-class Dumb
+class Dumb extends Model
 {
     public $data;
 
@@ -18,6 +19,7 @@ class Dumb
      */
     public function __construct($data)
     {
+        parent::__construct();
         $this->data = $data;
     }
 }

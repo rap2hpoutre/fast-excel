@@ -134,4 +134,25 @@ class FastExcelTest extends TestCase
         $this->assertEquals($this->collection(), (new FastExcel)->import(__DIR__ . '/test2.xlsx'));
         unlink(__DIR__ . '/test2.xlsx');
     }
+
+
+    /**
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\InvalidArgumentException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testExcelExportWithCallback()
+    {
+        (new FastExcel($this->collection()))->export(__DIR__ . '/test2.xlsx', function ($value) {
+            return [
+                'test' => $value['col1']
+            ];
+        });
+        $this->assertEquals(
+            collect([['test' => 'row1 col1'], ['test' => 'row2 col1'], ['test' => 'row3 col1']]),
+            (new FastExcel)->import(__DIR__ . '/test2.xlsx')
+        );
+    }
 }
