@@ -35,7 +35,7 @@ Use Fast Excel to import and export Excel files.
 
 ### Export
 
-You can export a Model or a **Collection**:
+Export a Model or a **Collection**:
 
 ```php
 $list = collect([
@@ -46,11 +46,10 @@ $list = collect([
 (new FastExcel($list))->export('file.xlsx');
 ```
 
-You can export `xlsx`, `ods` and `csv`:
+Export `xlsx`, `ods` and `csv`:
 
 ```php
 $invoices = App\Invoice::orderBy('created_at', 'DESC')->get();
-
 (new FastExcel($invoices))->export('invoices.csv');
 ```
 
@@ -105,8 +104,6 @@ Use it only for very simple tasks.
 
 > Tested on a MacBook Pro 2015 2,7 GHz Intel Core i5 16 Go 1867 MHz DDR3. 
 Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iterations, 2018-04-05. **Don't trust benchmarks.**
-
-
 
 |   | Average memory peak usage  | Execution time |
 |---|---|---|
