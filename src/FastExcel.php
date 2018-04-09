@@ -17,7 +17,7 @@ class FastExcel
     use Importable, Exportable;
 
     /**
-     * @var
+     * @var Collection
      */
     protected $data;
 

@@ -12,7 +12,7 @@ use Illuminate\Support\Collection;
 trait Exportable
 {
     /**
-     * @var
+     * @var Collection
      */
     protected $data;
 
@@ -73,6 +73,8 @@ trait Exportable
         $this->setOptions($writer);
         $writer->$function($path);
         if ($this->data instanceof Collection) {
+            $this->prepareCollection();
+            // Add header row.
             if ($this->with_header) {
                 $first_row = $this->data->first();
                 $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
@@ -81,6 +83,27 @@ trait Exportable
             $writer->addRows($this->data->toArray());
         }
         $writer->close();
+    }
+
+    /**
+     * Prepare collection by removing non string if required.
+     */
+    protected function prepareCollection()
+    {
+        $need_conversion = false;
+        $first_row = $this->data->first();
+        foreach($first_row as $item) {
+            if (!is_string($item)) {
+                $need_conversion = true;
+            }
+        }
+        if ($need_conversion) {
+            $this->data->transform(function($data) {
+                return collect($data)->filter(function ($value) {
+                   return is_string($value);
+                });
+            });
+        }
     }
 
 }

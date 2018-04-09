@@ -17,11 +17,6 @@ trait Importable
     private $sheet_number = 1;
 
     /**
-     * @var
-     */
-    protected $data;
-
-    /**
      * @var bool
      */
     private $with_header = true;

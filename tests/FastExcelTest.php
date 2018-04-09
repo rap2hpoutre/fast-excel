@@ -108,4 +108,22 @@ class FastExcelTest extends TestCase
             $collection
         );
     }
+
+    /**
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\InvalidArgumentException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testIssue11()
+    {
+        $original_collection = $this->collection()->map(function($v) {
+            return array_merge($v, ['test' => ['hello', 'hi']]);
+        });
+        (new FastExcel($original_collection))->export(__DIR__ . '/test2.xlsx');
+        $this->assertNotEquals($original_collection, (new FastExcel)->import(__DIR__ . '/test2.xlsx'));
+        $this->assertEquals($this->collection(), (new FastExcel)->import(__DIR__ . '/test2.xlsx'));
+        unlink(__DIR__ . '/test2.xlsx');
+    }
 }
