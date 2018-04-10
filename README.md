@@ -50,7 +50,7 @@ $invoices = App\Invoice::orderBy('created_at', 'DESC')->get();
 (new FastExcel($invoices))->export('invoices.csv');
 ```
 
-Export only some attributes and choose columns name:
+Export only some attributes specifying columns names:
 
 ```php
 (new FastExcel(User::all()))->export('users.csv', function ($user) {
@@ -70,7 +70,7 @@ Export only some attributes and choose columns name:
 $collection = (new FastExcel)->import('file.xlsx');
 ```
 
-Import a `csv` with a specific delimiter and enclosure characters.
+Import a `csv` with specific delimiter and enclosure characters.
 
 ```php
 $collection = (new FastExcel)->configureCsv(';', '#')->import('file.csv');
@@ -108,4 +108,4 @@ Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iteration
 | Laravel Fast Excel  | 2.09 M | 2.76 s |
 
 Still, remember that [Laravel Excel](https://laravel-excel.maatwebsite.nl/) **has many more feature.**
-Please help me improve benchmarks, more tests re coming. Feel free to criticize.
+Please help me improve benchmarks, more tests are coming. Feel free to criticize.
