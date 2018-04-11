@@ -1,9 +1,10 @@
 # Laravel Fast Excel
 
-[![Packagist](https://img.shields.io/packagist/v/rap2hpoutre/fast-excel.svg)]()
-[![Packagist](https://img.shields.io/packagist/l/rap2hpoutre/fast-excel.svg)](https://packagist.org/packages/rap2hpoutre/fast-excel)
+[![Version](https://poser.pugx.org/rap2hpoutre/fast-excel/version?format=flat)](https://packagist.org/packages/rap2hpoutre/fast-excel)
+[![License](https://poser.pugx.org/rap2hpoutre/fast-excel/license?format=flat)](https://packagist.org/packages/rap2hpoutre/fast-excel)
 [![Build Status](https://travis-ci.org/rap2hpoutre/fast-excel.svg?branch=master)](https://travis-ci.org/rap2hpoutre/fast-excel)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/rap2hpoutre/fast-excel/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/rap2hpoutre/fast-excel/?branch=master)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/4814d15bf1a545b99c90dc07917d7ec9)](https://www.codacy.com/app/rap2hpoutre/fast-excel?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rap2hpoutre/fast-excel&amp;utm_campaign=Badge_Grade)
 
 Fast Excel import/export for Laravel, thanks to [Spout](https://github.com/box/spout). 
 See [benchmarks](#benchmarks) below.
@@ -49,7 +50,7 @@ $invoices = App\Invoice::orderBy('created_at', 'DESC')->get();
 (new FastExcel($invoices))->export('invoices.csv');
 ```
 
-Export only some attributes and choose columns name:
+Export only some attributes specifying columns names:
 
 ```php
 (new FastExcel(User::all()))->export('users.csv', function ($user) {
@@ -69,7 +70,7 @@ Export only some attributes and choose columns name:
 $collection = (new FastExcel)->import('file.xlsx');
 ```
 
-Import a `csv` with a specific delimiter and enclosure characters.
+Import a `csv` with specific delimiter and enclosure characters.
 
 ```php
 $collection = (new FastExcel)->configureCsv(';', '#')->import('file.csv');
@@ -107,4 +108,4 @@ Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iteration
 | Laravel Fast Excel  | 2.09 M | 2.76 s |
 
 Still, remember that [Laravel Excel](https://laravel-excel.maatwebsite.nl/) **has many more feature.**
-Please help me improve benchmarks, more tests re coming. Feel free to criticize.
+Please help me improve benchmarks, more tests are coming. Feel free to criticize.
