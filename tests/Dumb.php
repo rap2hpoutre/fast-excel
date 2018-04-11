@@ -4,10 +4,8 @@ namespace Rap2hpoutre\FastExcel\Tests;
 
 use Illuminate\Database\Eloquent\Model;
 
-
 /**
- * Class Dumb
- * @package Rap2hpoutre\FastExcel\Tests
+ * Class Dumb.
  */
 class Dumb extends Model
 {
@@ -15,6 +13,7 @@ class Dumb extends Model
 
     /**
      * Dumb constructor.
+     *
      * @param $data
      */
     public function __construct($data)
