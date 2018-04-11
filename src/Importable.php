@@ -1,12 +1,12 @@
 <?php
-namespace Rap2hpoutre\FastExcel;
 
+namespace Rap2hpoutre\FastExcel;
 
 use Box\Spout\Reader\ReaderFactory;
 use Illuminate\Support\Collection;
 
 /**
- * Trait Importable
+ * Trait Importable.
  *
  * @property bool $with_header
  */
@@ -19,24 +19,27 @@ trait Importable
 
     /**
      * @param string $path
+     *
      * @return mixed
      */
     abstract protected function getType($path);
 
     /**
      * @param \Box\Spout\Reader\ReaderInterface|\Box\Spout\Writer\WriterInterface $reader_or_writer
+     *
      * @return mixed
      */
     abstract protected function setOptions(&$reader_or_writer);
 
     /**
-     *
-     * @param string $path
+     * @param string        $path
      * @param callable|null $callback
-     * @return Collection
+     *
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
      * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     *
+     * @return Collection
      */
     public function import($path, callable $callback = null)
     {
@@ -46,7 +49,7 @@ trait Importable
 
         $reader = ReaderFactory::create($this->getType($path));
         $this->setOptions($reader);
-        /** @var \Box\Spout\Reader\ReaderInterface $reader */
+        /* @var \Box\Spout\Reader\ReaderInterface $reader */
         $reader->open($path);
 
         foreach ($reader->getSheetIterator() as $key => $sheet) {
@@ -75,5 +78,4 @@ trait Importable
 
         return collect($collection);
     }
-
 }

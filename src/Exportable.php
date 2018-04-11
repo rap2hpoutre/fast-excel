@@ -1,33 +1,36 @@
 <?php
+
 namespace Rap2hpoutre\FastExcel;
 
 use Box\Spout\Writer\WriterFactory;
 use Illuminate\Support\Collection;
 
 /**
- * Trait Exportable
+ * Trait Exportable.
  *
  * @property bool $with_header
  * @property \Illuminate\Support\Collection $data
  */
 trait Exportable
 {
-
     /**
      * @param string $path
+     *
      * @return mixed
      */
     abstract protected function getType($path);
 
     /**
      * @param \Box\Spout\Reader\ReaderInterface|\Box\Spout\Writer\WriterInterface $reader_or_writer
+     *
      * @return mixed
      */
     abstract protected function setOptions(&$reader_or_writer);
 
     /**
-     * @param string $path
+     * @param string        $path
      * @param callable|null $callback
+     *
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\InvalidArgumentException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
@@ -41,22 +44,26 @@ trait Exportable
     /**
      * @param $path
      * @param callable|null $callback
-     * @return string
+     *
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\InvalidArgumentException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
      * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
+     *
+     * @return string
      */
     public function download($path, callable $callback = null)
     {
         self::exportOrDownload($path, 'openToBrowser', $callback);
+
         return '';
     }
 
     /**
      * @param $path
-     * @param string $function
+     * @param string        $function
      * @param callable|null $callback
+     *
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\InvalidArgumentException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
@@ -66,7 +73,7 @@ trait Exportable
     {
         $writer = WriterFactory::create($this->getType($path));
         $this->setOptions($writer);
-        /** @var \Box\Spout\Writer\WriterInterface $writer */
+        /* @var \Box\Spout\Writer\WriterInterface $writer */
         $writer->$function($path);
         if ($this->data instanceof Collection) {
             // Prepare collection (i.e remove non-string) only if there is no callback
@@ -95,18 +102,17 @@ trait Exportable
     {
         $need_conversion = false;
         $first_row = $this->data->first();
-        foreach($first_row as $item) {
+        foreach ($first_row as $item) {
             if (!is_string($item)) {
                 $need_conversion = true;
             }
         }
         if ($need_conversion) {
-            $this->data->transform(function($data) {
+            $this->data->transform(function ($data) {
                 return collect($data)->filter(function ($value) {
-                   return is_string($value);
+                    return is_string($value);
                 });
             });
         }
     }
-
 }
