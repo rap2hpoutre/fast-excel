@@ -7,7 +7,8 @@ use Illuminate\Support\Collection;
 
 /**
  * Trait Importable
- * @package Rap2hpoutre\FastExcel
+ *
+ * @property bool $with_header
  */
 trait Importable
 {
@@ -15,11 +16,6 @@ trait Importable
      * @var int
      */
     private $sheet_number = 1;
-
-    /**
-     * @var bool
-     */
-    private $with_header = true;
 
     /**
      * @param string $path

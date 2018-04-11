@@ -6,19 +6,12 @@ use Illuminate\Support\Collection;
 
 /**
  * Trait Exportable
- * @package Rap2hpoutre\FastExcel
+ *
+ * @property bool $with_header
+ * @property \Illuminate\Support\Collection $data
  */
 trait Exportable
 {
-    /**
-     * @var Collection
-     */
-    protected $data;
-
-    /**
-     * @var bool
-     */
-    private $with_header = true;
 
     /**
      * @param string $path
