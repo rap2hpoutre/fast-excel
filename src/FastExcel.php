@@ -1,16 +1,14 @@
 <?php
 
-
 namespace Rap2hpoutre\FastExcel;
 
+use Box\Spout\Common\Type;
 use Box\Spout\Reader\CSV\Reader as CSVReader;
 use Box\Spout\Writer\CSV\Writer as CSVWriter;
-use Box\Spout\Common\Type;
 use Illuminate\Support\Collection;
 
 /**
- * Class FastExcel
- * @package Rap2hpoutre\FastExcel
+ * Class FastExcel.
  */
 class FastExcel
 {
@@ -32,13 +30,14 @@ class FastExcel
     private $csv_configuration = [
         'delimiter' => ',',
         'enclosure' => '"',
-        'eol' => "\n",
-        'encoding' => 'UTF-8',
-        'bom' => true,
+        'eol'       => "\n",
+        'encoding'  => 'UTF-8',
+        'bom'       => true,
     ];
 
     /**
      * FastExcel constructor.
+     *
      * @param Collection $data
      */
     public function __construct($data = null)
@@ -48,6 +47,7 @@ class FastExcel
 
     /**
      * @param $path
+     *
      * @return string
      */
     protected function getType($path)
@@ -63,11 +63,13 @@ class FastExcel
 
     /**
      * @param $sheet_number
+     *
      * @return $this
      */
     public function sheet($sheet_number)
     {
         $this->sheet_number = $sheet_number;
+
         return $this;
     }
 
@@ -77,6 +79,7 @@ class FastExcel
     public function withoutHeaders()
     {
         $this->with_header = false;
+
         return $this;
     }
 
@@ -85,12 +88,14 @@ class FastExcel
      * @param string $enclosure
      * @param string $eol
      * @param string $encoding
-     * @param bool $bom
+     * @param bool   $bom
+     *
      * @return $this
      */
     public function configureCsv($delimiter, $enclosure = '"', $eol = "\n", $encoding = 'UTF-8', $bom = false)
     {
         $this->csv_configuration = compact('delimiter', 'enclosure', 'eol', 'encoding', 'bom');
+
         return $this;
     }
 
