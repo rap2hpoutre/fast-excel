@@ -1,6 +1,7 @@
 <?php
 namespace Rap2hpoutre\FastExcel\Tests;
 
+use Illuminate\Support\Collection;
 use PHPUnit\Framework\TestCase;
 use Rap2hpoutre\FastExcel\FastExcel;
 
@@ -155,5 +156,16 @@ class FastExcelTest extends TestCase
             (new FastExcel)->import(__DIR__ . '/test2.xlsx')
         );
         unlink(__DIR__ . '/test2.xlsx');
+    }
+
+    /**
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testIssue18()
+    {
+        $collection = (new FastExcel)->import(__DIR__ . '/test18.csv');
+        $this->assertInstanceOf(Collection::class, $collection);
     }
 }
