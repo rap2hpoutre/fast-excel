@@ -28,9 +28,9 @@ trait Exportable
     abstract protected function setOptions(&$reader_or_writer);
 
     /**
-     * @param string        $path
+     * @param string $path
      * @param callable|null $callback
-     *
+     * @return string
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\InvalidArgumentException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
@@ -39,6 +39,7 @@ trait Exportable
     public function export($path, callable $callback = null)
     {
         self::exportOrDownload($path, 'openToFile', $callback);
+        return realpath($path) ?: $path;
     }
 
     /**
