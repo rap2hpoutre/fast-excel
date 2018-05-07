@@ -162,7 +162,7 @@ class FastExcelTest extends TestCase
      */
     public function testIssue18()
     {
-        $collection = (new FastExcel)->import(__DIR__ . '/test18.csv');
+        $collection = (new FastExcel())->import(__DIR__.'/test18.csv');
         $this->assertInstanceOf(Collection::class, $collection);
     }
 
@@ -177,7 +177,7 @@ class FastExcelTest extends TestCase
     {
         chdir(__DIR__);
         $path = (new FastExcel($this->collection()))->export('test2.xlsx');
-        $this->assertEquals(__DIR__ . '/test2.xlsx', $path);
+        $this->assertEquals(__DIR__.'/test2.xlsx', $path);
         unlink($path);
     }
 }
