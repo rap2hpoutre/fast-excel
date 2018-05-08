@@ -62,6 +62,12 @@ Export only some attributes specifying columns names:
 });
 ```
 
+Download (from a controller method)
+
+```php
+return (new FastExcel(User::all()))->download('file.xlsx');
+```
+
 ## Import
 
 `import` returns a Collection:
