@@ -9,7 +9,6 @@ use Rap2hpoutre\FastExcel\FastExcel;
  */
 class FastExcelTest extends TestCase
 {
-
     /**
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
@@ -123,5 +122,4 @@ class FastExcelTest extends TestCase
         );
         unlink(__DIR__.'/test2.xlsx');
     }
-
 }
