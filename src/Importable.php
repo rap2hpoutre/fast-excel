@@ -32,6 +32,68 @@ trait Importable
     abstract protected function setOptions(&$reader_or_writer);
 
     /**
+     * @param string $path
+     * @param callable|null $rowCallback
+     * @param callable|null $filterSheetsCallback: boolean
+     * @param callable|null $sheetsCallback
+     *
+     * @return Collection of Collections (= Sheets) of their respective Row objects
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function import($path, callable $rowCallback = null, callable $filterSheetsCallback = null, callable $sheetsCallback = null)
+    {
+        /**
+         * TODO: consider dropping the hardcoded $sheet_number variable.
+         */
+        $sheets = $this->importSheets($path, $sheetsCallback)
+            ->filter(function($sheet, $key) use ($filterSheetsCallback)
+            {
+                if(!is_null($filterSheetsCallback))
+                {
+                    return $filterSheetsCallback($sheet, $key);
+                }
+                return $this->sheet_number == $key;
+            })
+            ->map(function(&$sheet, $key) use ($rowCallback)
+            {
+                $headers = [];
+                $collection = [];
+                $count_header = 0;
+
+                if($this->with_header)
+                {
+                    foreach($sheet->getRowIterator() as $k => $row)
+                    {
+                        if($k == 1)
+                        {
+                            $headers = $row;
+                            $count_header = count($headers);
+                            continue;
+                        }
+                        if($count_header > $count_row = count($row))
+                        {
+                            $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
+                        }
+                        $collection[] = $rowCallback ? $rowCallback(array_combine($headers, $row)) : array_combine($headers, $row);
+                    }
+                }
+                else
+                {
+                    foreach($sheet->getRowIterator() as $row)
+                    {
+                        $collection[] = $row;
+                    }
+                }
+
+                return collect($collection);
+            });
+
+        return $sheets;
+    }
+
+    /**
      * @param string        $path
      * @param callable|null $callback
      *
@@ -39,43 +101,56 @@ trait Importable
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
      * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
      *
-     * @return Collection
+     * @return Collection of \Box\Spout\Reader\SheetInterface instances
      */
-    public function import($path, callable $callback = null)
+    public function importSheets($path, callable $callback = null)
     {
-        $headers = [];
-        $collection = [];
-        $count_header = 0;
+        $sheets = collect();
 
-        $reader = ReaderFactory::create($this->getType($path));
-        $this->setOptions($reader);
-        /* @var \Box\Spout\Reader\ReaderInterface $reader */
-        $reader->open($path);
+        $reader = $this->openReader($path);
 
         foreach ($reader->getSheetIterator() as $key => $sheet) {
-            if ($this->sheet_number != $key) {
+            if($callback)
+            {
+                $sheets->put($key, $callback($key, $sheet));
                 continue;
             }
-            if ($this->with_header) {
-                foreach ($sheet->getRowIterator() as $k => $row) {
-                    if ($k == 1) {
-                        $headers = $row;
-                        $count_header = count($headers);
-                        continue;
-                    }
-                    if ($count_header > $count_row = count($row)) {
-                        $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
-                    }
-                    $collection[] = $callback ? $callback(array_combine($headers, $row)) : array_combine($headers, $row);
-                }
-            } else {
-                foreach ($sheet->getRowIterator() as $row) {
-                    $collection[] = $row;
-                }
-            }
+            $sheets->put($key, $sheet);
         }
-        $reader->close();
 
-        return collect($collection);
+        /**
+         * Attempting to close the reader within this extracted method will later cause the application to crash
+         * with an ErrorException once the sheets' rows are supposed to be iterated.
+         *
+         *      Undefined property: Box\Spout\Reader\XLSX\Helper\SharedStringsCaching\InMemoryStrategy::$inMemoryCache
+         *      at /var/www/vendor/box/spout/src/Spout/Reader/XLSX/Helper/SharedStringsCaching/InMemoryStrategy.php:67
+         *
+         * This happens because when we close the reader, the static ReaderFactory class unsets that variable after
+         * closing it. Unfortunately, there is no way to somehow globally retain this Reader instance unless it's being
+         * refactored into FastExcel.class (which it should, IMO). Hence, we're producing a potential memory leak here
+         * but we should not be copy-pasting the openReader() code everywhere.
+         *
+         * TODO: find a suitable place for this:
+         * $reader->close();
+         */
+
+        return $sheets;
+    }
+
+
+    /**
+     * @param $path
+     * @return \Box\Spout\Reader\ReaderInterface $reader
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     */
+    private function openReader($path)
+    {
+        $reader = ReaderFactory::create($this->getType($path));
+        $this->setOptions($reader);
+
+        $reader->open($path);
+
+        return $reader;
     }
 }
