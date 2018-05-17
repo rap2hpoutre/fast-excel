@@ -1,4 +1,6 @@
-# Laravel Fast Excel
+<p align="center">
+<img src="https://user-images.githubusercontent.com/36028424/40173202-9a03d68a-5a03-11e8-9968-6b7e3b4f8a1b.png">
+</p>
 
 [![Version](https://poser.pugx.org/rap2hpoutre/fast-excel/version?format=flat)](https://packagist.org/packages/rap2hpoutre/fast-excel)
 [![License](https://poser.pugx.org/rap2hpoutre/fast-excel/license?format=flat)](https://packagist.org/packages/rap2hpoutre/fast-excel)
@@ -95,7 +97,7 @@ $users = (new FastExcel)->import('file.xlsx', function ($line) {
 
 ## Why?
 
-Laravel Fast Excel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout): 
+FastExcel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout): 
 a simple, but elegant wrapper around [Spout](https://github.com/box/spout) with the goal 
 of simplifying **imports and exports**. 
 
@@ -111,7 +113,7 @@ Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iteration
 |   | Average memory peak usage  | Execution time |
 |---|---|---|
 | Laravel Excel  | 123.56 M  | 11.56 s |
-| Laravel Fast Excel  | 2.09 M | 2.76 s |
+| FastExcel  | 2.09 M | 2.76 s |
 
 Still, remember that [Laravel Excel](https://laravel-excel.maatwebsite.nl/) **has many more feature.**
 Please help me improve benchmarks, more tests are coming. Feel free to criticize.
