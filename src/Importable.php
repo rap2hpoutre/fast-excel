@@ -58,7 +58,7 @@ trait Importable
                 }
                 return $this->sheet_number == $key;
             })
-            ->map(function(&$sheet, $key) use ($rowCallback)
+            ->map(function($sheet, $key) use ($rowCallback)
             {
                 $headers = [];
                 $collection = [];
@@ -89,7 +89,10 @@ trait Importable
                     }
                 }
 
-                return collect($collection);
+                $sheet->sheetName = $sheet->getName();
+                $sheet->sheetData = collect($collection);
+
+                return $sheet;
             });
 
         $reader->close();
@@ -114,6 +117,7 @@ trait Importable
         $tempReader = $reader ?: $this->openReader($path);
 
         foreach ($tempReader->getSheetIterator() as $key => $sheet) {
+
             if($callback)
             {
                 $sheets->put($key, $callback($key, $sheet));
