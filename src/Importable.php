@@ -3,6 +3,7 @@
 namespace Rap2hpoutre\FastExcel;
 
 use Box\Spout\Reader\ReaderFactory;
+use Box\Spout\Reader\ReaderInterface;
 use Illuminate\Support\Collection;
 
 /**
@@ -44,10 +45,11 @@ trait Importable
      */
     public function import($path, callable $rowCallback = null, callable $filterSheetsCallback = null, callable $sheetsCallback = null)
     {
+        $reader = $this->openReader($path);
         /**
          * TODO: consider dropping the hardcoded $sheet_number variable.
          */
-        $sheets = $this->importSheets($path, $sheetsCallback)
+        $sheets = $this->importSheets($path, $sheetsCallback, $reader)
             ->filter(function($sheet, $key) use ($filterSheetsCallback)
             {
                 if(!is_null($filterSheetsCallback))
@@ -90,26 +92,28 @@ trait Importable
                 return collect($collection);
             });
 
+        $reader->close();
+
         return $sheets;
     }
 
     /**
-     * @param string        $path
+     * @param string $path
      * @param callable|null $callback
+     * @param ReaderInterface $reader
      *
+     * @return Collection of \Box\Spout\Reader\SheetInterface instances
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
      * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
-     *
-     * @return Collection of \Box\Spout\Reader\SheetInterface instances
      */
-    public function importSheets($path, callable $callback = null)
+    public function importSheets($path, callable $callback = null, ReaderInterface $reader = null)
     {
         $sheets = collect();
 
-        $reader = $this->openReader($path);
+        $tempReader = $reader ?: $this->openReader($path);
 
-        foreach ($reader->getSheetIterator() as $key => $sheet) {
+        foreach ($tempReader->getSheetIterator() as $key => $sheet) {
             if($callback)
             {
                 $sheets->put($key, $callback($key, $sheet));
@@ -119,20 +123,12 @@ trait Importable
         }
 
         /**
-         * Attempting to close the reader within this extracted method will later cause the application to crash
-         * with an ErrorException once the sheets' rows are supposed to be iterated.
-         *
-         *      Undefined property: Box\Spout\Reader\XLSX\Helper\SharedStringsCaching\InMemoryStrategy::$inMemoryCache
-         *      at /var/www/vendor/box/spout/src/Spout/Reader/XLSX/Helper/SharedStringsCaching/InMemoryStrategy.php:67
-         *
-         * This happens because when we close the reader, the static ReaderFactory class unsets that variable after
-         * closing it. Unfortunately, there is no way to somehow globally retain this Reader instance unless it's being
-         * refactored into FastExcel.class (which it should, IMO). Hence, we're producing a potential memory leak here
-         * but we should not be copy-pasting the openReader() code everywhere.
-         *
-         * TODO: find a suitable place for this:
-         * $reader->close();
+         * If the following condition is met, the reader was not passed but instantiated locally and needs to be closed.
          */
+        if(is_null($reader))
+        {
+            $tempReader->close();
+        }
 
         return $sheets;
     }
