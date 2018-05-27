@@ -80,14 +80,14 @@ trait Exportable
         /* @var \Box\Spout\Writer\WriterInterface $writer */
         $writer->$function($path);
         if ($this->data instanceof Collection) {
-            // Prepare collection (i.e remove non-string) only if there is no callback
-            if (!$callback) {
-                $this->prepareCollection();
-            } else {
+            // Apply callback
+            if ($callback) {
                 $this->data->transform(function ($value) use ($callback) {
                     return $callback($value);
                 });
             }
+            // Prepare collection (i.e remove non-string)
+            $this->prepareCollection();
             // Add header row.
             if ($this->with_header) {
                 $first_row = $this->data->first();
@@ -113,7 +113,9 @@ trait Exportable
         }
         if ($need_conversion) {
             $this->data->transform(function ($data) {
-                return collect($data)->filter(function ($value) {
+                return collect($data)->map(function ($value) {
+                    return is_int($value) || is_double($value) ? (string)$value : $value;
+                })->filter(function ($value) {
                     return is_string($value);
                 });
             });
