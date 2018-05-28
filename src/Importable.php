@@ -62,11 +62,11 @@ trait Importable
 
     /**
      * @param SheetInterface $sheet
-     * @param callable       $callback
+     * @param callable|null  $callback
      *
      * @return array
      */
-    private function importSheet(SheetInterface $sheet, $callback)
+    private function importSheet(SheetInterface $sheet, callable $callback = null)
     {
         $headers = [];
         $collection = [];
