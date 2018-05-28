@@ -62,7 +62,7 @@ trait Importable
 
     /**
      * @param SheetInterface $sheet
-     * @param callable $callback
+     * @param callable       $callback
      *
      * @return array
      */
@@ -89,6 +89,7 @@ trait Importable
                 $collection[] = $row;
             }
         }
+
         return $collection;
     }
 }
