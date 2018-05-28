@@ -16,7 +16,7 @@ trait Exportable
     /**
      * @param string $path
      *
-     * @return mixed
+     * @return string
      */
     abstract protected function getType($path);
 
