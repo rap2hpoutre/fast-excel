@@ -28,7 +28,7 @@ trait Exportable
     abstract protected function setOptions(&$reader_or_writer);
 
     /**
-     * @param string        $path
+     * @param string $path
      * @param callable|null $callback
      *
      * @throws \Box\Spout\Common\Exception\IOException
@@ -65,7 +65,7 @@ trait Exportable
 
     /**
      * @param $path
-     * @param string        $function
+     * @param string $function
      * @param callable|null $callback
      *
      * @throws \Box\Spout\Common\Exception\IOException
@@ -106,19 +106,32 @@ trait Exportable
     {
         $need_conversion = false;
         $first_row = $this->data->first();
+
+        if (!$first_row) {
+            return;
+        }
+
         foreach ($first_row as $item) {
             if (!is_string($item)) {
                 $need_conversion = true;
             }
         }
         if ($need_conversion) {
-            $this->data->transform(function ($data) {
-                return collect($data)->map(function ($value) {
-                    return is_int($value) || is_float($value) ? (string) $value : $value;
-                })->filter(function ($value) {
-                    return is_string($value);
-                });
-            });
+            $this->transform();
         }
+    }
+
+    /**
+     * Transform the collection
+     */
+    private function transform()
+    {
+        $this->data->transform(function ($data) {
+            return collect($data)->map(function ($value) {
+                return is_int($value) || is_float($value) ? (string)$value : $value;
+            })->filter(function ($value) {
+                return is_string($value);
+            });
+        });
     }
 }

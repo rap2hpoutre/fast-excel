@@ -68,4 +68,22 @@ class IssuesTest extends TestCase
         $this->assertEquals(collect([['a' => '1', 'b' => 'n', 'c' => '1.32']]), (new FastExcel())->import(__DIR__.'/test2.xlsx'));
         unlink($path);
     }
+
+    /**
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\InvalidArgumentException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testIssue26()
+    {
+        chdir(__DIR__);
+        foreach([ [[]], null, [null] ] as $value) {
+            $path = (new FastExcel($value))->export('test2.xlsx');
+            $this->assertEquals(collect([]), (new FastExcel())->import(__DIR__.'/test2.xlsx'));
+            unlink($path);
+        }
+
+    }
 }
