@@ -81,6 +81,8 @@ trait Importable
                 }
                 if ($count_header > $count_row = count($row)) {
                     $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
+                } elseif ($count_header < $count_row = count($row)) {
+                    $row = array_slice($row, 0, $count_header);
                 }
                 $collection[] = $callback ? $callback(array_combine($headers, $row)) : array_combine($headers, $row);
             }
