@@ -1,7 +1,7 @@
 <?php
 
 /*SheetCollection class*/
-public class SheetCollection extends Collection 
+class SheetCollection extends Collection 
 {
   
 }
