@@ -47,7 +47,7 @@ class FastExcelTest extends TestCase
     {
         $original_collection = $this->collection();
 
-        (new FastExcel($original_collection))->export($file);
+        (new FastExcel(clone $original_collection))->export($file);
         $this->assertEquals($original_collection, (new FastExcel())->import($file));
         unlink($file);
     }
@@ -111,7 +111,7 @@ class FastExcelTest extends TestCase
      */
     public function testExcelExportWithCallback()
     {
-        (new FastExcel($this->collection()))->export(__DIR__.'/test2.xlsx', function ($value) {
+        (new FastExcel(clone $this->collection()))->export(__DIR__.'/test2.xlsx', function ($value) {
             return [
                 'test' => $value['col1'],
             ];

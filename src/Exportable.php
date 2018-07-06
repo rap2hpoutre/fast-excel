@@ -128,7 +128,7 @@ trait Exportable
     {
         $this->data->transform(function ($data) {
             return collect($data)->map(function ($value) {
-                return is_int($value) || is_float($value) ? (string) $value : $value;
+                return is_int($value) || is_float($value) || is_null($value) ? (string) $value : $value;
             })->filter(function ($value) {
                 return is_string($value);
             });
