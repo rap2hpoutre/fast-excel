@@ -1,5 +1,4 @@
 <?php
-class SheetCollection extends Collection 
-{  
+class SheetCollection extends Collection
+{
 }
-
