@@ -99,14 +99,28 @@ $users = (new FastExcel)->import('file.xlsx', function ($line) {
 
 ### Export multiple sheets
 
-You can export multiple sheets by creating a `SheetCollection`:
+Export multiple sheets by creating a `SheetCollection`:
 
 ```php
 $sheets = new SheetCollection([
     User::all(), 
     Project::all()
 ]);
-$filename = FastExcel::collect($sheets)->export('users.xlsx');
+(new FastExcel($sheets))->export('file.xlsx');
+```
+
+### Import multiple sheets
+
+Import multiple sheets by using `importSheets`:
+
+```php
+$sheets = (new FastExcel)->importSheets('file.xlsx');
+```
+
+You can also import a specific sheet by its number:
+
+```php
+$users = (new FastExcel)->sheet(3)->import('file.xlsx');
 ```
 
 ## Why?
