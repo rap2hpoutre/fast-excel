@@ -80,7 +80,6 @@ trait Importable
         return new SheetCollection($collections);
     }
 
-
     /**
      * @param $path
      *
@@ -95,6 +94,7 @@ trait Importable
         $this->setOptions($reader);
         /* @var \Box\Spout\Reader\ReaderInterface $reader */
         $reader->open($path);
+
         return $reader;
     }
 
