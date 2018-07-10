@@ -44,10 +44,7 @@ trait Importable
      */
     public function import($path, callable $callback = null)
     {
-        $reader = ReaderFactory::create($this->getType($path));
-        $this->setOptions($reader);
-        /* @var \Box\Spout\Reader\ReaderInterface $reader */
-        $reader->open($path);
+        $reader = $this->reader($path);
 
         foreach ($reader->getSheetIterator() as $key => $sheet) {
             if ($this->sheet_number != $key) {
@@ -58,6 +55,47 @@ trait Importable
         $reader->close();
 
         return collect($collection ?? []);
+    }
+
+    /**
+     * @param string        $path
+     * @param callable|null $callback
+     *
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     *
+     * @return Collection
+     */
+    public function importSheets($path, callable $callback = null)
+    {
+        $reader = $this->reader($path);
+
+        $collections = [];
+        foreach ($reader->getSheetIterator() as $key => $sheet) {
+            $collections[] = $this->importSheet($sheet, $callback);
+        }
+        $reader->close();
+
+        return new SheetCollection($collections);
+    }
+
+
+    /**
+     * @param $path
+     *
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     *
+     * @return \Box\Spout\Reader\ReaderInterface
+     */
+    private function reader($path)
+    {
+        $reader = ReaderFactory::create($this->getType($path));
+        $this->setOptions($reader);
+        /* @var \Box\Spout\Reader\ReaderInterface $reader */
+        $reader->open($path);
+        return $reader;
     }
 
     /**

@@ -139,4 +139,31 @@ class FastExcelTest extends TestCase
         $this->assertEquals($this->collection(), (new FastExcel())->import($file));
         unlink($file);
     }
+
+    /**
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\InvalidArgumentException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testImportMultiSheetXLSX()
+    {
+        $collections = [
+            collect([['test' => 'row1 col1'], ['test' => 'row2 col1'], ['test' => 'row3 col1']]),
+            $this->collection()
+        ];
+        $file = __DIR__.'/test_multi_sheets.xlsx';
+        $sheets = new SheetCollection($collections);
+        (new FastExcel($sheets))->export($file);
+
+        $sheets = (new FastExcel())->importSheets($file);
+        $this->assertInstanceOf(SheetCollection::class, $sheets);
+
+        $this->assertEquals($collections[0], collect($sheets->first()));
+        $this->assertEquals($collections[1], collect($sheets->all()[1]));
+
+        unlink($file);
+
+    }
 }
