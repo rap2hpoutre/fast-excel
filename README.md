@@ -95,6 +95,20 @@ $users = (new FastExcel)->import('file.xlsx', function ($line) {
 });
 ```
 
+## Advanced usage
+
+### Export multiple sheets
+
+You can export multiple sheets by creating a `SheetCollection`:
+
+```php
+$sheets = new SheetCollection([
+    User::all(), 
+    Project::all()
+]);
+$filename = FastExcel::collect($sheets)->export('users.xlsx');
+```
+
 ## Why?
 
 FastExcel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout): 
