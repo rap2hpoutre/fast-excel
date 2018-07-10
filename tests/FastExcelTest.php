@@ -3,6 +3,7 @@
 namespace Rap2hpoutre\FastExcel\Tests;
 
 use Rap2hpoutre\FastExcel\FastExcel;
+use Rap2hpoutre\FastExcel\SheetCollection;
 
 /**
  * Class FastExcelTest.
@@ -121,5 +122,21 @@ class FastExcelTest extends TestCase
             (new FastExcel())->import(__DIR__.'/test2.xlsx')
         );
         unlink(__DIR__.'/test2.xlsx');
+    }
+
+    /**
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\InvalidArgumentException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testExportMultiSheetXLSX()
+    {
+        $file = __DIR__.'/test_multi_sheets.xlsx';
+        $sheets = new SheetCollection([clone $this->collection(), clone $this->collection()]);
+        (new FastExcel($sheets))->export($file);
+        $this->assertEquals($this->collection(), (new FastExcel())->import($file));
+        unlink($file);
     }
 }

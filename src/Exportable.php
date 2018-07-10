@@ -65,13 +65,14 @@ trait Exportable
 
     /**
      * @param $path
-     * @param string        $function
+     * @param string $function
      * @param callable|null $callback
      *
      * @throws \Box\Spout\Common\Exception\IOException
      * @throws \Box\Spout\Common\Exception\InvalidArgumentException
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
      * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
+     * @throws \Box\Spout\Common\Exception\SpoutException
      */
     private function exportOrDownload($path, $function, callable $callback = null)
     {
@@ -79,22 +80,37 @@ trait Exportable
         $this->setOptions($writer);
         /* @var \Box\Spout\Writer\WriterInterface $writer */
         $writer->$function($path);
-        if ($this->data instanceof Collection) {
-            // Apply callback
-            if ($callback) {
-                $this->data->transform(function ($value) use ($callback) {
-                    return $callback($value);
-                });
+
+        $is_multi_sheet_writer = ($writer instanceof \Box\Spout\Writer\XLSX\Writer || $writer instanceof \Box\Spout\Writer\ODS\Writer);
+
+        // It can export one sheet (Collection) or N sheets (SheetCollection)
+        if ($this->data instanceof SheetCollection) {
+            $data = $this->data;
+        } else {
+            $data = collect([$this->data]);
+        }
+
+        foreach ($data as $key => $collection) {
+            if ($collection instanceof Collection) {
+                // Apply callback
+                if ($callback) {
+                    $collection->transform(function ($value) use ($callback) {
+                        return $callback($value);
+                    });
+                }
+                // Prepare collection (i.e remove non-string)
+                $this->prepareCollection();
+                // Add header row.
+                if ($this->with_header) {
+                    $first_row = $collection->first();
+                    $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
+                    $writer->addRow($keys);
+                }
+                $writer->addRows($collection->toArray());
             }
-            // Prepare collection (i.e remove non-string)
-            $this->prepareCollection();
-            // Add header row.
-            if ($this->with_header) {
-                $first_row = $this->data->first();
-                $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
-                $writer->addRow($keys);
+            if ($is_multi_sheet_writer && $data->keys()->last() !== $key) {
+                $writer->addNewSheetAndMakeItCurrent();
             }
-            $writer->addRows($this->data->toArray());
         }
         $writer->close();
     }
