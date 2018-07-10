@@ -151,7 +151,7 @@ class FastExcelTest extends TestCase
     {
         $collections = [
             collect([['test' => 'row1 col1'], ['test' => 'row2 col1'], ['test' => 'row3 col1']]),
-            $this->collection()
+            $this->collection(),
         ];
         $file = __DIR__.'/test_multi_sheets.xlsx';
         $sheets = new SheetCollection($collections);
@@ -164,6 +164,5 @@ class FastExcelTest extends TestCase
         $this->assertEquals($collections[1], collect($sheets->all()[1]));
 
         unlink($file);
-
     }
 }
