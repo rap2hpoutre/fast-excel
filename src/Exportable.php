@@ -65,7 +65,7 @@ trait Exportable
 
     /**
      * @param $path
-     * @param string $function
+     * @param string        $function
      * @param callable|null $callback
      *
      * @throws \Box\Spout\Common\Exception\IOException
