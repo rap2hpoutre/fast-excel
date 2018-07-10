@@ -81,14 +81,10 @@ trait Exportable
         /* @var \Box\Spout\Writer\WriterInterface $writer */
         $writer->$function($path);
 
-        $is_multi_sheet_writer = ($writer instanceof \Box\Spout\Writer\XLSX\Writer || $writer instanceof \Box\Spout\Writer\ODS\Writer);
+        $has_sheets = ($writer instanceof \Box\Spout\Writer\XLSX\Writer || $writer instanceof \Box\Spout\Writer\ODS\Writer);
 
         // It can export one sheet (Collection) or N sheets (SheetCollection)
-        if ($this->data instanceof SheetCollection) {
-            $data = $this->data;
-        } else {
-            $data = collect([$this->data]);
-        }
+        $data = $this->data instanceof SheetCollection ? $this->data : collect([$this->data]);
 
         foreach ($data as $key => $collection) {
             if ($collection instanceof Collection) {
@@ -108,7 +104,7 @@ trait Exportable
                 }
                 $writer->addRows($collection->toArray());
             }
-            if ($is_multi_sheet_writer && $data->keys()->last() !== $key) {
+            if ($has_sheets && $data->keys()->last() !== $key) {
                 $writer->addNewSheetAndMakeItCurrent();
             }
         }
