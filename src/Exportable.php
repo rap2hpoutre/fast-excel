@@ -54,12 +54,17 @@ trait Exportable
      * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
      * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
      *
-     * @return string
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse|string
      */
     public function download($path, callable $callback = null)
     {
+        if (method_exists(response(), 'streamDownload')) {
+            return response()->streamDownload(function() {
+                self::exportOrDownload($path, 'openToBrowser', $callback);
+            });
+        }
         self::exportOrDownload($path, 'openToBrowser', $callback);
-
+        
         return '';
     }
 
