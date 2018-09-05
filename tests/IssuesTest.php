@@ -123,12 +123,12 @@ class IssuesTest extends TestCase
      */
     public function testIssue40()
     {
-        $c = new SheetCollection(['1st Sheet' => $this->collection(), '2nd Sheet' => $this->collection()]);
-        (new FastExcel($c))->export(__DIR__.'/test2.xlsx');
+        $col = new SheetCollection(['1st Sheet' => $this->collection(), '2nd Sheet' => $this->collection()]);
+        (new FastExcel($col))->export(__DIR__.'/test2.xlsx');
         $reader = ReaderFactory::create(Type::XLSX);
         $reader->open(__DIR__.'/test2.xlsx');
-        foreach ($reader->getSheetIterator() as $k => $sheet) {
-            $this->assertEquals($sheet->getName(), $k === 2 ? '2nd Sheet' : '1st Sheet');
+        foreach ($reader->getSheetIterator() as $key => $sheet) {
+            $this->assertEquals($sheet->getName(), $key === 2 ? '2nd Sheet' : '1st Sheet');
         }
         $reader->close();
         unlink(__DIR__.'/test2.xlsx');
