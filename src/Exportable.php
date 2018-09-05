@@ -109,6 +109,9 @@ trait Exportable
                 }
                 $writer->addRows($collection->toArray());
             }
+            if (is_string($key)) {
+                $writer->getCurrentSheet()->setName($key);
+            }
             if ($has_sheets && $data->keys()->last() !== $key) {
                 $writer->addNewSheetAndMakeItCurrent();
             }

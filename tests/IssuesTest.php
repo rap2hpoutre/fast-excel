@@ -2,8 +2,11 @@
 
 namespace Rap2hpoutre\FastExcel\Tests;
 
+use Box\Spout\Common\Type;
+use Box\Spout\Reader\ReaderFactory;
 use Illuminate\Support\Collection;
 use Rap2hpoutre\FastExcel\FastExcel;
+use Rap2hpoutre\FastExcel\SheetCollection;
 
 /**
  * Class IssuesTest.
@@ -108,6 +111,26 @@ class IssuesTest extends TestCase
         (new FastExcel(clone $original_collection))->export(__DIR__.'/test2.xlsx');
         $res = (new FastExcel())->import(__DIR__.'/test2.xlsx');
         $this->assertEquals($original_collection[1], $res[1]);
+        unlink(__DIR__.'/test2.xlsx');
+    }
+
+    /**
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\InvalidArgumentException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testIssue40()
+    {
+        $c = new SheetCollection(['1st Sheet' => $this->collection(), '2nd Sheet' => $this->collection()]);
+        (new FastExcel($c))->export(__DIR__.'/test2.xlsx');
+        $reader = ReaderFactory::create(Type::XLSX);
+        $reader->open(__DIR__.'/test2.xlsx');
+        foreach ($reader->getSheetIterator() as $k => $sheet) {
+            $this->assertEquals($sheet->getName(), $k === 2 ? '2nd Sheet' : '1st Sheet');
+        }
+        $reader->close();
         unlink(__DIR__.'/test2.xlsx');
     }
 }
