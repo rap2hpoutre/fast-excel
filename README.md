@@ -110,6 +110,14 @@ $sheets = new SheetCollection([
 (new FastExcel($sheets))->export('file.xlsx');
 ```
 
+Use index to specify sheet name:
+```php
+$sheets = new SheetCollection([
+    'Users' => User::all(), 
+    'Second sheet' => Project::all()
+]);
+```
+
 ### Import multiple sheets
 
 Import multiple sheets by using `importSheets`:
