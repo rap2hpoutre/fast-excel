@@ -92,7 +92,7 @@ class FastExcel
      *
      * @return $this
      */
-    public function configureCsv($delimiter, $enclosure = '"', $eol = "\n", $encoding = 'UTF-8', $bom = false)
+    public function configureCsv($delimiter = ',', $enclosure = '"', $eol = "\n", $encoding = 'UTF-8', $bom = false)
     {
         $this->csv_configuration = compact('delimiter', 'enclosure', 'eol', 'encoding', 'bom');
 
