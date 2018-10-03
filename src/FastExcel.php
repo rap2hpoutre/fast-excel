@@ -55,6 +55,7 @@ class FastExcel
     public function data($data)
     {
         $this->data = $data;
+
         return $this;
     }
 
