@@ -46,7 +46,7 @@ class FastExcel
     }
 
     /**
-     * Manually set data apart from the constructor
+     * Manually set data apart from the constructor.
      *
      * @param Collection $data
      *

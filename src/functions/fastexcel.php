@@ -8,9 +8,9 @@ if (!function_exists('fastexcel')) {
      */
     function fastexcel($data = null)
     {
-    	if (is_object($data) && method_exists($data, 'toArray')) {
-    		$data = $data->toArray();
-    	}
+        if (is_object($data) && method_exists($data, 'toArray')) {
+    	    $data = $data->toArray();
+        }
 
         return app()->makeWith('fastexcel', $data);
     }
