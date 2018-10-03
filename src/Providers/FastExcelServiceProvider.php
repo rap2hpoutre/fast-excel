@@ -27,6 +27,7 @@ class FastExcelServiceProvider extends ServiceProvider
             if (is_array($data)) {
                 $data = collect($data);
             }
+
             return new \Rap2hpoutre\FastExcel\FastExcel($data);
         });
     }

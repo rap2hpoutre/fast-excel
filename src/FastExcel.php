@@ -47,7 +47,9 @@ class FastExcel
 
     /**
      * Manually set data apart from the constructor
+     *
      * @param Collection $data
+     *
      * @return FastExcel
      */
     public function data($data)
