@@ -111,7 +111,6 @@ trait Exportable
                     } else {
                         $writer->addRow($keys);
                     }
-
                 }
                 $writer->addRows($collection->toArray());
             }

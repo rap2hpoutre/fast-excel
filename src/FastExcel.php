@@ -34,7 +34,6 @@ class FastExcel
     /**
      * @var bool
      */
-
     private $styleHeader;
 
     /**
@@ -106,7 +105,6 @@ class FastExcel
      *
      * @return $this
      */
-
     public function setHeaderStyle($bold = false, $font_size = 12, $font_color = Color::BLACK, $wrap_text = false, $background_color = Color::YELLOW)
     {
         $this->styleHeader = (new StyleBuilder())

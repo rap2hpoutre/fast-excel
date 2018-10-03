@@ -176,6 +176,5 @@ class FastExcelTest extends TestCase
         $excel->setHeaderStyle(true, 16, Color::YELLOW, false, Color::BLUE);
         $excel->export($file);
         $this->assertEquals($this->collection(), (new FastExcel())->import($file));
-
     }
 }
