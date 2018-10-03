@@ -9,7 +9,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/4814d15bf1a545b99c90dc07917d7ec9)](https://www.codacy.com/app/rap2hpoutre/fast-excel?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rap2hpoutre/fast-excel&amp;utm_campaign=Badge_Grade)
 [![Total Downloads](https://poser.pugx.org/rap2hpoutre/fast-excel/downloads)](https://packagist.org/packages/rap2hpoutre/fast-excel)
 
-Fast Excel import/export for Laravel, thanks to [Spout](https://github.com/box/spout). 
+Fast Excel import/export for Laravel, thanks to [Spout](https://github.com/box/spout).
 See [benchmarks](#benchmarks) below.
 
 ## Quick start
@@ -21,7 +21,7 @@ composer require rap2hpoutre/fast-excel
 ```
 
 Export a Model to `.xlsx` file:
- 
+
 ```php
 use Rap2hpoutre\FastExcel\FastExcel;
 use App\User;
@@ -96,6 +96,42 @@ $users = (new FastExcel)->import('file.xlsx', function ($line) {
 });
 ```
 
+## Facades
+
+You may use FastExcel with the optional Facade. Simply add the following line to your ``config/app.php`` under the ``aliases`` key.
+
+````php
+'FastExcel' => Rap2hpoutre\FastExcel\Facades\FastExcel::class,
+````
+
+If you are using the Facade you will not have access to the constructor. You may set your export data using the ``data`` method.
+
+````php
+$list = collect([
+    [ 'id' => 1, 'name' => 'Jane' ],
+    [ 'id' => 2, 'name' => 'John' ],
+]);
+
+FastExcel::data($list)->export('file.xlsx');
+````
+
+## Global helper
+
+FastExcel provides a convenient global helper to quickly instantiate the FastExcel class anywhere in your Laravel application. Here are a few examples:
+
+```php
+$list = collect([
+    [ 'id' => 1, 'name' => 'Jane' ],
+    [ 'id' => 2, 'name' => 'John' ],
+]);
+
+fastexcel($list)->export('file.xlsx');
+```
+
+```php
+$collection = fastexcel()->import('file.xlsx');
+```
+
 ## Advanced usage
 
 ### Export multiple sheets
@@ -104,7 +140,7 @@ Export multiple sheets by creating a `SheetCollection`:
 
 ```php
 $sheets = new SheetCollection([
-    User::all(), 
+    User::all(),
     Project::all()
 ]);
 (new FastExcel($sheets))->export('file.xlsx');
@@ -113,7 +149,7 @@ $sheets = new SheetCollection([
 Use index to specify sheet name:
 ```php
 $sheets = new SheetCollection([
-    'Users' => User::all(), 
+    'Users' => User::all(),
     'Second sheet' => Project::all()
 ]);
 ```
@@ -134,17 +170,17 @@ $users = (new FastExcel)->sheet(3)->import('file.xlsx');
 
 ## Why?
 
-FastExcel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout): 
-a simple, but elegant wrapper around [Spout](https://github.com/box/spout) with the goal 
-of simplifying **imports and exports**. 
+FastExcel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout):
+a simple, but elegant wrapper around [Spout](https://github.com/box/spout) with the goal
+of simplifying **imports and exports**.
 
-It could be considered as a faster (and memory friendly) alternative 
-to [Laravel Excel](https://laravel-excel.maatwebsite.nl/), with **many less** features. 
+It could be considered as a faster (and memory friendly) alternative
+to [Laravel Excel](https://laravel-excel.maatwebsite.nl/), with **many less** features.
 Use it only for very simple tasks.
 
 ## Benchmarks
 
-> Tested on a MacBook Pro 2015 2,7 GHz Intel Core i5 16 Go 1867 MHz DDR3. 
+> Tested on a MacBook Pro 2015 2,7 GHz Intel Core i5 16 Go 1867 MHz DDR3.
 Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iterations, 2018-04-05. **Don't trust benchmarks.**
 
 |   | Average memory peak usage  | Execution time |
