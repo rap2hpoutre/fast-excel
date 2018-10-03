@@ -5,8 +5,8 @@ namespace Rap2hpoutre\FastExcel;
 use Box\Spout\Common\Type;
 use Box\Spout\Reader\CSV\Reader as CSVReader;
 use Box\Spout\Writer\CSV\Writer as CSVWriter;
-use Box\Spout\Writer\Style\StyleBuilder;
 use Box\Spout\Writer\Style\Color;
+use Box\Spout\Writer\Style\StyleBuilder;
 use Illuminate\Support\Collection;
 
 /**
@@ -98,11 +98,12 @@ class FastExcel
     }
 
     /**
-     * @param bool $bold
-     * @param int $font_size
+     * @param bool   $bold
+     * @param int    $font_size
      * @param string $font_color
-     * @param bool $wrap_text
+     * @param bool   $wrap_text
      * @param string $background_color
+     *
      * @return $this
      */
 
