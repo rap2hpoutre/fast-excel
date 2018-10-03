@@ -14,5 +14,4 @@ if (!function_exists('fastexcel')) {
 
         return app()->makeWith('fastexcel', $data);
     }
-
 }
