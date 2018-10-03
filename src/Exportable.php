@@ -3,6 +3,8 @@
 namespace Rap2hpoutre\FastExcel;
 
 use Box\Spout\Writer\WriterFactory;
+use Box\Spout\Writer\Style\StyleBuilder;
+use Box\Spout\Writer\Style\Color;
 use Illuminate\Support\Collection;
 
 /**
@@ -82,6 +84,7 @@ trait Exportable
     private function exportOrDownload($path, $function, callable $callback = null)
     {
         $writer = WriterFactory::create($this->getType($path));
+
         $this->setOptions($writer);
         /* @var \Box\Spout\Writer\WriterInterface $writer */
         $writer->$function($path);
@@ -105,7 +108,12 @@ trait Exportable
                 if ($this->with_header) {
                     $first_row = $collection->first();
                     $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
-                    $writer->addRow($keys);
+                    if($this->headerStyle){
+                        $writer->addRowWithStyle($keys, $this->styleHeader);
+                    } else {
+                        $writer->addRow($keys);
+                    }
+
                 }
                 $writer->addRows($collection->toArray());
             }

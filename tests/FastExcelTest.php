@@ -4,7 +4,7 @@ namespace Rap2hpoutre\FastExcel\Tests;
 
 use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
-
+use Box\Spout\Writer\Style\Color;
 /**
  * Class FastExcelTest.
  */
@@ -164,5 +164,16 @@ class FastExcelTest extends TestCase
         $this->assertEquals($collections[1], collect($sheets->all()[1]));
 
         unlink($file);
+    }
+
+    public function testSetStyles(){
+        $file = __DIR__.'/test_multi_sheets.xlsx';
+        $sheets = new SheetCollection([clone $this->collection(), clone $this->collection()]);
+        $excel = (new FastExcel($sheets));
+        $excel->headerStyle = true;
+        $excel->setHeaderStyle(true,16, Color::YELLOW, false, Color::BLUE);
+        $excel->export($file);
+        $this->assertEquals($this->collection(), (new FastExcel())->import($file));
+
     }
 }
