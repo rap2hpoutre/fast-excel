@@ -19,6 +19,8 @@ class FastExcelServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      *
+     * @SuppressWarnings("unused")
+     *
      * @return void
      */
     public function register()
