@@ -14,11 +14,21 @@
   "autoload": {
     "psr-4": {
       "Rap2hpoutre\\FastExcel\\": "src/"
-    }
+    },
+    "files": [
+      "src/functions/fastexcel.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {
       "Rap2hpoutre\\FastExcel\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+          "Rap2hpoutre\\FastExcel\\Providers\\FastExcelServiceProvider"
+      ]
     }
   },
   "license": "MIT",
