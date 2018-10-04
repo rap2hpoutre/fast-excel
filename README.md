@@ -98,13 +98,13 @@ $users = (new FastExcel)->import('file.xlsx', function ($line) {
 
 ## Facades
 
-You may use FastExcel with the optional Facade. Simply add the following line to your ``config/app.php`` under the ``aliases`` key.
+You may use FastExcel with the optional Facade. Add the following line to ``config/app.php`` under the ``aliases`` key.
 
 ````php
 'FastExcel' => Rap2hpoutre\FastExcel\Facades\FastExcel::class,
 ````
 
-If you are using the Facade you will not have access to the constructor. You may set your export data using the ``data`` method.
+Using the Facade, you will not have access to the constructor. You may set your export data using the ``data`` method.
 
 ````php
 $list = collect([
@@ -117,19 +117,11 @@ FastExcel::data($list)->export('file.xlsx');
 
 ## Global helper
 
-FastExcel provides a convenient global helper to quickly instantiate the FastExcel class anywhere in your Laravel application. Here are a few examples:
-
-```php
-$list = collect([
-    [ 'id' => 1, 'name' => 'Jane' ],
-    [ 'id' => 2, 'name' => 'John' ],
-]);
-
-fastexcel($list)->export('file.xlsx');
-```
+FastExcel provides a convenient global helper to quickly instantiate the FastExcel class anywhere in a Laravel application.
 
 ```php
 $collection = fastexcel()->import('file.xlsx');
+fastexcel($collection)->export('file.xlsx');
 ```
 
 ## Advanced usage
