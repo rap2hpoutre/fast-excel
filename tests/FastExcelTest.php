@@ -1,7 +1,8 @@
 <?php
 
 namespace Rap2hpoutre\FastExcel\Tests;
-require __DIR__ . '/../vendor/autoload.php';
+
+require __DIR__.'/../vendor/autoload.php';
 
 use Box\Spout\Writer\Style\Color;
 use Rap2hpoutre\FastExcel\FastExcel;

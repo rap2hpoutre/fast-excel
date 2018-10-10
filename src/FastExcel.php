@@ -5,8 +5,6 @@ namespace Rap2hpoutre\FastExcel;
 use Box\Spout\Common\Type;
 use Box\Spout\Reader\CSV\Reader as CSVReader;
 use Box\Spout\Writer\CSV\Writer as CSVWriter;
-use Box\Spout\Writer\Style\Color;
-use Box\Spout\Writer\Style\StyleBuilder;
 use Illuminate\Support\Collection;
 
 /**

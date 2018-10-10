@@ -2,10 +2,11 @@
 
 namespace Rap2hpoutre\FastExcel;
 
-use Box\Spout\Writer\WriterFactory;
-use Illuminate\Support\Collection;
 use Box\Spout\Writer\Style\Color;
 use Box\Spout\Writer\Style\StyleBuilder;
+use Box\Spout\Writer\WriterFactory;
+use Illuminate\Support\Collection;
+
 
 /**
  * Trait Exportable.
@@ -119,7 +120,7 @@ trait Exportable
                     $first_row = $collection->first();
                     $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
                     if ($this->hasHeaderStyle) {
-                        $writer->addRowWithStyle($keys,  $this->styleHeader);
+                        $writer->addRowWithStyle($keys, $this->styleHeader);
                     } else {
                         $writer->addRow($keys);
                     }
