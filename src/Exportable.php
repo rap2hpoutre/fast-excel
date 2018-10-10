@@ -7,7 +7,6 @@ use Box\Spout\Writer\Style\StyleBuilder;
 use Box\Spout\Writer\WriterFactory;
 use Illuminate\Support\Collection;
 
-
 /**
  * Trait Exportable.
  *

@@ -178,5 +178,4 @@ class FastExcelTest extends TestCase
         $excel->export($file);
         $this->assertEquals($this->collection(), (new FastExcel())->import($file));
     }
-
 }
