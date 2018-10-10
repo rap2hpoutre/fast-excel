@@ -27,16 +27,6 @@ class FastExcel
     private $with_header = true;
 
     /**
-     * @var bool
-     */
-    public $headerStyle = true;
-
-    /**
-     * @var bool
-     */
-    private $styleHeader;
-
-    /**
      * @var
      */
     private $csv_configuration = [
@@ -55,7 +45,6 @@ class FastExcel
     public function __construct($data = null)
     {
         $this->data = $data;
-        $this->setHeaderStyle();
     }
 
     /**
@@ -92,28 +81,6 @@ class FastExcel
     public function withoutHeaders()
     {
         $this->with_header = false;
-
-        return $this;
-    }
-
-    /**
-     * @param bool   $bold
-     * @param int    $font_size
-     * @param string $font_color
-     * @param bool   $wrap_text
-     * @param string $background_color
-     *
-     * @return $this
-     */
-    public function setHeaderStyle($bold = false, $font_size = 12, $font_color = Color::BLACK, $wrap_text = false, $background_color = Color::YELLOW)
-    {
-        $this->styleHeader = (new StyleBuilder())
-          ->setFontBold($bold)
-          ->setFontSize($font_size)
-          ->setFontColor($font_color)
-          ->setShouldWrapText($wrap_text)
-          ->setBackgroundColor($background_color)
-          ->build();
 
         return $this;
     }

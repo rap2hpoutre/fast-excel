@@ -1,6 +1,7 @@
 <?php
 
 namespace Rap2hpoutre\FastExcel\Tests;
+require __DIR__ . '/../vendor/autoload.php';
 
 use Box\Spout\Writer\Style\Color;
 use Rap2hpoutre\FastExcel\FastExcel;
@@ -172,9 +173,9 @@ class FastExcelTest extends TestCase
         $file = __DIR__.'/test_multi_sheets.xlsx';
         $sheets = new SheetCollection([clone $this->collection(), clone $this->collection()]);
         $excel = (new FastExcel($sheets));
-        $excel->headerStyle = true;
-        $excel->setHeaderStyle(true, 16, Color::YELLOW, false, Color::BLUE);
+        $excel->headerStyle(true, 16, Color::YELLOW, false, Color::BLUE);
         $excel->export($file);
         $this->assertEquals($this->collection(), (new FastExcel())->import($file));
     }
+
 }

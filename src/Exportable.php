@@ -4,6 +4,8 @@ namespace Rap2hpoutre\FastExcel;
 
 use Box\Spout\Writer\WriterFactory;
 use Illuminate\Support\Collection;
+use Box\Spout\Writer\Style\Color;
+use Box\Spout\Writer\Style\StyleBuilder;
 
 /**
  * Trait Exportable.
@@ -26,6 +28,16 @@ trait Exportable
      * @return mixed
      */
     abstract protected function setOptions(&$reader_or_writer);
+
+    /**
+     * @var bool
+     */
+    private $styleHeader;
+
+    /**
+     * @var bool
+     */
+    private $hasHeaderStyle;
 
     /**
      * @param string        $path
@@ -106,8 +118,8 @@ trait Exportable
                 if ($this->with_header) {
                     $first_row = $collection->first();
                     $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
-                    if ($this->headerStyle) {
-                        $writer->addRowWithStyle($keys, $this->styleHeader);
+                    if ($this->hasHeaderStyle) {
+                        $writer->addRowWithStyle($keys,  $this->styleHeader);
                     } else {
                         $writer->addRow($keys);
                     }
@@ -122,6 +134,29 @@ trait Exportable
             }
         }
         $writer->close();
+    }
+
+    /**
+     * @param bool   $bold
+     * @param int    $font_size
+     * @param string $font_color
+     * @param bool   $wrap_text
+     * @param string $background_color
+     *
+     * @return $this
+     */
+    public function headerStyle($bold = false, $font_size = 12, $font_color = Color::BLACK, $wrap_text = false, $background_color = Color::YELLOW)
+    {
+        $this->hasHeaderStyle = true;
+        $this->styleHeader = (new StyleBuilder())
+          ->setFontBold($bold)
+          ->setFontSize($font_size)
+          ->setFontColor($font_color)
+          ->setShouldWrapText($wrap_text)
+          ->setBackgroundColor($background_color)
+          ->build();
+
+        return $this;
     }
 
     /**
