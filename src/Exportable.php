@@ -15,7 +15,7 @@ use Illuminate\Support\Collection;
 trait Exportable
 {
     /**
-     * @var StyleBuilder
+     * @var Style
      */
     private $header_style;
 
