@@ -2,9 +2,9 @@
 
 namespace Rap2hpoutre\FastExcel;
 
+use Box\Spout\Writer\Style\Style;
 use Box\Spout\Writer\WriterFactory;
 use Illuminate\Support\Collection;
-use Box\Spout\Writer\Style\Style;
 
 /**
  * Trait Exportable.
@@ -167,10 +167,11 @@ trait Exportable
 
     /**
      * @param Style $style
-     * 
+     *
      * @return Exportable
      */
-    public function headerStyle(Style $style) {
+    public function headerStyle(Style $style)
+    {
         $this->header_style = $style;
 
         return $this;
