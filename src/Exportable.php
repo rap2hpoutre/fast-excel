@@ -2,6 +2,7 @@
 
 namespace Rap2hpoutre\FastExcel;
 
+use Box\Spout\Writer\Style\Style;
 use Box\Spout\Writer\WriterFactory;
 use Illuminate\Support\Collection;
 
@@ -13,6 +14,11 @@ use Illuminate\Support\Collection;
  */
 trait Exportable
 {
+    /**
+     * @var Style
+     */
+    private $header_style;
+
     /**
      * @param string $path
      *
@@ -105,7 +111,11 @@ trait Exportable
                 if ($this->with_header) {
                     $first_row = $collection->first();
                     $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
-                    $writer->addRow($keys);
+                    if ($this->header_style) {
+                        $writer->addRowWithStyle($keys, $this->header_style);
+                    } else {
+                        $writer->addRow($keys);
+                    }
                 }
                 $writer->addRows($collection->toArray());
             }
@@ -153,5 +163,17 @@ trait Exportable
                 return is_string($value);
             });
         });
+    }
+
+    /**
+     * @param Style $style
+     *
+     * @return Exportable
+     */
+    public function headerStyle(Style $style)
+    {
+        $this->header_style = $style;
+
+        return $this;
     }
 }

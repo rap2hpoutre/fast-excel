@@ -2,6 +2,8 @@
 
 namespace Rap2hpoutre\FastExcel\Tests;
 
+use Box\Spout\Writer\Style\Color;
+use Box\Spout\Writer\Style\StyleBuilder;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
 
@@ -162,6 +164,29 @@ class FastExcelTest extends TestCase
 
         $this->assertEquals($collections[0], collect($sheets->first()));
         $this->assertEquals($collections[1], collect($sheets->all()[1]));
+
+        unlink($file);
+    }
+
+    /**
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\InvalidArgumentException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testExportWithHeaderStyle()
+    {
+        $original_collection = $this->collection();
+        $style = (new StyleBuilder())
+           ->setFontBold()
+           ->setBackgroundColor(Color::YELLOW)
+           ->build();
+        $file = __DIR__.'/test-header-style.xlsx';
+        (new FastExcel(clone $original_collection))
+            ->headerStyle($style)
+            ->export($file);
+        $this->assertEquals($original_collection, (new FastExcel())->import($file));
 
         unlink($file);
     }
