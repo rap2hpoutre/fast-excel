@@ -79,7 +79,7 @@ return (new FastExcel(User::all()))->download('file.xlsx');
 $collection = (new FastExcel)->import('file.xlsx');
 ```
 
-Import a `csv` with specific delimiter, enclosure characters and "gbk" encoding.
+Import a `csv` with specific delimiter, enclosure characters and "gbk" encoding:
 
 ```php
 $collection = (new FastExcel)->configureCsv(';', '#', '\n', 'gbk')->import('file.csv');
