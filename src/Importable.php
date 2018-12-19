@@ -138,14 +138,16 @@ trait Importable
      *
      * @return array
      */
-    private function toStrings($values) {
+    private function toStrings($values)
+    {
         foreach ($values as &$value) {
             if ($value instanceof \Datetime) {
                 $value = $value->format('Y-m-d H:i:s');
             } elseif ($value) {
-                $value = (string)$value;
+                $value = (string) $value;
             }
         }
+
         return $values;
     }
 }
