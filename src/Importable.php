@@ -113,7 +113,7 @@ trait Importable
         if ($this->with_header) {
             foreach ($sheet->getRowIterator() as $k => $row) {
                 if ($k == 1) {
-                    $headers = $row;
+                    $headers = $this->toStrings($row);
                     $count_header = count($headers);
                     continue;
                 }
@@ -131,5 +131,21 @@ trait Importable
         }
 
         return $collection;
+    }
+
+    /**
+     * @param array $values
+     *
+     * @return array
+     */
+    private function toStrings($values) {
+        foreach ($values as &$value) {
+            if ($value instanceof \Datetime) {
+                $value = $value->format('Y-m-d H:i:s');
+            } elseif ($value) {
+                $value = (string)$value;
+            }
+        }
+        return $values;
     }
 }

@@ -133,4 +133,10 @@ class IssuesTest extends TestCase
         $reader->close();
         unlink(__DIR__.'/test2.xlsx');
     }
+
+    public function testIssue72()
+    {
+        $collection = (new FastExcel())->import(__DIR__.'/test72.xlsx');
+        $this->assertInstanceOf(Collection::class, $collection);
+    }
 }
