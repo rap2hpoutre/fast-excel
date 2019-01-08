@@ -122,7 +122,13 @@ trait Importable
                 } elseif ($count_header < $count_row = count($row)) {
                     $row = array_slice($row, 0, $count_header);
                 }
-                $collection[] = $callback ? $callback(array_combine($headers, $row)) : array_combine($headers, $row);
+                if ($callback) {
+                    if ($result = $callback(array_combine($headers, $row))) {
+                        $collection[] = $result;
+                    }
+                } else {
+                    $collection[] = array_combine($headers, $row);
+                }
             }
         } else {
             foreach ($sheet->getRowIterator() as $row) {
