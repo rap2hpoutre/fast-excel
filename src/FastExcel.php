@@ -6,6 +6,7 @@ use Box\Spout\Common\Type;
 use Box\Spout\Reader\CSV\Reader as CSVReader;
 use Box\Spout\Writer\CSV\Writer as CSVWriter;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Class FastExcel.
@@ -66,9 +67,9 @@ class FastExcel
      */
     protected function getType($path)
     {
-        if (ends_with($path, Type::CSV)) {
+        if (Str::endsWith($path, Type::CSV)) {
             return Type::CSV;
-        } elseif (ends_with($path, Type::ODS)) {
+        } elseif (Str::endsWith($path, Type::ODS)) {
             return Type::ODS;
         } else {
             return Type::XLSX;
