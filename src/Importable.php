@@ -122,7 +122,13 @@ trait Importable
                 } elseif ($count_header < $count_row = count($row)) {
                     $row = array_slice($row, 0, $count_header);
                 }
-                $collection[] = $callback ? $callback(array_combine($headers, $row)) : array_combine($headers, $row);
+                if ($callback) {
+                    if ($result = $callback(array_combine($headers, $row))) {
+                        $collection[] = $result;
+                    }
+                } else {
+                    $collection[] = array_combine($headers, $row);
+                }
             }
         } else {
             foreach ($sheet->getRowIterator() as $row) {
@@ -138,14 +144,16 @@ trait Importable
      *
      * @return array
      */
-    private function toStrings($values) {
+    private function toStrings($values)
+    {
         foreach ($values as &$value) {
             if ($value instanceof \Datetime) {
                 $value = $value->format('Y-m-d H:i:s');
             } elseif ($value) {
-                $value = (string)$value;
+                $value = (string) $value;
             }
         }
+
         return $values;
     }
 }

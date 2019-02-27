@@ -167,8 +167,8 @@ a simple, but elegant wrapper around [Spout](https://github.com/box/spout) with 
 of simplifying **imports and exports**.
 
 It could be considered as a faster (and memory friendly) alternative
-to [Laravel Excel](https://laravel-excel.maatwebsite.nl/), with **many less** features.
-Use it only for very simple tasks.
+to [Laravel Excel](https://laravel-excel.maatwebsite.nl/), with less features.
+Use it only for simple tasks.
 
 ## Benchmarks
 
