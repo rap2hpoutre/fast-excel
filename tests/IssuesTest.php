@@ -142,8 +142,8 @@ class IssuesTest extends TestCase
 
     public function testIssue93() 
     {
-        $path = (new FastExcel($this->collection()))->export('猫.xlsx');
-        $this->assertTrue(file_exists('猫.xlsx'));
-        unlink('猫.xlsx');
+        (new FastExcel($this->collection()))->export(__DIR__.'/猫.xlsx');
+        $this->assertTrue(file_exists(__DIR__.'/猫.xlsx'));
+        unlink(__DIR__.'/猫.xlsx');
     }
 }
