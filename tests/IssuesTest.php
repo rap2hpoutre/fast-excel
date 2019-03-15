@@ -140,7 +140,8 @@ class IssuesTest extends TestCase
         $this->assertInstanceOf(Collection::class, $collection);
     }
 
-    public function testIssue93() {
+    public function testIssue93() 
+    {
         $path = (new FastExcel($this->collection()))->export('猫.xlsx');
         $this->assertTrue(file_exists('猫.xlsx'));
         unlink('猫.xlsx');
