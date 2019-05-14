@@ -1,20 +1,26 @@
 {
-  "name": "rap2hpoutre/fast-excel",
+  "name": "smart145/fast-excel",
   "type": "library",
-  "keywords": ["laravel", "excel", "csv", "xls", "xlsx"],
+  "keywords": [
+    "laravel",
+    "excel",
+    "csv",
+    "xls",
+    "xlsx"
+  ],
   "description": "Fast Excel import/export for Laravel",
   "require": {
     "php": "^7.0",
     "illuminate/database": "5.3.* || 5.4.* || 5.5.* || 5.6.* || 5.7.* || 5.8.*",
     "illuminate/support": "5.3.* || 5.4.* || 5.5.* || 5.6.* || 5.7.* || 5.8.*",
-    "box/spout": "^2.7"
+    "smart145/spout": "^2.7.4"
   },
   "require-dev": {
     "phpunit/phpunit": "^6.4"
   },
   "autoload": {
     "psr-4": {
-      "Rap2hpoutre\\FastExcel\\": "src/"
+      "Smart145\\FastExcel\\": "src/"
     },
     "files": [
       "src/functions/fastexcel.php"
@@ -22,13 +28,13 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Rap2hpoutre\\FastExcel\\Tests\\": "tests/"
+      "Smart145\\FastExcel\\Tests\\": "tests/"
     }
   },
   "extra": {
     "laravel": {
       "providers": [
-          "Rap2hpoutre\\FastExcel\\Providers\\FastExcelServiceProvider"
+        "Smart145\\FastExcel\\Providers\\FastExcelServiceProvider"
       ]
     }
   },
@@ -37,6 +43,10 @@
     {
       "name": "rap2h",
       "email": "raphaelht@gmail.com"
+    },
+    {
+      "name": "Dariel Ramos",
+      "email": "vdariel90@gmail.com"
     }
   ],
   "minimum-stability": "stable"

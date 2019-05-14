@@ -1,6 +1,6 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel;
+namespace Smart145\FastExcel;
 
 use Box\Spout\Reader\ReaderFactory;
 use Box\Spout\Reader\SheetInterface;

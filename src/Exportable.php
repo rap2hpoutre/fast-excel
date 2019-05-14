@@ -1,9 +1,10 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel;
+namespace Smart145\FastExcel;
 
 use Box\Spout\Writer\Style\Style;
 use Box\Spout\Writer\WriterFactory;
+use Box\Spout\Writer\XLSX\Writer;
 use Illuminate\Support\Collection;
 
 /**
@@ -20,6 +21,11 @@ trait Exportable
     private $header_style;
 
     /**
+     * @var array
+     */
+    private $columns_width;
+
+    /**
      * @param string $path
      *
      * @return string
@@ -34,7 +40,7 @@ trait Exportable
     abstract protected function setOptions(&$reader_or_writer);
 
     /**
-     * @param string        $path
+     * @param string $path
      * @param callable|null $callback
      *
      * @throws \Box\Spout\Common\Exception\IOException
@@ -74,9 +80,16 @@ trait Exportable
         return '';
     }
 
+    public function setColumnsWidth($widths)
+    {
+        $this->columns_width = $widths;
+
+        return $this;
+    }
+
     /**
      * @param $path
-     * @param string        $function
+     * @param string $function
      * @param callable|null $callback
      *
      * @throws \Box\Spout\Common\Exception\IOException
@@ -89,8 +102,11 @@ trait Exportable
     {
         $writer = WriterFactory::create($this->getType($path));
         $this->setOptions($writer);
+        $this->customizeColumnsWidth($writer);
         /* @var \Box\Spout\Writer\WriterInterface $writer */
         $writer->$function($path);
+        $writer->getCurrentSheet()->setName($this->sheet);
+
 
         $has_sheets = ($writer instanceof \Box\Spout\Writer\XLSX\Writer || $writer instanceof \Box\Spout\Writer\ODS\Writer);
 
@@ -110,7 +126,7 @@ trait Exportable
                 // Add header row.
                 if ($this->with_header) {
                     $first_row = $collection->first();
-                    $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
+                    $keys = $this->hasColumnsHeader() ? array_keys($this->columns_width) : array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
                     if ($this->header_style) {
                         $writer->addRowWithStyle($keys, $this->header_style);
                     } else {
@@ -127,6 +143,28 @@ trait Exportable
             }
         }
         $writer->close();
+    }
+
+    private function hasColumnsHeader()
+    {
+        return $this->columns_width && \count($this->columns_width) && is_string(array_keys($this->columns_width)[0]);
+    }
+
+    private function customizeColumnsWidth(Writer $writer)
+    {
+        $data = $this->data->first();
+        $keys = get_object_vars($data);
+        $columnsWithCount = count($this->columns_width);
+        if ($columnsWithCount === 0) {
+            return;
+        }
+        if ($columnsWithCount > 0 && $columnsWithCount < \count($keys)) {
+            throw new \Exception('The columns width elements count must match with header count.');
+        }
+        $i = 1;
+        foreach ($this->columns_width as $width) {
+            $writer->setColumnsWidth($width, $i, $i++);
+        }
     }
 
     /**
@@ -177,3 +215,4 @@ trait Exportable
         return $this;
     }
 }
+

@@ -1,6 +1,6 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel;
+namespace Smart145\FastExcel;
 
 use Box\Spout\Common\Type;
 use Box\Spout\Reader\CSV\Reader as CSVReader;
@@ -19,6 +19,11 @@ class FastExcel
      * @var Collection
      */
     protected $data;
+
+    /**
+     * @var string
+     */
+    protected $sheet;
 
     /**
      * @var bool
@@ -41,9 +46,10 @@ class FastExcel
      *
      * @param Collection $data
      */
-    public function __construct($data = null)
+    public function __construct($data = null, $sheet = 'Sheet1')
     {
         $this->data = $data;
+        $this->sheet = $sheet;
     }
 
     /**

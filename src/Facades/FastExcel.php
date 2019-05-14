@@ -1,6 +1,6 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel\Facades;
+namespace Smart145\FastExcel\Facades;
 
 use Illuminate\Support\Facades\Facade;
 

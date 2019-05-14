@@ -1,6 +1,6 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel\Providers;
+namespace Smart145\FastExcel\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
