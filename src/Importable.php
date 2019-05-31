@@ -132,7 +132,13 @@ trait Importable
             }
         } else {
             foreach ($sheet->getRowIterator() as $row) {
-                $collection[] = $row;
+                if ($callback) {
+                    if ($result = $callback($row)) {
+                        $collection[] = $result;
+                    }
+                } else {
+                    $collection[] =  $row;
+                }
             }
         }
 
