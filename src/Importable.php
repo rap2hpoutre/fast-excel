@@ -137,7 +137,7 @@ trait Importable
                         $collection[] = $result;
                     }
                 } else {
-                    $collection[] =  $row;
+                    $collection[] = $row;
                 }
             }
         }

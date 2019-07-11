@@ -140,20 +140,20 @@ class IssuesTest extends TestCase
         $this->assertInstanceOf(Collection::class, $collection);
     }
 
-    public function testIssue93() 
+    public function testIssue93()
     {
         (new FastExcel($this->collection()))->export(__DIR__.'/猫.xlsx');
         $this->assertTrue(file_exists(__DIR__.'/猫.xlsx'));
         unlink(__DIR__.'/猫.xlsx');
     }
 
-    public function testIssue86() 
+    public function testIssue86()
     {
-        $users = (new FastExcel)->withoutHeaders()->import(__DIR__.'/test1.xlsx', function ($line) {
+        $users = (new FastExcel())->withoutHeaders()->import(__DIR__.'/test1.xlsx', function ($line) {
             return $line;
         });
         $this->assertCount(4, $users);
-        $this->assertEquals($users[0], ["col1","col2"]);
+        $this->assertEquals($users[0], ['col1', 'col2']);
     }
 
     public function testIssue104() 
