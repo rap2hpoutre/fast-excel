@@ -2,10 +2,7 @@
 
 namespace Rap2hpoutre\FastExcel\Tests;
 
-use Box\Spout\Writer\Style\Color;
-use Box\Spout\Writer\Style\StyleBuilder;
 use Rap2hpoutre\FastExcel\FastExcel;
-use Rap2hpoutre\FastExcel\SheetCollection;
 
 /**
  * Class ChunkTest.
@@ -15,14 +12,14 @@ class ChunkTest extends TestCase
     public function collectionGenerator($n)
     {
         for ($i = 1; $i <= $n; $i++) {
-            yield collect(["a" => "b", "c" => "d"]);
+            yield collect(['a' => 'b', 'c' => 'd']);
         }
     }
 
     public function arrayGenerator($n)
     {
         for ($i = 1; $i <= $n; $i++) {
-            yield ["a" => "b", "c" => "d"];
+            yield ['a' => 'b', 'c' => 'd'];
         }
     }
 
