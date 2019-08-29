@@ -118,6 +118,19 @@ trait Exportable
                     }
                 }
                 $writer->addRows($collection->toArray());
+            } elseif (is_iterable($collection)) {
+                // Allow generator
+                foreach($collection as $key => $item) {
+                    if ($this->with_header && $key === 0) {
+                        $keys = array_keys(is_array($item) ? $item : $item->toArray());
+                        if ($this->header_style) {
+                            $writer->addRowWithStyle($keys, $this->header_style);
+                        } else {
+                            $writer->addRow($keys);
+                        }
+                    }
+                    $writer->addRow($item->toArray());
+                }
             }
             if (is_string($key)) {
                 $writer->getCurrentSheet()->setName($key);
