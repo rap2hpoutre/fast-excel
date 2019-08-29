@@ -8,9 +8,9 @@ use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
 
 /**
- * Class FastExcelTest.
+ * Class ChunkTest.
  */
-class FastExcelTest extends TestCase
+class ChunkTest extends TestCase
 {
     public function collectionGenerator($n)
     {
