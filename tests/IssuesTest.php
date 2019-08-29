@@ -156,16 +156,16 @@ class IssuesTest extends TestCase
         $this->assertEquals($users[0], ['col1', 'col2']);
     }
 
-    public function testIssue104() 
+    public function testIssue104()
     {
-        $users = (new FastExcel)->import(__DIR__.'/test104.xlsx', function ($line) {
+        $users = (new FastExcel())->import(__DIR__.'/test104.xlsx', function ($line) {
             return $line;
         });
         $this->assertCount(3, $users);
         $this->assertEquals($users[0], [
-            "Name" => "joe",
-            "Email" => "joe@gmail.com",
-            "Password" => "asdadasdasdasdasd",
+            'Name'     => 'joe',
+            'Email'    => 'joe@gmail.com',
+            'Password' => 'asdadasdasdasdasd',
         ]);
     }
 }

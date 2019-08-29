@@ -120,7 +120,7 @@ trait Exportable
                 $writer->addRows($collection->toArray());
             } elseif (is_iterable($collection)) {
                 // Allow generator
-                foreach($collection as $key => $item) {
+                foreach ($collection as $key => $item) {
                     if ($this->with_header && $key === 0) {
                         $keys = array_keys(is_array($item) ? $item : $item->toArray());
                         if ($this->header_style) {
