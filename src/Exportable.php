@@ -4,8 +4,8 @@ namespace Rap2hpoutre\FastExcel;
 
 use Box\Spout\Writer\Style\Style;
 use Box\Spout\Writer\WriterFactory;
-use Illuminate\Support\Collection;
 use Generator;
+use Illuminate\Support\Collection;
 
 /**
  * Trait Exportable.
@@ -114,7 +114,7 @@ trait Exportable
         $writer->close();
     }
 
-    private function writeRowsFromCollection($writer, Collection $collection, $callback) 
+    private function writeRowsFromCollection($writer, Collection $collection, $callback)
     {
         // Apply callback
         if ($callback) {
@@ -138,7 +138,7 @@ trait Exportable
         $writer->addRows($collection->toArray());
     }
 
-    private function writeRowsFromGenerator($writer, Generator $generator) 
+    private function writeRowsFromGenerator($writer, Generator $generator)
     {
         foreach ($generator as $key => $item) {
             // Prepare row (i.e remove non-string)
@@ -192,7 +192,8 @@ trait Exportable
     /**
      * Transform one row (i.e remove non-string).
      */
-    private function transformRow($data) {
+    private function transformRow($data)
+    {
         return collect($data)->map(function ($value) {
             return is_int($value) || is_float($value) || is_null($value) ? (string) $value : $value;
         })->filter(function ($value) {
