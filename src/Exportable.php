@@ -146,7 +146,7 @@ trait Exportable
         }
     }
 
-    private function writeHeader($writer, $first_row) 
+    private function writeHeader($writer, $first_row)
     {
         $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
         if ($this->header_style) {
