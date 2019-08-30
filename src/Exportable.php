@@ -4,6 +4,7 @@ namespace Rap2hpoutre\FastExcel;
 
 use Box\Spout\Writer\Style\Style;
 use Box\Spout\Writer\WriterFactory;
+use Generator;
 use Illuminate\Support\Collection;
 
 /**
@@ -99,25 +100,9 @@ trait Exportable
 
         foreach ($data as $key => $collection) {
             if ($collection instanceof Collection) {
-                // Apply callback
-                if ($callback) {
-                    $collection->transform(function ($value) use ($callback) {
-                        return $callback($value);
-                    });
-                }
-                // Prepare collection (i.e remove non-string)
-                $this->prepareCollection();
-                // Add header row.
-                if ($this->with_header) {
-                    $first_row = $collection->first();
-                    $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
-                    if ($this->header_style) {
-                        $writer->addRowWithStyle($keys, $this->header_style);
-                    } else {
-                        $writer->addRow($keys);
-                    }
-                }
-                $writer->addRows($collection->toArray());
+                $this->writeRowsFromCollection($writer, $collection, $callback);
+            } elseif ($collection instanceof Generator) {
+                $this->writeRowsFromGenerator($writer, $collection);
             }
             if (is_string($key)) {
                 $writer->getCurrentSheet()->setName($key);
@@ -129,13 +114,55 @@ trait Exportable
         $writer->close();
     }
 
+    private function writeRowsFromCollection($writer, Collection $collection, $callback)
+    {
+        // Apply callback
+        if ($callback) {
+            $collection->transform(function ($value) use ($callback) {
+                return $callback($value);
+            });
+        }
+        // Prepare collection (i.e remove non-string)
+        $this->prepareCollection($collection);
+        // Add header row.
+        if ($this->with_header) {
+            $this->writeHeader($writer, $collection->first());
+        }
+        // Write all rows
+        $writer->addRows($collection->toArray());
+    }
+
+    private function writeRowsFromGenerator($writer, Generator $generator)
+    {
+        foreach ($generator as $key => $item) {
+            // Prepare row (i.e remove non-string)
+            $item = $this->transformRow($item);
+            // Add header row.
+            if ($this->with_header && $key === 0) {
+                $this->writeHeader($writer, $item);
+            }
+            // Write rows (one by one).
+            $writer->addRow($item->toArray());
+        }
+    }
+
+    private function writeHeader($writer, $first_row)
+    {
+        $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
+        if ($this->header_style) {
+            $writer->addRowWithStyle($keys, $this->header_style);
+        } else {
+            $writer->addRow($keys);
+        }
+    }
+
     /**
      * Prepare collection by removing non string if required.
      */
-    protected function prepareCollection()
+    protected function prepareCollection(Collection $collection)
     {
         $need_conversion = false;
-        $first_row = $this->data->first();
+        $first_row = $collection->first();
 
         if (!$first_row) {
             return;
@@ -147,21 +174,29 @@ trait Exportable
             }
         }
         if ($need_conversion) {
-            $this->transform();
+            $this->transform($collection);
         }
     }
 
     /**
      * Transform the collection.
      */
-    private function transform()
+    private function transform(Collection $collection)
     {
-        $this->data->transform(function ($data) {
-            return collect($data)->map(function ($value) {
-                return is_int($value) || is_float($value) || is_null($value) ? (string) $value : $value;
-            })->filter(function ($value) {
-                return is_string($value);
-            });
+        $collection->transform(function ($data) {
+            return $this->transformRow($data);
+        });
+    }
+
+    /**
+     * Transform one row (i.e remove non-string).
+     */
+    private function transformRow($data)
+    {
+        return collect($data)->map(function ($value) {
+            return is_int($value) || is_float($value) || is_null($value) ? (string) $value : $value;
+        })->filter(function ($value) {
+            return is_string($value);
         });
     }
 
