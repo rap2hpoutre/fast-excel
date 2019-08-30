@@ -162,7 +162,7 @@ $users = (new FastExcel)->sheet(3)->import('file.xlsx');
 
 ### Using generators to save memory on large datasets (chunk)
 
-You can export rows one by one on large dataset to avoid `memory_limit` problem, thanks to generators (using `yield` and `yield from`).
+Export rows one by one on large dataset to avoid `memory_limit` problem, thanks to [generators](https://www.php.net/manual/en/language.generators.syntax.php) (using `yield` and `yield from`).
 
 ```php
 function usersGenerator() {
