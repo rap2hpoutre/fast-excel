@@ -126,13 +126,7 @@ trait Exportable
         $this->prepareCollection($collection);
         // Add header row.
         if ($this->with_header) {
-            $first_row = $collection->first();
-            $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
-            if ($this->header_style) {
-                $writer->addRowWithStyle($keys, $this->header_style);
-            } else {
-                $writer->addRow($keys);
-            }
+            $this->writeHeader($writer, $collection->first());
         }
         // Write all rows
         $writer->addRows($collection->toArray());
@@ -145,15 +139,20 @@ trait Exportable
             $item = $this->transformRow($item);
             // Add header row.
             if ($this->with_header && $key === 0) {
-                $keys = array_keys(is_array($item) ? $item : $item->toArray());
-                if ($this->header_style) {
-                    $writer->addRowWithStyle($keys, $this->header_style);
-                } else {
-                    $writer->addRow($keys);
-                }
+                $this->writeHeader($writer, $item);
             }
             // Write rows (one by one).
             $writer->addRow($item->toArray());
+        }
+    }
+
+    private function writeHeader($writer, $first_row) 
+    {
+        $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
+        if ($this->header_style) {
+            $writer->addRowWithStyle($keys, $this->header_style);
+        } else {
+            $writer->addRow($keys);
         }
     }
 
