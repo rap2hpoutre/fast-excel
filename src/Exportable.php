@@ -112,6 +112,7 @@ trait Exportable
             }
         }
         $writer->close();
+        exit;
     }
 
     private function writeRowsFromCollection($writer, Collection $collection, $callback)
