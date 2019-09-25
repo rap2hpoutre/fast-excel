@@ -184,9 +184,9 @@ trait Exportable
                 $need_conversion = true;
             }
         }
-        if ($need_conversion) {
+        //if ($need_conversion) {
             $this->transform();
-        }
+        //}
     }
 
     /**
