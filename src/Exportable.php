@@ -101,6 +101,8 @@ trait Exportable
         foreach ($data as $key => $collection) {
             if ($collection instanceof Collection) {
                 $this->writeRowsFromCollection($writer, $collection, $callback);
+            } elseif (is_array($collection)) {
+                $this->writeRowsFromCollection($writer, collect($collection), $callback);
             } elseif ($collection instanceof Generator) {
                 $this->writeRowsFromGenerator($writer, $collection);
             }
