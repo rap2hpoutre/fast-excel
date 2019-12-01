@@ -3,10 +3,10 @@
 namespace Rap2hpoutre\FastExcel;
 
 use Box\Spout\Common\Type;
-use Box\Spout\Reader\ReaderInterface;
-use Box\Spout\Writer\WriterInterface;
 use Box\Spout\Reader\CSV\Reader as CSVReader;
+use Box\Spout\Reader\ReaderInterface;
 use Box\Spout\Writer\CSV\Writer as CSVWriter;
+use Box\Spout\Writer\WriterInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -127,13 +127,13 @@ class FastExcel
     }
 
     /**
-     * Configure the underlying Spout Reader using a callback
+     * Configure the underlying Spout Reader using a callback.
      *
-     * @param  callable  $callback
+     * @param callable $callback
      *
-     * @return FastExcel
+     * @return $this
      */
-    public function configureReaderUsing(?callable $callback = null) : FastExcel
+    public function configureReaderUsing(?callable $callback = null)
     {
         $this->reader_configurator = $callback;
 
@@ -141,13 +141,13 @@ class FastExcel
     }
 
     /**
-     * Configure the underlying Spout Reader using a callback
+     * Configure the underlying Spout Reader using a callback.
      *
-     * @param  callable  $callback
+     * @param callable $callback
      *
-     * @return FastExcel
+     * @return $this
      */
-    public function configureWriterUsing(?callable $callback = null) : FastExcel
+    public function configureWriterUsing(?callable $callback = null)
     {
         $this->writer_configurator = $callback;
 
