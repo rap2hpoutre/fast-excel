@@ -148,7 +148,7 @@ trait Exportable
 
     private function writeHeader($writer, $first_row)
     {
-        if($first_row === null) {
+        if ($first_row === null) {
             return;
         }
 
