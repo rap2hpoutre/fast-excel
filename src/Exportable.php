@@ -103,6 +103,8 @@ trait Exportable
                 $this->writeRowsFromCollection($writer, $collection, $callback);
             } elseif ($collection instanceof Generator) {
                 $this->writeRowsFromGenerator($writer, $collection);
+            } elseif (is_array($collection)) {
+                $this->writeRowsFromArray($writer, $collection, $callback);
             }
             if (is_string($key)) {
                 $writer->getCurrentSheet()->setName($key);
@@ -143,6 +145,16 @@ trait Exportable
             }
             // Write rows (one by one).
             $writer->addRow($item->toArray());
+        }
+    }
+
+    private function writeRowsFromArray($writer, array $array, $callback)
+    {
+        $collection = collect($array);
+
+        if (is_object($collection->first()) || is_array($collection->first())) {
+            // provided $array was valid and could be converted to a collection
+            $this->writeRowsFromCollection($writer, $collection, $callback);
         }
     }
 
