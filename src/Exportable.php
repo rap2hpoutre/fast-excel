@@ -102,7 +102,7 @@ trait Exportable
             if ($collection instanceof Collection) {
                 $this->writeRowsFromCollection($writer, $collection, $callback);
             } elseif ($collection instanceof Generator) {
-                $this->writeRowsFromGenerator($writer, $collection);
+                $this->writeRowsFromGenerator($writer, $collection, $callback);
             } elseif (is_array($collection)) {
                 $this->writeRowsFromArray($writer, $collection, $callback);
             }
@@ -116,7 +116,7 @@ trait Exportable
         $writer->close();
     }
 
-    private function writeRowsFromCollection($writer, Collection $collection, $callback)
+    private function writeRowsFromCollection($writer, Collection $collection, ?callable $callback = null)
     {
         // Apply callback
         if ($callback) {
@@ -134,11 +134,17 @@ trait Exportable
         $writer->addRows($collection->toArray());
     }
 
-    private function writeRowsFromGenerator($writer, Generator $generator)
+    private function writeRowsFromGenerator($writer, Generator $generator, ?callable $callback = null)
     {
         foreach ($generator as $key => $item) {
+            // Apply callback
+            if ($callback) {
+                $item = $callback($item);
+            }
+
             // Prepare row (i.e remove non-string)
             $item = $this->transformRow($item);
+
             // Add header row.
             if ($this->with_header && $key === 0) {
                 $this->writeHeader($writer, $item);
@@ -148,7 +154,7 @@ trait Exportable
         }
     }
 
-    private function writeRowsFromArray($writer, array $array, $callback)
+    private function writeRowsFromArray($writer, array $array, ?callable $callback = null)
     {
         $collection = collect($array);
 
