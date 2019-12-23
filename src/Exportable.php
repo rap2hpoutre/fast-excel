@@ -6,6 +6,7 @@ use Box\Spout\Writer\Style\Style;
 use Box\Spout\Writer\WriterFactory;
 use Generator;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 
 /**
  * Trait Exportable.
@@ -105,6 +106,8 @@ trait Exportable
                 $this->writeRowsFromGenerator($writer, $collection, $callback);
             } elseif (is_array($collection)) {
                 $this->writeRowsFromArray($writer, $collection, $callback);
+            } else {
+                throw new InvalidArgumentException('Unsupported type for $data');
             }
             if (is_string($key)) {
                 $writer->getCurrentSheet()->setName($key);

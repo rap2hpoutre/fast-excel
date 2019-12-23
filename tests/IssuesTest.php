@@ -82,7 +82,7 @@ class IssuesTest extends TestCase
     public function testIssue26()
     {
         chdir(__DIR__);
-        foreach ([[[]], null, [null]] as $value) {
+        foreach ([[[]], [null]] as $value) {
             $path = (new FastExcel($value))->export('test2.xlsx');
             $this->assertEquals(collect([]), (new FastExcel())->import(__DIR__.'/test2.xlsx'));
             unlink($path);
