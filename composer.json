@@ -5,11 +5,11 @@
   "description": "Fast Excel import/export for Laravel",
   "require": {
     "php": "^7.0",
-    "illuminate/database": "5.3.* || 5.4.* || 5.5.* || 5.6.* || 5.7.* || 5.8.* || ^6.0",
-    "illuminate/support": "5.3.* || 5.4.* || 5.5.* || 5.6.* || 5.7.* || 5.8.* || ^6.0",
+    "illuminate/support": "5.3.* || 5.4.* || 5.5.* || 5.6.* || 5.7.* || 5.8.* || ^6.0 || ^7.0",
     "box/spout": "^2.7"
   },
   "require-dev": {
+    "illuminate/database": "5.3.* || 5.4.* || 5.5.* || 5.6.* || 5.7.* || 5.8.* || ^6.0 || ^7.0",
     "phpunit/phpunit": "^6.4"
   },
   "autoload": {
@@ -39,5 +39,6 @@
       "email": "raphaelht@gmail.com"
     }
   ],
-  "minimum-stability": "stable"
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }
