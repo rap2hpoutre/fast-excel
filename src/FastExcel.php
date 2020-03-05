@@ -15,8 +15,8 @@ use Illuminate\Support\Str;
  */
 class FastExcel
 {
-    use Importable, Exportable;
-
+    use Importable;
+    use Exportable;
     /**
      * @var Collection
      */
@@ -173,11 +173,13 @@ class FastExcel
 
         if ($reader_or_writer instanceof ReaderInterface && is_callable($this->reader_configurator)) {
             call_user_func(
-                $this->reader_configurator, $reader_or_writer
+                $this->reader_configurator,
+                $reader_or_writer
             );
         } elseif ($reader_or_writer instanceof WriterInterface && is_callable($this->writer_configurator)) {
             call_user_func(
-                $this->writer_configurator, $reader_or_writer
+                $this->writer_configurator,
+                $reader_or_writer
             );
         }
     }
