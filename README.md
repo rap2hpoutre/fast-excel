@@ -12,7 +12,7 @@
 Fast Excel import/export for Laravel, thanks to [Spout](https://github.com/box/spout).
 See [benchmarks](#benchmarks) below.
 
-## Quick start
+# Quick start
 
 Install via composer:
 
@@ -32,6 +32,8 @@ $users = User::all();
 // Export all users
 (new FastExcel($users))->export('file.xlsx');
 ```
+
+# Usage
 
 ## Export
 
@@ -96,6 +98,8 @@ $users = (new FastExcel)->import('file.xlsx', function ($line) {
 });
 ```
 
+# Advanced usage
+
 ## Facades
 
 You may use FastExcel with the optional Facade. Add the following line to ``config/app.php`` under the ``aliases`` key.
@@ -124,9 +128,7 @@ $collection = fastexcel()->import('file.xlsx');
 fastexcel($collection)->export('file.xlsx');
 ```
 
-## Advanced usage
-
-### Export multiple sheets
+## Export multiple sheets
 
 Export multiple sheets by creating a `SheetCollection`:
 
@@ -146,7 +148,7 @@ $sheets = new SheetCollection([
 ]);
 ```
 
-### Import multiple sheets
+## Import multiple sheets
 
 Import multiple sheets by using `importSheets`:
 
@@ -160,7 +162,7 @@ You can also import a specific sheet by its number:
 $users = (new FastExcel)->sheet(3)->import('file.xlsx');
 ```
 
-### Export large collections with chunk
+## Export large collections with chunk
 
 Export rows one by one to avoid `memory_limit` issues [using `yield`](https://www.php.net/manual/en/language.generators.syntax.php):
 
@@ -175,7 +177,7 @@ function usersGenerator() {
 (new FastExcel(usersGenerator()))->export('test.xlsx');
 ```
 
-## Why?
+# Why?
 
 FastExcel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout):
 a simple, but elegant wrapper around [Spout](https://github.com/box/spout) with the goal
@@ -185,7 +187,7 @@ It could be considered as a faster (and memory friendly) alternative
 to [Laravel Excel](https://laravel-excel.maatwebsite.nl/), with less features.
 Use it only for simple tasks.
 
-## Benchmarks
+# Benchmarks
 
 > Tested on a MacBook Pro 2015 2,7 GHz Intel Core i5 16 Go 1867 MHz DDR3.
 Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iterations, 2018-04-05. **Don't trust benchmarks.**
