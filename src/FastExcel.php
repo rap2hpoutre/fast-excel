@@ -15,8 +15,8 @@ use Illuminate\Support\Str;
  */
 class FastExcel
 {
-    use Importable, Exportable;
-
+    use Importable;
+    use Exportable;
     /**
      * @var Collection
      */
