@@ -160,6 +160,42 @@ You can also import a specific sheet by its number:
 $users = (new FastExcel)->sheet(3)->import('file.xlsx');
 ```
 
+### Customize sheets header
+```php
+        $style = (new StyleBuilder())
+            ->setFontBold()
+            ->setBackgroundColor(Color::YELLOW)
+            ->build();
+```
+(You can see more methods on) 
+ * @package Box\Spout\Writer\Color
+ * @package Box\Spout\Writer\StyleBuilder
+ * @package Box\Spout\Writer\Style
+
+Completed example 
+```php
+use Box\Spout\Writer\Style\Color;
+use Box\Spout\Writer\Style\StyleBuilder;
+
+        $file = 'test-header-style.xlsx';
+
+        $style = (new StyleBuilder())
+            ->setFontBold()
+            ->setBackgroundColor(Color::YELLOW)
+            ->build();
+
+        $list = collect([
+            ['id' => 1, 'name' => 'Elminson', 'time' => time()],
+            ['id' => 2, 'name' => 'Dan', 'time' => time()],
+        ]);
+
+        $sheets = new SheetCollection([
+            'Users' => $list,
+            'Second sheet' => $list
+        ]);
+
+        return (new FastExcel($sheets))->headerStyle($style)->export($file);
+```
 ## Why?
 
 FastExcel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout):
