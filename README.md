@@ -196,6 +196,23 @@ use Box\Spout\Writer\Style\StyleBuilder;
 
         return (new FastExcel($sheets))->headerStyle($style)->export($file);
 ```
+
+### Export large collections with chunk
+
+Export rows one by one to avoid `memory_limit` issues [using `yield`](https://www.php.net/manual/en/language.generators.syntax.php):
+
+```php
+function usersGenerator() {
+    foreach (User::cursor() as $user) {
+        yield $user;
+    }
+}
+
+// Export consumes only a few MB, even with 10M+ rows.
+(new FastExcel(usersGenerator()))->export('test.xlsx');
+```
+
+
 ## Why?
 
 FastExcel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout):
@@ -203,8 +220,8 @@ a simple, but elegant wrapper around [Spout](https://github.com/box/spout) with 
 of simplifying **imports and exports**.
 
 It could be considered as a faster (and memory friendly) alternative
-to [Laravel Excel](https://laravel-excel.maatwebsite.nl/), with **many less** features.
-Use it only for very simple tasks.
+to [Laravel Excel](https://laravel-excel.com/), with less features.
+Use it only for simple tasks.
 
 ## Benchmarks
 
@@ -216,5 +233,5 @@ Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iteration
 | Laravel Excel  | 123.56 M  | 11.56 s |
 | FastExcel  | 2.09 M | 2.76 s |
 
-Still, remember that [Laravel Excel](https://laravel-excel.maatwebsite.nl/) **has many more feature.**
+Still, remember that [Laravel Excel](https://laravel-excel.com/) **has many more features.**
 Please help me improve benchmarks, more tests are coming. Feel free to criticize.
