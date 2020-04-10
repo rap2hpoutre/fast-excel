@@ -22,6 +22,16 @@ trait Exportable
     private $header_style;
 
     /**
+     * @var  bool  with Custom Header
+     */
+    private $withCustomHeader;
+
+    /**
+     * @var  array header Fields
+     */
+    private $headerFields;
+
+    /**
      * @param string $path
      *
      * @return string
@@ -173,7 +183,12 @@ trait Exportable
             return;
         }
 
-        $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
+		if ($this->withCustomHeader) {
+			$keys = array_values(is_array($this->headerFields) ? $this->headerFields : $this->headerFields->toArray());
+		} else {
+			$keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
+		}
+
         if ($this->header_style) {
             $writer->addRowWithStyle($keys, $this->header_style);
         } else {
@@ -233,6 +248,32 @@ trait Exportable
     public function headerStyle(Style $style)
     {
         $this->header_style = $style;
+
+        return $this;
+    }
+
+	/**
+	 * @param $headerFields
+	 *
+	 * @return Exportable
+	 */
+	public function setCustomHeader($headerFields)
+	{
+		if($this->customHeader){
+			$this->headerFields = $headerFields;
+		}
+
+		return $this;
+	}
+
+	/**
+	 * @param bool $withCustomHeader
+	 *
+	 * @return Exportable
+	 */
+    public function withCustomHeader(bool $withCustomHeader)
+    {
+        $this->withCustomHeader = $withCustomHeader;
 
         return $this;
     }
