@@ -184,7 +184,13 @@ trait Exportable
         }
 
 		if ($this->withCustomHeader) {
+
 			$keys = array_values(is_array($this->headerFields) ? $this->headerFields : $this->headerFields->toArray());
+			if(count($first_row) != count($keys) ){
+				throw new InvalidArgumentException('setCustomHeader fields need to match with the number of rows');
+			}
+
+
 		} else {
 			$keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
 		}
@@ -259,7 +265,7 @@ trait Exportable
 	 */
 	public function setCustomHeader($headerFields)
 	{
-		if($this->customHeader){
+		if($this->withCustomHeader){
 			$this->headerFields = $headerFields;
 		}
 

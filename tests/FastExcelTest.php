@@ -190,4 +190,46 @@ class FastExcelTest extends TestCase
 
         unlink($file);
     }
+	/**
+	 * @throws \Box\Spout\Common\Exception\IOException
+	 * @throws \Box\Spout\Common\Exception\InvalidArgumentException
+	 * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+	 * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+	 * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
+	 */
+
+	public function testExportWithCustomHeader()
+	{
+		$collectionsOriginal = [
+			collect([
+				['col1' => 'row1 col1', 'col2' => 'row1 col2', 'col3' => 'row1 col3'],
+				['col1' => 'row2 col1', 'col2' => 'row2 col2', 'col3' => 'row2 col3'],
+				['col1' => 'row3 col1', 'col2' => 'row3 col2', 'col3' => 'row3 col3'],
+			])
+		];
+		$collectionsExpected = [
+			collect([
+				['Id' => 'row1 col1', 'Nombre' => 'row1 col2', 'Telefono' => 'row1 col3'],
+				['Id' => 'row2 col1', 'Nombre' => 'row2 col2', 'Telefono' => 'row2 col3'],
+				['Id' => 'row3 col1', 'Nombre' => 'row3 col2', 'Telefono' => 'row3 col3'],
+			])
+		];
+		$file = __DIR__.'/test_custom_header.xlsx';
+		$sheets = new SheetCollection($collectionsOriginal);
+		(new FastExcel($sheets))->withCustomHeader(true)
+								->setCustomHeader([
+									'Id',
+									'Nombre',
+									'Telefono'
+								])->export($file);
+
+		$sheets = (new FastExcel())->importSheets($file);
+		$this->assertInstanceOf(SheetCollection::class, $sheets);
+
+		$this->assertEquals($collectionsExpected[0][0], $sheets->all()[0][0]);
+		$this->assertEquals($collectionsExpected[0][1], $sheets->all()[0][1]);
+		$this->assertEquals($collectionsExpected[0][2], $sheets->all()[0][2]);
+
+		unlink($file);
+	}
 }
