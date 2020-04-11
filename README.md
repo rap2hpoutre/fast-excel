@@ -161,6 +161,31 @@ $users = (new FastExcel)->sheet(3)->import('file.xlsx');
 ```
 
 ### Export large collections with chunk
+#### ->withCustomHeader
+#### ->setCustomHeader
+
+- combine this 2 methods and you can set header on collection before export 
+
+```php
+
+$collectionsOriginal = [
+			collect([
+				['col1' => 'row1 col1', 'col2' => 'row1 col2', 'col3' => 'row1 col3'],
+				['col1' => 'row2 col1', 'col2' => 'row2 col2', 'col3' => 'row2 col3'],
+				['col1' => 'row3 col1', 'col2' => 'row3 col2', 'col3' => 'row3 col3'],
+			])
+		];
+		
+		$file = __DIR__.'/test_custom_header.xlsx';
+		$sheets = new SheetCollection($collectionsOriginal);
+		(new FastExcel($sheets))->withCustomHeader(true)
+								->setCustomHeader([
+									'Id',
+									'Nombre',
+									'Telefono'
+								])->export($file);
+```
+### Export large collections with chunk
 
 Export rows one by one to avoid `memory_limit` issues [using `yield`](https://www.php.net/manual/en/language.generators.syntax.php):
 
