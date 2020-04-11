@@ -22,12 +22,12 @@ trait Exportable
     private $header_style;
 
     /**
-     * @var  bool  with Custom Header
+     * @var bool with Custom Header
      */
     private $withCustomHeader;
 
     /**
-     * @var  array header Fields
+     * @var array header Fields
      */
     private $headerFields;
 

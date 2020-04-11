@@ -190,13 +190,14 @@ class FastExcelTest extends TestCase
 
         unlink($file);
     }
-	/**
-	 * @throws \Box\Spout\Common\Exception\IOException
-	 * @throws \Box\Spout\Common\Exception\InvalidArgumentException
-	 * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
-	 * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
-	 * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
-	 */
+
+    /**
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\InvalidArgumentException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
+     */
 
     public function testExportWithCustomHeader()
     {
