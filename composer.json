@@ -11,8 +11,8 @@
   "description": "Fast Excel import/export for Laravel",
   "require": {
     "php": "7.*",
-    "illuminate/database": "5.* || 6.*",
-    "illuminate/support": "5.* || 6.*",
+    "illuminate/database": "5.* || 6.* || 7.*",
+    "illuminate/support": "5.* || 6.* || 7.*",
     "smart145/spout": "2.7.*"
   },
   "require-dev": {
