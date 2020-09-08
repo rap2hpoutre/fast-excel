@@ -175,6 +175,25 @@ function usersGenerator() {
 (new FastExcel(usersGenerator()))->export('test.xlsx');
 ```
 
+### Add header and rows style
+
+Add header and rows style with `headerStyle` and `rowsStyle` methods.
+
+```php
+$header_style = (new StyleBuilder())->setFontBold()->build();
+
+$rows_style = (new StyleBuilder())
+    ->setFontSize(15)
+    ->setShouldWrapText()
+    ->setBackgroundColor("EDEDED")
+    ->build();
+
+return (new FastExcel($list))
+    ->headerStyle($header_style)
+    ->rowsStyle($style)
+    ->download('file.xlsx');
+```
+
 ## Why?
 
 FastExcel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout):
