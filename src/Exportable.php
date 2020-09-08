@@ -11,7 +11,7 @@ use InvalidArgumentException;
 /**
  * Trait Exportable.
  *
- * @property bool $with_header
+ * @property bool                           $with_header
  * @property \Illuminate\Support\Collection $data
  */
 trait Exportable
