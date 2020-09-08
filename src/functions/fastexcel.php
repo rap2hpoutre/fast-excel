@@ -12,6 +12,6 @@ if (!function_exists('fastexcel')) {
             $data = $data->toArray();
         }
 
-        return blank($data) ? app()->make('fastexcel') : app()->makeWith('fastexcel', $data);
+        return $data === null ? app()->make('fastexcel') : app()->makeWith('fastexcel', $data);
     }
 }
