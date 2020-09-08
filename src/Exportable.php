@@ -20,6 +20,7 @@ trait Exportable
      * @var Style
      */
     private $header_style;
+    private $rows_style;
 
     /**
      * @param string $path
@@ -134,7 +135,11 @@ trait Exportable
             $this->writeHeader($writer, $collection->first());
         }
         // Write all rows
-        $writer->addRows($collection->toArray());
+        if ($this->rows_style) {
+            $writer->addRowsWithStyle($collection->toArray(), $this->rows_style);
+        } else {
+            $writer->addRows($collection->toArray());
+        }
     }
 
     private function writeRowsFromGenerator($writer, Generator $generator, ?callable $callback = null)
@@ -153,7 +158,11 @@ trait Exportable
                 $this->writeHeader($writer, $item);
             }
             // Write rows (one by one).
-            $writer->addRow($item->toArray());
+            if ($this->rows_style) {
+                $writer->addRowWithStyle($item->toArray(), $this->rows_style);
+            } else {
+                $writer->addRow($item->toArray());
+            }
         }
     }
 
@@ -233,6 +242,18 @@ trait Exportable
     public function headerStyle(Style $style)
     {
         $this->header_style = $style;
+
+        return $this;
+    }
+
+    /**
+     * @param Style $style
+     *
+     * @return Exportable
+     */
+    public function rowsStyle(Style $style)
+    {
+        $this->rows_style = $style;
 
         return $this;
     }
