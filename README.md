@@ -190,7 +190,7 @@ $rows_style = (new StyleBuilder())
 
 return (new FastExcel($list))
     ->headerStyle($header_style)
-    ->rowsStyle($style)
+    ->rowsStyle($rows_style)
     ->download('file.xlsx');
 ```
 
