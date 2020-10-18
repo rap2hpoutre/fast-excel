@@ -11,8 +11,8 @@
   "description": "Fast Excel import/export for Laravel",
   "require": {
     "php": "7.*",
-    "illuminate/database": "5.* || 6.* || 7.*",
-    "illuminate/support": "5.* || 6.* || 7.*",
+    "illuminate/database": "5.* || 6.* || 7.* || 8.*",
+    "illuminate/support": "5.* || 6.* || 7.* || 8.*",
     "smart145/spout": "2.7.9"
   },
   "require-dev": {
@@ -39,15 +39,5 @@
     }
   },
   "license": "MIT",
-  "authors": [
-    {
-      "name": "rap2h",
-      "email": "raphaelht@gmail.com"
-    },
-    {
-      "name": "Dariel Ramos",
-      "email": "vdariel90@gmail.com"
-    }
-  ],
   "minimum-stability": "stable"
 }
