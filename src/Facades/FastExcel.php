@@ -5,8 +5,7 @@ namespace Rap2hpoutre\FastExcel\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * Class FastExcel
- * @package Rap2hpoutre\FastExcel\Facades
+ * Class FastExcel.
  *
  * @method static \Rap2hpoutre\FastExcel\FastExcel data($data)
  * @method static \Illuminate\Support\Collection import($path, callable $callback = null)
