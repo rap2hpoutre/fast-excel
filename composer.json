@@ -4,7 +4,7 @@
   "keywords": ["laravel", "excel", "csv", "xls", "xlsx"],
   "description": "Fast Excel import/export for Laravel",
   "require": {
-    "php": "^7.1",
+    "php": "^7.1|^8.0",
     "illuminate/support": "5.3.* || 5.4.* || 5.5.* || 5.6.* || 5.7.* || 5.8.* || ^6.0 || ^7.0 || ^8.0",
     "box/spout": "^2.7"
   },
