@@ -9,7 +9,7 @@
     "box/spout": "^2.7"
   },
   "require-dev": {
-    "illuminate/database": "^6.20.12 || ^7.30.3 || ^8.22.1",
+    "illuminate/database": "^6.20.12 || ^7.30.4 || ^8.24.0",
     "phpunit/phpunit": "^6.4"
   },
   "autoload": {
