@@ -112,32 +112,36 @@ trait Importable
 
         if ($this->with_header) {
             foreach ($sheet->getRowIterator() as $k => $row) {
-                if ($k == 1) {
-                    $headers = $this->toStrings($row);
-                    $count_header = count($headers);
-                    continue;
-                }
-                if ($count_header > $count_row = count($row)) {
-                    $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
-                } elseif ($count_header < $count_row = count($row)) {
-                    $row = array_slice($row, 0, $count_header);
-                }
-                if ($callback) {
-                    if ($result = $callback(array_combine($headers, $row))) {
-                        $collection[] = $result;
+                if ($k >= $this->start_row) {
+                    if ($k == $this->start_row) {
+                        $headers = $this->toStrings($row);
+                        $count_header = count($headers);
+                        continue;
                     }
-                } else {
-                    $collection[] = array_combine($headers, $row);
+                    if ($count_header > $count_row = count($row)) {
+                        $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
+                    } elseif ($count_header < $count_row = count($row)) {
+                        $row = array_slice($row, 0, $count_header);
+                    }
+                    if ($callback) {
+                        if ($result = $callback(array_combine($headers, $row))) {
+                            $collection[] = $result;
+                        }
+                    } else {
+                        $collection[] = array_combine($headers, $row);
+                    }
                 }
             }
         } else {
-            foreach ($sheet->getRowIterator() as $row) {
-                if ($callback) {
-                    if ($result = $callback($row)) {
-                        $collection[] = $result;
+            foreach ($sheet->getRowIterator() as $k => $row) {
+                if ($k >= $this->start_row) {
+                    if ($callback) {
+                        if ($result = $callback($row)) {
+                            $collection[] = $result;
+                        }
+                    } else {
+                        $collection[] = $row;
                     }
-                } else {
-                    $collection[] = $row;
                 }
             }
         }
