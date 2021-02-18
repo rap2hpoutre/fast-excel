@@ -107,11 +107,11 @@ trait Importable
     {
         $collection = [];
 
-        foreach($array as $row => $columns) {
-            foreach($columns as $column => $value) {
+        foreach ($array as $row => $columns) {
+            foreach ($columns as $column => $value) {
                 data_set($collection, implode('.', [
                     $column,
-                    $row
+                    $row,
                 ]), $value);
             }
         }
@@ -141,7 +141,7 @@ trait Importable
                     }
                     if ($count_header > $count_row = count($row)) {
                         $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
-                    } else if ($count_header < $count_row = count($row)) {
+                    } elseif ($count_header < $count_row = count($row)) {
                         $row = array_slice($row, 0, $count_header);
                     }
                     if ($callback) {
@@ -167,7 +167,7 @@ trait Importable
             }
         }
 
-        if($this->transpose) {
+        if ($this->transpose) {
             return $this->transposeCollection($collection);
         }
 
