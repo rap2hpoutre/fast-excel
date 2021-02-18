@@ -9,6 +9,8 @@ use Illuminate\Support\Collection;
 /**
  * Trait Importable.
  *
+ * @property int  $start_row
+ * @property bool $transpose
  * @property bool $with_header
  */
 trait Importable
