@@ -99,6 +99,27 @@ trait Importable
     }
 
     /**
+     * @param array $array
+     *
+     * @return array
+     */
+    private function transposeCollection(array $array)
+    {
+        $collection = [];
+
+        foreach($array as $row => $columns) {
+            foreach($columns as $column => $value) {
+                data_set($collection, implode('.', [
+                    $column,
+                    $row
+                ]), $value);
+            }
+        }
+
+        return $collection;
+    }
+
+    /**
      * @param SheetInterface $sheet
      * @param callable|null  $callback
      *
@@ -120,7 +141,7 @@ trait Importable
                     }
                     if ($count_header > $count_row = count($row)) {
                         $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
-                    } elseif ($count_header < $count_row = count($row)) {
+                    } else if ($count_header < $count_row = count($row)) {
                         $row = array_slice($row, 0, $count_header);
                     }
                     if ($callback) {
@@ -144,6 +165,10 @@ trait Importable
                     }
                 }
             }
+        }
+
+        if($this->transpose) {
+            return $this->transposeCollection($collection);
         }
 
         return $collection;
