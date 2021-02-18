@@ -131,12 +131,12 @@ trait Exportable
         $transposedData = [];
 
         foreach ($data as $key => $collection) {
-            foreach($collection as $row => $columns) {
-                foreach($columns as $column => $value) {
+            foreach ($collection as $row => $columns) {
+                foreach ($columns as $column => $value) {
                     data_set($transposedData, implode('.', [
                         $key,
                         $column,
-                        $row
+                        $row,
                     ]), $value);
                 }
             }
