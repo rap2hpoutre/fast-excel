@@ -33,6 +33,11 @@ class FastExcel
     private $start_row = 1;
 
     /**
+     * @var bool
+     */
+    private $transpose = false;
+
+    /**
      * @var
      */
     private $csv_configuration = [
@@ -121,6 +126,16 @@ class FastExcel
     public function startRow(int $row)
     {
         $this->start_row = $row;
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function transpose()
+    {
+        $this->transpose = true;
 
         return $this;
     }
