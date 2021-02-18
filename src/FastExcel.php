@@ -28,6 +28,11 @@ class FastExcel
     private $with_header = true;
 
     /**
+     * @var integer
+     */
+    private $start_row = 1;
+
+    /**
      * @var
      */
     private $csv_configuration = [
@@ -106,6 +111,16 @@ class FastExcel
     public function withoutHeaders()
     {
         $this->with_header = false;
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function startRow(int $row)
+    {
+        $this->start_row = $row;
 
         return $this;
     }
