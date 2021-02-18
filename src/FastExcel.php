@@ -28,7 +28,7 @@ class FastExcel
     private $with_header = true;
 
     /**
-     * @var integer
+     * @var int
      */
     private $start_row = 1;
 
