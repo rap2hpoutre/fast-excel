@@ -11,6 +11,7 @@ use InvalidArgumentException;
 /**
  * Trait Exportable.
  *
+ * @property bool                           $transpose
  * @property bool                           $with_header
  * @property \Illuminate\Support\Collection $data
  */
