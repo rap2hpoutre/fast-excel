@@ -133,41 +133,29 @@ trait Importable
         $collection = [];
         $count_header = 0;
 
-        if ($this->with_header) {
-            foreach ($sheet->getRowIterator() as $k => $row) {
-                if ($k >= $this->start_row) {
-                    if ($k == $this->start_row) {
-                        $headers = $this->toStrings($row);
-                        $count_header = count($headers);
-                        continue;
-                    }
-                    if ($count_header > $count_row = count($row)) {
-                        $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
-                    } elseif ($count_header < $count_row = count($row)) {
-                        $row = array_slice($row, 0, $count_header);
-                    }
-                    if ($callback) {
-                        if ($result = $callback(array_combine($headers, $row))) {
-                            $collection[] = $result;
-                        }
-                    } else {
-                        $collection[] = array_combine($headers, $row);
-                    }
-                }
-            }
-        } else {
-            foreach ($sheet->getRowIterator() as $k => $row) {
-                if ($k >= $this->start_row) {
-                    if ($callback) {
-                        if ($result = $callback($row)) {
-                            $collection[] = $result;
-                        }
-                    } else {
-                        $collection[] = $row;
-                    }
-                }
-            }
-        }
+        foreach ($sheet->getRowIterator() as $k => $row) {
+			if ($k >= $this->start_row) {
+				if ($this->with_header) {
+					if ($k == $this->start_row) {
+						$headers = $this->toStrings($row);
+						$count_header = count($headers);
+						continue;
+					}
+					if ($count_header > $count_row = count($row)) {
+						$row = array_merge($row, array_fill(0, $count_header - $count_row, null));
+					} elseif ($count_header < $count_row = count($row)) {
+						$row = array_slice($row, 0, $count_header);
+					}
+				}
+				if ($callback) {
+					if ($result = $callback(empty($headers) ? $row : array_combine($headers, $row))) {
+						$collection[] = $result;
+					}
+				} else {
+					$collection[] = empty($headers) ? $row : array_combine($headers, $row);
+				}
+			}
+		}
 
         if ($this->transpose) {
             return $this->transposeCollection($collection);
