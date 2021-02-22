@@ -11,6 +11,7 @@ use InvalidArgumentException;
 /**
  * Trait Exportable.
  *
+ * @property bool                           $transpose
  * @property bool                           $with_header
  * @property \Illuminate\Support\Collection $data
  */
@@ -98,7 +99,7 @@ trait Exportable
         $has_sheets = ($writer instanceof \Box\Spout\Writer\XLSX\Writer || $writer instanceof \Box\Spout\Writer\ODS\Writer);
 
         // It can export one sheet (Collection) or N sheets (SheetCollection)
-        $data = $this->data instanceof SheetCollection ? $this->data : collect([$this->data]);
+        $data = $this->transpose ? $this->transposeData() : ($this->data instanceof SheetCollection ? $this->data : collect([$this->data]));
 
         foreach ($data as $key => $collection) {
             if ($collection instanceof Collection) {
@@ -118,6 +119,31 @@ trait Exportable
             }
         }
         $writer->close();
+    }
+
+    /**
+     * Transpose data from rows to columns.
+     *
+     * @return SheetCollection
+     */
+    private function transposeData()
+    {
+        $data = $this->data instanceof SheetCollection ? $this->data : collect([$this->data]);
+        $transposedData = [];
+
+        foreach ($data as $key => $collection) {
+            foreach ($collection as $row => $columns) {
+                foreach ($columns as $column => $value) {
+                    data_set($transposedData, implode('.', [
+                        $key,
+                        $column,
+                        $row,
+                    ]), $value);
+                }
+            }
+        }
+
+        return new SheetCollection($transposedData);
     }
 
     private function writeRowsFromCollection($writer, Collection $collection, ?callable $callback = null)
