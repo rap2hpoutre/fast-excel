@@ -136,12 +136,12 @@ trait Importable
         $row_count = 0;
 
         foreach ($sheet->getRowIterator() as $k => $row) {
-            if(($this->row_limit) > 0 && $row_count > $this->row_limit) {
-                break;
-            }
-
-            $row_count++;
             if ($k >= $this->start_row) {
+                if(($this->row_limit) > 0 && $row_count > $this->row_limit) {
+                    break;
+                }
+    
+                $row_count++;
                 if ($this->with_header) {
                     if ($k == $this->start_row) {
                         $headers = $this->toStrings($row);
