@@ -43,7 +43,6 @@ class FastExcel
     private $csv_configuration = [
         'delimiter' => ',',
         'enclosure' => '"',
-        'eol'       => "\n",
         'encoding'  => 'UTF-8',
         'bom'       => true,
     ];
@@ -80,22 +79,6 @@ class FastExcel
         $this->data = $data;
 
         return $this;
-    }
-
-    /**
-     * @param $path
-     *
-     * @return string
-     */
-    protected function getType($path)
-    {
-        if (Str::endsWith($path, Type::CSV)) {
-            return Type::CSV;
-        } elseif (Str::endsWith($path, Type::ODS)) {
-            return Type::ODS;
-        } else {
-            return Type::XLSX;
-        }
     }
 
     /**
@@ -143,15 +126,14 @@ class FastExcel
     /**
      * @param string $delimiter
      * @param string $enclosure
-     * @param string $eol
      * @param string $encoding
      * @param bool   $bom
      *
      * @return $this
      */
-    public function configureCsv($delimiter = ',', $enclosure = '"', $eol = "\n", $encoding = 'UTF-8', $bom = false)
+    public function configureCsv($delimiter = ',', $enclosure = '"', $encoding = 'UTF-8', $bom = false)
     {
-        $this->csv_configuration = compact('delimiter', 'enclosure', 'eol', 'encoding', 'bom');
+        $this->csv_configuration = compact('delimiter', 'enclosure', 'encoding', 'bom');
 
         return $this;
     }
@@ -193,7 +175,6 @@ class FastExcel
             $reader_or_writer->setFieldDelimiter($this->csv_configuration['delimiter']);
             $reader_or_writer->setFieldEnclosure($this->csv_configuration['enclosure']);
             if ($reader_or_writer instanceof CSVReader) {
-                $reader_or_writer->setEndOfLineCharacter($this->csv_configuration['eol']);
                 $reader_or_writer->setEncoding($this->csv_configuration['encoding']);
             }
             if ($reader_or_writer instanceof CSVWriter) {

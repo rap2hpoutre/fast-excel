@@ -2,9 +2,11 @@
 
 namespace Rap2hpoutre\FastExcel;
 
-use Box\Spout\Reader\ReaderFactory;
+use Box\Spout\Common\Type;
+use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Reader\SheetInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Trait Importable.
@@ -19,13 +21,6 @@ trait Importable
      * @var int
      */
     private $sheet_number = 1;
-
-    /**
-     * @param string $path
-     *
-     * @return string
-     */
-    abstract protected function getType($path);
 
     /**
      * @param \Box\Spout\Reader\ReaderInterface|\Box\Spout\Writer\WriterInterface $reader_or_writer
@@ -92,7 +87,13 @@ trait Importable
      */
     private function reader($path)
     {
-        $reader = ReaderFactory::create($this->getType($path));
+        if (Str::endsWith($path, Type::CSV)) {
+            $reader = ReaderEntityFactory::createCSVReader();
+        } elseif (Str::endsWith($path, Type::ODS)) {
+            $reader = ReaderEntityFactory::createODSReader();
+        } else {
+            $reader = ReaderEntityFactory::createXLSXReader();
+        }
         $this->setOptions($reader);
         /* @var \Box\Spout\Reader\ReaderInterface $reader */
         $reader->open($path);
@@ -133,7 +134,8 @@ trait Importable
         $collection = [];
         $count_header = 0;
 
-        foreach ($sheet->getRowIterator() as $k => $row) {
+        foreach ($sheet->getRowIterator() as $k => $rowAsObject) {
+            $row = $rowAsObject->toArray();
             if ($k >= $this->start_row) {
                 if ($this->with_header) {
                     if ($k == $this->start_row) {
