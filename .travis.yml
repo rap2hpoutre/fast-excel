@@ -1,9 +1,9 @@
 language: php
 
 php:
-  - 7.2
   - 7.3.24
   - 7.4.0
+  - 8.0
 
 install:
   - travis_retry composer install --no-interaction --prefer-source
