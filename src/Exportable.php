@@ -2,8 +2,8 @@
 
 namespace Rap2hpoutre\FastExcel;
 
-use Box\Spout\Common\Type;
 use Box\Spout\Common\Entity\Style\Style;
+use Box\Spout\Common\Type;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 use Generator;
 use Illuminate\Support\Collection;
@@ -162,16 +162,16 @@ trait Exportable
         if ($this->with_header) {
             $this->writeHeader($writer, $collection->first());
         }
-        
+
         // createRowFromArray works only with arrays
         if (!is_array($collection->first())) {
-            $collection = $collection->map(function($value) {
+            $collection = $collection->map(function ($value) {
                 return $value->toArray();
             });
         }
 
         // is_array($first_row) ? $first_row : $first_row->toArray())
-        $all_rows = $collection->map(function($value) {
+        $all_rows = $collection->map(function ($value) {
             return WriterEntityFactory::createRowFromArray($value);
         })->toArray();
         if ($this->rows_style) {

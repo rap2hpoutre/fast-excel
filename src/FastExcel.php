@@ -2,13 +2,11 @@
 
 namespace Rap2hpoutre\FastExcel;
 
-use Box\Spout\Common\Type;
 use Box\Spout\Reader\CSV\Reader as CSVReader;
 use Box\Spout\Reader\ReaderInterface;
 use Box\Spout\Writer\CSV\Writer as CSVWriter;
 use Box\Spout\Writer\WriterInterface;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 
 /**
  * Class FastExcel.
