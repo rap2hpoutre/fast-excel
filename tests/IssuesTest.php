@@ -2,7 +2,6 @@
 
 namespace Rap2hpoutre\FastExcel\Tests;
 
-use Box\Spout\Common\Type;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Illuminate\Support\Collection;
 use Rap2hpoutre\FastExcel\FastExcel;
