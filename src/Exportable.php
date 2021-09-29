@@ -175,10 +175,21 @@ trait Exportable
             return WriterEntityFactory::createRowFromArray($value);
         })->toArray();
         if ($this->rows_style) {
-            $writer->addRowsWithStyle($all_rows, $this->rows_style);
+            $this->addRowsWithStyle($writer, $all_rows, $this->rows_style);
         } else {
             $writer->addRows($all_rows);
         }
+    }
+
+    private function addRowsWithStyle($writer, $all_rows, $rows_style)
+    {
+        $styled_rows = [];
+        // Style rows one by one
+        foreach ($all_rows as $row) {
+            $row = WriterEntityFactory::createRowFromArray($row->toArray(), $rows_style);
+            array_push($styled_rows, $row);
+        }
+        $writer->addRows($styled_rows);
     }
 
     private function writeRowsFromGenerator($writer, Generator $generator, ?callable $callback = null)
