@@ -82,7 +82,7 @@ $collection = (new FastExcel)->import('file.xlsx');
 Import a `csv` with specific delimiter, enclosure characters and "gbk" encoding:
 
 ```php
-$collection = (new FastExcel)->configureCsv(';', '#', '\n', 'gbk')->import('file.csv');
+$collection = (new FastExcel)->configureCsv(';', '#', 'gbk')->import('file.csv');
 ```
 
 Import and insert to database:
