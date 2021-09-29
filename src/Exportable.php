@@ -183,7 +183,7 @@ trait Exportable
 
     private function addRowsWithStyle ($writer,$all_rows, $rows_style) {
         $styled_rows = [];
-        //style rows one by one
+        // Style rows one by one
         foreach ($all_rows as $row) {
             $row = WriterEntityFactory::createRowFromArray($row->toArray(), $rows_style);
             array_push($styled_rows, $row);
