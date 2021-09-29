@@ -186,7 +186,7 @@ trait Exportable
         //style rows one by one
         foreach ($all_rows as $row) {
             $row = WriterEntityFactory::createRowFromArray($row->toArray(), $rows_style);
-            array_push($styled_rows,$row);
+            array_push($styled_rows, $row);
         }
         $writer->addRows($styled_rows);
     }
