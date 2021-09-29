@@ -11,6 +11,7 @@ install:
 script:
   - vendor/bin/phpunit
 
-after_script:
-  - wget https://scrutinizer-ci.com/ocular.phar
-  - php ocular.phar code-coverage:upload --format=php-clover coverage.clover
+after_script: >
+  if [ $(phpenv version-name) = '7.4.0' ]; then
+  wget https://scrutinizer-ci.com/ocular.phar && php ocular.phar code-coverage:upload --format=php-clover coverage.clover
+  ; fi
