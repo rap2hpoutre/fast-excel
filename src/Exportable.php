@@ -181,7 +181,7 @@ trait Exportable
         }
     }
 
-    private function addRowsWithStyle ($writer,$all_rows, $rows_style)
+    private function addRowsWithStyle($writer, $all_rows, $rows_style)
     {
         $styled_rows = [];
         // Style rows one by one
