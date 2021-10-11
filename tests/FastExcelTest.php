@@ -175,6 +175,32 @@ class FastExcelTest extends TestCase
      * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
      * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
      */
+    public function testImportMultiSheetWithSheetNamesXLSX()
+    {
+        $collections = [
+            'Sheet with name A' => collect([['test' => 'row1 col1'], ['test' => 'row2 col1'], ['test' => 'row3 col1']]),
+            'Sheet with name B' => $this->collection(),
+        ];
+        $file = __DIR__.'/test_multi_sheets_with_sheets_names.xlsx';
+        $sheets = new SheetCollection($collections);
+        (new FastExcel($sheets))->export($file);
+
+        $sheets = (new FastExcel())->withSheetsNames()->importSheets($file);
+        $this->assertInstanceOf(SheetCollection::class, $sheets);
+
+        $this->assertEquals($collections['Sheet with name A'], collect($sheets->get('Sheet with name A')));
+        $this->assertEquals($collections['Sheet with name B'], collect($sheets->get('Sheet with name B')));
+
+        unlink($file);
+    }
+
+    /**
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\InvalidArgumentException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException
+     */
     public function testExportWithHeaderStyle()
     {
         $original_collection = $this->collection();
