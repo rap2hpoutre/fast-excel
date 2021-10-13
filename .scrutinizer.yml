@@ -1,5 +1,15 @@
+build:
+  nodes:
+    analysis:
+      tests:
+        override:
+          - php-scrutinizer-run
+
 filter:
-    excluded_paths: [tests, vendor]
+    excluded_paths: 
+      - tests
+    dependency_paths: 
+      - vendor
 
 checks:
     php:
@@ -16,8 +26,3 @@ checks:
         fix_line_ending: true
         fix_identation_4spaces: true
         fix_doc_comments: true
-
-tools:
-    external_code_coverage:
-        timeout: 1800
-        runs: 3
