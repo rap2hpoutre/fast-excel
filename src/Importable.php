@@ -70,7 +70,11 @@ trait Importable
 
         $collections = [];
         foreach ($reader->getSheetIterator() as $key => $sheet) {
-            $collections[] = $this->importSheet($sheet, $callback);
+            if ($this->with_sheets_names) {
+                $collections[$sheet->getName()] = $this->importSheet($sheet, $callback);
+            } else {
+                $collections[] = $this->importSheet($sheet, $callback);
+            }
         }
         $reader->close();
 

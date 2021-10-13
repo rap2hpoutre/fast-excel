@@ -160,6 +160,12 @@ You can also import a specific sheet by its number:
 $users = (new FastExcel)->sheet(3)->import('file.xlsx');
 ```
 
+Import sheets with sheets names
+
+```phpregexp
+$sheets = (new FastExcel)->withSheetsNames()->importSheets('file.xlsx');
+```
+
 ### Export large collections with chunk
 
 Export rows one by one to avoid `memory_limit` issues [using `yield`](https://www.php.net/manual/en/language.generators.syntax.php):

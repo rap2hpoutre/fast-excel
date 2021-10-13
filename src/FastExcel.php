@@ -27,6 +27,11 @@ class FastExcel
     private $with_header = true;
 
     /**
+     * @var bool
+     */
+    private $with_sheets_names = false;
+
+    /**
      * @var int
      */
     private $start_row = 1;
@@ -98,6 +103,16 @@ class FastExcel
     public function withoutHeaders()
     {
         $this->with_header = false;
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function withSheetsNames()
+    {
+        $this->with_sheets_names = true;
 
         return $this;
     }
