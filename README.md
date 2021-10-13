@@ -160,7 +160,7 @@ You can also import a specific sheet by its number:
 $users = (new FastExcel)->sheet(3)->import('file.xlsx');
 ```
 
-Import sheets with sheets names:
+Import multiple sheets with sheets names:
 
 ```php
 $sheets = (new FastExcel)->withSheetsNames()->importSheets('file.xlsx');
