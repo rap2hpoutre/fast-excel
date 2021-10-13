@@ -160,9 +160,9 @@ You can also import a specific sheet by its number:
 $users = (new FastExcel)->sheet(3)->import('file.xlsx');
 ```
 
-Import sheets with sheets names
+Import sheets with sheets names:
 
-```phpregexp
+```php
 $sheets = (new FastExcel)->withSheetsNames()->importSheets('file.xlsx');
 ```
 
