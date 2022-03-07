@@ -160,7 +160,7 @@ trait Importable
                         $collection[] = $result;
                     }
                 } else {
-                    $collection[] = $this->checkHeaders($headers, $columns);
+                     $collection[] = $this->with_header ? $this->checkHeaders($headers, $columns) : $columns;
                 }
             }
         }
