@@ -152,7 +152,7 @@ trait Importable
                     if ($count_header > $count_columns) {
                         $columns = array_merge($columns, array_fill(0, $count_header - $count_columns, null));
                     } elseif ($count_header < $count_columns) {
-                        $columns = array_slice($col, 0, $count_header);
+                        $columns = array_slice($columns, 0, $count_header);
                     }
                 }
                 if ($callback) {
@@ -214,7 +214,7 @@ trait Importable
                 $result[$key] = $columns[$index];
             }
         }else{
-            $result = empty($headers) ? $col : array_combine($headers, $columns);
+            $result = empty($headers) ? $columns : array_combine($headers, $columns);
         }
         return $result;
     }
