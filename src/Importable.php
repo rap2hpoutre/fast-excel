@@ -150,13 +150,13 @@ trait Importable
                         continue;
                     }
                     if ($count_header > $count_columns) {
-                        $columns = array_merge($col, array_fill(0, $count_header - $count_columns, null));
+                        $columns = array_merge($columns, array_fill(0, $count_header - $count_columns, null));
                     } elseif ($count_header < $count_columns) {
                         $columns = array_slice($col, 0, $count_header);
                     }
                 }
                 if ($callback) {
-                    if ($result = $callback(empty($headers) ? $col : array_combine($headers, $columns))) {
+                    if ($result = $callback(empty($headers) ? $columns : array_combine($headers, $columns))) {
                         $collection[] = $result;
                     }
                 } else {
