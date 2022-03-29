@@ -2,12 +2,13 @@
 
 namespace Rap2hpoutre\FastExcel\Tests;
 
-use PHPUnit\Framework\TestCase as BaseTestCase;
+use Orchestra\Testbench\TestCase as OrchestraTestCase;
+use Rap2hpoutre\FastExcel\Providers\FastExcelServiceProvider;
 
 /**
  * Class TestCase.
  */
-class TestCase extends BaseTestCase
+class TestCase extends OrchestraTestCase
 {
     /**
      * @return \Illuminate\Support\Collection
@@ -19,5 +20,16 @@ class TestCase extends BaseTestCase
             ['col1' => 'row2 col1', 'col2' => ''],
             ['col1' => 'row3 col1', 'col2' => 'row3 col2'],
         ]);
+    }
+
+     /**
+     * @param  \Illuminate\Foundation\Application  $app
+     * @return array
+     */
+    protected function getPackageProviders($app)
+    {
+        return [
+            FastExcelServiceProvider::class,
+        ];
     }
 }
