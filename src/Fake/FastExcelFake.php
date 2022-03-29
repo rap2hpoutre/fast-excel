@@ -48,6 +48,8 @@ class FastExcelFake implements ExcelInterface,ExportInterface,ImportInterface
      * FastExcel constructor.
      **/
 	public function data($data){
+        $this->data = $data;
+
         return $this;
     }
 
@@ -142,6 +144,11 @@ class FastExcelFake implements ExcelInterface,ExportInterface,ImportInterface
             $callback($this->downloads[$fileName]),
             "The file [{$fileName}] was not downloaded with the expected data."
         );
+    }
+
+    public function assertDownloadedCallback(string $fileName, callable $callback)
+    {
+        Assert::assertEquals($this->download_callbacks[$fileName], $callback);
     }
 
     public function headerStyle(Style $style)

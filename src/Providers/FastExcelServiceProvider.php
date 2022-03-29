@@ -25,7 +25,7 @@ class FastExcelServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind('fastexcel', function ($app, $data = null) {
+        $this->app->singleton('fastexcel', function ($app, $data = null) {
             if (is_array($data)) {
                 $data = collect($data);
             }

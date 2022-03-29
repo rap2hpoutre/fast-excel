@@ -31,10 +31,39 @@ class FakeTest extends TestCase
     {
         ExcelFacades::fake();
 
+        $this->app->fastexcel->download('bar.xlsx');
+
+        $this->app->fastexcel->assertDownloaded('bar.xlsx');
+    }
+
+    public function testFakeDownloadWithData()
+    {
+        ExcelFacades::fake();
+
         $original_collection = $this->collection();
 
-        app(FastExcel::class, [$original_collection])->download('bar.xlsx');
+        $this->app->fastexcel->data($original_collection)->download('bar.xlsx');
 
-        ExcelFacades::assertDownloaded('bar.xlsx');
+        $this->app->fastexcel->assertDownloaded('bar.xlsx', function ($data) use($original_collection) {
+            if($data->toJson()== $original_collection->toJson()) {
+                return true;
+            }
+            return false;
+        });
+    }
+
+    public function testFakeDownloadCallback()
+    {
+        ExcelFacades::fake();
+
+        $original_collection = $this->collection();
+
+        $call = function(){
+            return 'foo';
+        };
+
+        $this->app->fastexcel->data($original_collection)->download('bar.xlsx', $call);
+
+        $this->app->fastexcel->assertDownloadedCallback('bar.xlsx', $call);
     }
 }
