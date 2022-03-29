@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Rap2hpoutre\FastExcel\Fake;
 
 use Box\Spout\Common\Entity\Style\Style;
@@ -11,7 +10,7 @@ use Rap2hpoutre\FastExcel\Contracts\ImportInterface;
 
 // use Rap2hpoutre\FastExcel\SheetCollection;
 
-class FastExcelFake implements ExcelInterface,ExportInterface,ImportInterface
+class FastExcelFake implements ExcelInterface, ExportInterface, ImportInterface
 {
     /**
      * @var Collection|Generator|array
@@ -47,7 +46,8 @@ class FastExcelFake implements ExcelInterface,ExportInterface,ImportInterface
     /**
      * FastExcel constructor.
      **/
-	public function data($data){
+    public function data($data)
+    {
         $this->data = $data;
 
         return $this;
@@ -118,7 +118,7 @@ class FastExcelFake implements ExcelInterface,ExportInterface,ImportInterface
      * @param $path
      * @param callable|null $callback
      **/
-	public function download($path, callable $callback = null)
+    public function download($path, callable $callback = null)
     {
         // $data = $this->transpose ? $this->transposeData() : ($this->data instanceof SheetCollection ? $this->data : collect([$this->data]));
         $this->downloads[$path] = $this->data;
@@ -128,7 +128,7 @@ class FastExcelFake implements ExcelInterface,ExportInterface,ImportInterface
         return '';
     }
 
-	/**
+    /**
      * @param string        $fileName
      * @param callable|null $callback
      */

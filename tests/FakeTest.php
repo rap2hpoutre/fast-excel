@@ -44,10 +44,11 @@ class FakeTest extends TestCase
 
         $this->app->fastexcel->data($original_collection)->download('bar.xlsx');
 
-        $this->app->fastexcel->assertDownloaded('bar.xlsx', function ($data) use($original_collection) {
-            if($data->toJson()== $original_collection->toJson()) {
+        $this->app->fastexcel->assertDownloaded('bar.xlsx', function ($data) use ($original_collection) {
+            if ($data->toJson() == $original_collection->toJson()) {
                 return true;
             }
+
             return false;
         });
     }
@@ -58,7 +59,7 @@ class FakeTest extends TestCase
 
         $original_collection = $this->collection();
 
-        $call = function(){
+        $call = function () {
             return 'foo';
         };
 
