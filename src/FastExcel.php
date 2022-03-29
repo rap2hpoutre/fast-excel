@@ -8,11 +8,14 @@ use Box\Spout\Writer\CSV\Writer as CSVWriter;
 use Box\Spout\Writer\WriterInterface;
 use Generator;
 use Illuminate\Support\Collection;
+use Rap2hpoutre\FastExcel\Contracts\ExcelInterface;
+use Rap2hpoutre\FastExcel\Contracts\ExportInterface;
+use Rap2hpoutre\FastExcel\Contracts\ImportInterface;
 
 /**
  * Class FastExcel.
  */
-class FastExcel
+class FastExcel implements ExcelInterface, ImportInterface, ExportInterface
 {
     use Importable;
     use Exportable;
