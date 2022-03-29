@@ -26,4 +26,15 @@ class FakeTest extends TestCase
 
         $this->assertInstanceOf(FastExcelFake::class, $this->app->make('fastexcel'));
     }
+
+    public function testFakeDownload()
+    {
+        ExcelFacades::fake();
+
+        $original_collection = $this->collection();
+
+        app(FastExcel::class, [$original_collection])->download('bar.xlsx');
+
+        ExcelFacades::assertDownloaded('bar.xlsx');
+    }
 }
