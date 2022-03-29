@@ -3,6 +3,7 @@
 namespace Rap2hpoutre\FastExcel\Facades;
 
 use Illuminate\Support\Facades\Facade;
+use Rap2hpoutre\FastExcel\Fake\FastExcelFake;
 
 /**
  * Class FastExcel.
@@ -19,6 +20,16 @@ use Illuminate\Support\Facades\Facade;
  */
 class FastExcel extends Facade
 {
+    /**
+     * Replace the bound instance with a fake.
+     *
+     * @return void
+     */
+    public static function fake()
+    {
+        static::swap(new FastExcelFake());
+    }
+
     /**
      * Get the registered name of the component.
      *
