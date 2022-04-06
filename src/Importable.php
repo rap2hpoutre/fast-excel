@@ -2,9 +2,11 @@
 
 namespace Rap2hpoutre\FastExcel;
 
-use Box\Spout\Reader\ReaderFactory;
+use Box\Spout\Common\Type;
+use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Reader\SheetInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Trait Importable.
@@ -19,13 +21,6 @@ trait Importable
      * @var int
      */
     private $sheet_number = 1;
-
-    /**
-     * @param string $path
-     *
-     * @return string
-     */
-    abstract protected function getType($path);
 
     /**
      * @param \Box\Spout\Reader\ReaderInterface|\Box\Spout\Writer\WriterInterface $reader_or_writer
@@ -75,7 +70,11 @@ trait Importable
 
         $collections = [];
         foreach ($reader->getSheetIterator() as $key => $sheet) {
-            $collections[] = $this->importSheet($sheet, $callback);
+            if ($this->with_sheets_names) {
+                $collections[$sheet->getName()] = $this->importSheet($sheet, $callback);
+            } else {
+                $collections[] = $this->importSheet($sheet, $callback);
+            }
         }
         $reader->close();
 
@@ -92,7 +91,13 @@ trait Importable
      */
     private function reader($path)
     {
-        $reader = ReaderFactory::create($this->getType($path));
+        if (Str::endsWith($path, Type::CSV)) {
+            $reader = ReaderEntityFactory::createCSVReader();
+        } elseif (Str::endsWith($path, Type::ODS)) {
+            $reader = ReaderEntityFactory::createODSReader();
+        } else {
+            $reader = ReaderEntityFactory::createXLSXReader();
+        }
         $this->setOptions($reader);
         /* @var \Box\Spout\Reader\ReaderInterface $reader */
         $reader->open($path);
@@ -135,7 +140,8 @@ trait Importable
 
         $row_count = 0;
 
-        foreach ($sheet->getRowIterator() as $k => $row) {
+        foreach ($sheet->getRowIterator() as $k => $rowAsObject) {
+            $row = $rowAsObject->toArray();
             if ($k >= $this->start_row) {
                 if(($this->row_limit) > 0 && $row_count > $this->row_limit) {
                     break;
@@ -179,7 +185,7 @@ trait Importable
     private function toStrings($values)
     {
         foreach ($values as &$value) {
-            if ($value instanceof \Datetime) {
+            if ($value instanceof \DateTime) {
                 $value = $value->format('Y-m-d H:i:s');
             } elseif ($value) {
                 $value = (string) $value;
