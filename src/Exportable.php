@@ -2,10 +2,12 @@
 
 namespace Rap2hpoutre\FastExcel;
 
-use Box\Spout\Writer\Style\Style;
-use Box\Spout\Writer\WriterFactory;
+use Box\Spout\Common\Entity\Style\Style;
+use Box\Spout\Common\Type;
+use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 use Generator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
@@ -22,13 +24,6 @@ trait Exportable
      */
     private $header_style;
     private $rows_style;
-
-    /**
-     * @param string $path
-     *
-     * @return string
-     */
-    abstract protected function getType($path);
 
     /**
      * @param \Box\Spout\Reader\ReaderInterface|\Box\Spout\Writer\WriterInterface $reader_or_writer
@@ -91,7 +86,14 @@ trait Exportable
      */
     private function exportOrDownload($path, $function, callable $callback = null)
     {
-        $writer = WriterFactory::create($this->getType($path));
+        if (Str::endsWith($path, Type::CSV)) {
+            $writer = WriterEntityFactory::createCSVWriter();
+        } elseif (Str::endsWith($path, Type::ODS)) {
+            $writer = WriterEntityFactory::createODSWriter();
+        } else {
+            $writer = WriterEntityFactory::createXLSXWriter();
+        }
+
         $this->setOptions($writer);
         /* @var \Box\Spout\Writer\WriterInterface $writer */
         $writer->$function($path);
@@ -160,12 +162,34 @@ trait Exportable
         if ($this->with_header) {
             $this->writeHeader($writer, $collection->first());
         }
-        // Write all rows
-        if ($this->rows_style) {
-            $writer->addRowsWithStyle($collection->toArray(), $this->rows_style);
-        } else {
-            $writer->addRows($collection->toArray());
+
+        // createRowFromArray works only with arrays
+        if (!is_array($collection->first())) {
+            $collection = $collection->map(function ($value) {
+                return $value->toArray();
+            });
         }
+
+        // is_array($first_row) ? $first_row : $first_row->toArray())
+        $all_rows = $collection->map(function ($value) {
+            return WriterEntityFactory::createRowFromArray($value);
+        })->toArray();
+        if ($this->rows_style) {
+            $this->addRowsWithStyle($writer, $all_rows, $this->rows_style);
+        } else {
+            $writer->addRows($all_rows);
+        }
+    }
+
+    private function addRowsWithStyle($writer, $all_rows, $rows_style)
+    {
+        $styled_rows = [];
+        // Style rows one by one
+        foreach ($all_rows as $row) {
+            $row = WriterEntityFactory::createRowFromArray($row->toArray(), $rows_style);
+            array_push($styled_rows, $row);
+        }
+        $writer->addRows($styled_rows);
     }
 
     private function writeRowsFromGenerator($writer, Generator $generator, ?callable $callback = null)
@@ -184,11 +208,7 @@ trait Exportable
                 $this->writeHeader($writer, $item);
             }
             // Write rows (one by one).
-            if ($this->rows_style) {
-                $writer->addRowWithStyle($item->toArray(), $this->rows_style);
-            } else {
-                $writer->addRow($item->toArray());
-            }
+            $writer->addRow(WriterEntityFactory::createRowFromArray($item->toArray(), $this->rows_style));
         }
     }
 
@@ -209,11 +229,8 @@ trait Exportable
         }
 
         $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
-        if ($this->header_style) {
-            $writer->addRowWithStyle($keys, $this->header_style);
-        } else {
-            $writer->addRow($keys);
-        }
+
+        $writer->addRow(WriterEntityFactory::createRowFromArray($keys, $this->header_style));
     }
 
     /**

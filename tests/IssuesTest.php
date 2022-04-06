@@ -2,8 +2,7 @@
 
 namespace Rap2hpoutre\FastExcel\Tests;
 
-use Box\Spout\Common\Type;
-use Box\Spout\Reader\ReaderFactory;
+use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Illuminate\Support\Collection;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
@@ -125,7 +124,7 @@ class IssuesTest extends TestCase
     {
         $col = new SheetCollection(['1st Sheet' => $this->collection(), '2nd Sheet' => $this->collection()]);
         (new FastExcel($col))->export(__DIR__.'/test2.xlsx');
-        $reader = ReaderFactory::create(Type::XLSX);
+        $reader = ReaderEntityFactory::createXLSXReader();
         $reader->open(__DIR__.'/test2.xlsx');
         foreach ($reader->getSheetIterator() as $key => $sheet) {
             $this->assertEquals($sheet->getName(), $key === 2 ? '2nd Sheet' : '1st Sheet');
