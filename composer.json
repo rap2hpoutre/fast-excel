@@ -22,7 +22,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Rap2hpoutre\\FastExcel\\": "src/"
+            "Crcmg\\FastExcel\\": "src/"
         },
         "files": [
             "src/functions/fastexcel.php"
@@ -30,13 +30,13 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Rap2hpoutre\\FastExcel\\Tests\\": "tests/"
+            "Crcmg\\FastExcel\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Rap2hpoutre\\FastExcel\\Providers\\FastExcelServiceProvider"
+                "Crcmg\\FastExcel\\Providers\\FastExcelServiceProvider"
             ]
         }
     },

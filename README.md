@@ -23,7 +23,7 @@ composer require rap2hpoutre/fast-excel
 Export a Model to `.xlsx` file:
 
 ```php
-use Rap2hpoutre\FastExcel\FastExcel;
+use Crcmg\FastExcel\FastExcel;
 use App\User;
 
 // Load users
@@ -101,7 +101,7 @@ $users = (new FastExcel)->import('file.xlsx', function ($line) {
 You may use FastExcel with the optional Facade. Add the following line to ``config/app.php`` under the ``aliases`` key.
 
 ````php
-'FastExcel' => Rap2hpoutre\FastExcel\Facades\FastExcel::class,
+'FastExcel' => Crcmg\FastExcel\Facades\FastExcel::class,
 ````
 
 Using the Facade, you will not have access to the constructor. You may set your export data using the ``data`` method.

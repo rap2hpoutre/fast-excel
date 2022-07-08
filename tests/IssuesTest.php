@@ -1,11 +1,11 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel\Tests;
+namespace Crcmg\FastExcel\Tests;
 
 use OpenSpout\Reader\Common\Creator\ReaderEntityFactory;
 use Illuminate\Support\Collection;
-use Rap2hpoutre\FastExcel\FastExcel;
-use Rap2hpoutre\FastExcel\SheetCollection;
+use Crcmg\FastExcel\FastExcel;
+use Crcmg\FastExcel\SheetCollection;
 
 /**
  * Class IssuesTest.

@@ -1,12 +1,12 @@
 <?php
 
-use Rap2hpoutre\FastExcel\SheetCollection;
+use Crcmg\FastExcel\SheetCollection;
 
 if (!function_exists('fastexcel')) {
     /**
      * Return app instance of FastExcel.
      *
-     * @return Rap2hpoutre\FastExcel\FastExcel
+     * @return Crcmg\FastExcel\FastExcel
      */
     function fastexcel($data = null)
     {

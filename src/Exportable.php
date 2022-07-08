@@ -1,6 +1,6 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel;
+namespace Crcmg\FastExcel;
 
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Common\Type;
