@@ -3,7 +3,6 @@
 - Fix phpunit tests
 - Add support to php 8.1
 - Integrated with Github Actions
-- Add auto php-cs fixer
 - Add auto dependabot merge
 
 
