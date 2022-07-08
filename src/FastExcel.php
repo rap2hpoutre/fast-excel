@@ -16,6 +16,7 @@ class FastExcel
 {
     use Importable;
     use Exportable;
+
     /**
      * @var Collection|Generator|array
      */
