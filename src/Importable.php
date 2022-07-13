@@ -2,11 +2,11 @@
 
 namespace Rap2hpoutre\FastExcel;
 
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use OpenSpout\Common\Type;
 use OpenSpout\Reader\Common\Creator\ReaderEntityFactory;
 use OpenSpout\Reader\SheetInterface;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 
 /**
  * Trait Importable.

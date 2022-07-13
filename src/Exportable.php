@@ -2,13 +2,13 @@
 
 namespace Rap2hpoutre\FastExcel;
 
-use OpenSpout\Common\Entity\Style\Style;
-use OpenSpout\Common\Type;
-use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
 use Generator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Common\Type;
+use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
 
 /**
  * Trait Exportable.
