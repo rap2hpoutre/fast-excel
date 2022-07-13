@@ -2,3 +2,4 @@
 /.idea
 /build
 .phpunit.result.cache
+composer.lock
