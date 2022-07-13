@@ -2,12 +2,12 @@
 
 namespace Rap2hpoutre\FastExcel;
 
+use Generator;
+use Illuminate\Support\Collection;
 use OpenSpout\Reader\CSV\Reader as CSVReader;
 use OpenSpout\Reader\ReaderInterface;
 use OpenSpout\Writer\CSV\Writer as CSVWriter;
 use OpenSpout\Writer\WriterInterface;
-use Generator;
-use Illuminate\Support\Collection;
 
 /**
  * Class FastExcel.

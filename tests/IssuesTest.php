@@ -2,8 +2,8 @@
 
 namespace Rap2hpoutre\FastExcel\Tests;
 
-use OpenSpout\Reader\Common\Creator\ReaderEntityFactory;
 use Illuminate\Support\Collection;
+use OpenSpout\Reader\Common\Creator\ReaderEntityFactory;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
 
@@ -52,7 +52,7 @@ class IssuesTest extends TestCase
     {
         chdir(__DIR__);
         $path = (new FastExcel($this->collection()))->export('test2.xlsx');
-        $this->assertEquals(__DIR__ . DIRECTORY_SEPARATOR . 'test2.xlsx', $path);
+        $this->assertEquals(__DIR__.DIRECTORY_SEPARATOR.'test2.xlsx', $path);
         unlink($path);
     }
 
