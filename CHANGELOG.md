@@ -1,4 +1,4 @@
-# 3.3.0
+# 4.0.0
 - Move from box/spout to openspout/openspout v3 | https://github.com/openspout/openspout
 - Fix phpunit tests
 - Add support to php 8.1
