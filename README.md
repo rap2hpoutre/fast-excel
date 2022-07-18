@@ -2,11 +2,11 @@
 <img src="https://user-images.githubusercontent.com/36028424/40173202-9a03d68a-5a03-11e8-9968-6b7e3b4f8a1b.png">
 </p>
 
-[![Version](https://poser.pugx.org/rap2hpoutre/fast-excel/version?format=flat)](https://packagist.org/packages/rap2hpoutre/fast-excel)
-[![License](https://poser.pugx.org/rap2hpoutre/fast-excel/license?format=flat)](https://packagist.org/packages/rap2hpoutre/fast-excel)
+[![Version](https://poser.pugx.org/lucaterribili/fast-excel/version?format=flat)](https://packagist.org/packages/lucaterribili/fast-excel)
+[![License](https://poser.pugx.org/lucaterribili/fast-excel/license?format=flat)](https://packagist.org/packages/lucaterribili/fast-excel)
 [![StyleCI](https://github.styleci.io/repos/128174809/shield?branch=master)](https://github.styleci.io/repos/128174809?branch=master)
-[![Tests](https://github.com/rap2hpoutre/fast-excel/actions/workflows/tests.yml/badge.svg)](https://github.com/rap2hpoutre/fast-excel/actions/workflows/tests.yml)
-[![Total Downloads](https://poser.pugx.org/rap2hpoutre/fast-excel/downloads)](https://packagist.org/packages/rap2hpoutre/fast-excel)
+[![Tests](https://github.com/lucaterribili/fast-excel/actions/workflows/tests.yml/badge.svg)](https://github.com/lucaterribili/fast-excel/actions/workflows/tests.yml)
+[![Total Downloads](https://poser.pugx.org/lucaterribili/fast-excel/downloads)](https://packagist.org/packages/lucaterribili/fast-excel)
 
 Fast Excel import/export for Laravel, thanks to [Spout](https://github.com/box/spout).
 See [benchmarks](#benchmarks) below.
@@ -16,13 +16,13 @@ See [benchmarks](#benchmarks) below.
 Install via composer:
 
 ```
-composer require rap2hpoutre/fast-excel
+composer require lucaterribili/fast-excel
 ```
 
 Export a Model to `.xlsx` file:
 
 ```php
-use Rap2hpoutre\FastExcel\FastExcel;
+use LucaTerribili\FastExcel\FastExcel;
 use App\User;
 
 // Load users
@@ -100,7 +100,7 @@ $users = (new FastExcel)->import('file.xlsx', function ($line) {
 You may use FastExcel with the optional Facade. Add the following line to ``config/app.php`` under the ``aliases`` key.
 
 ````php
-'FastExcel' => Rap2hpoutre\FastExcel\Facades\FastExcel::class,
+'FastExcel' => LucaTerribili\FastExcel\Facades\FastExcel::class,
 ````
 
 Using the Facade, you will not have access to the constructor. You may set your export data using the ``data`` method.

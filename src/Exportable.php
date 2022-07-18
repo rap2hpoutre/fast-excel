@@ -1,14 +1,17 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel;
+namespace LucaTerribili\FastExcel;
 
 use Generator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use NumberFormatter;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Common\Type;
 use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
+use OpenSpout\Common\Entity\Style\Color;
 
 /**
  * Trait Exportable.
@@ -207,8 +210,20 @@ trait Exportable
             if ($this->with_header && $key === 0) {
                 $this->writeHeader($writer, $item);
             }
-            // Write rows (one by one).
-            $writer->addRow(WriterEntityFactory::createRowFromArray($item->toArray(), $this->rows_style));
+            $cells = [];
+            $temp_cells = $item->toArray();
+            foreach ($temp_cells as $cell) {
+                $cell_style = null;
+                if (Str::endsWith($cell, '€')) {
+                    $cell_style = (new StyleBuilder())
+                        ->setFormat('$#,##0.00,\-$#,##0.00')
+                        ->build();
+                    $cell = trim(Str::before($cell, '€'));
+                    $cell = (float) str_replace(array('.', ','), array('', '.'), $cell);
+                }
+                $cells[] = WriterEntityFactory::createCell($cell, $cell_style);
+            }
+            $writer->addRow(WriterEntityFactory::createRow($cells, $this->rows_style));
         }
     }
 

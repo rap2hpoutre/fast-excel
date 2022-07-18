@@ -1,8 +1,8 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel\Tests;
+namespace LucaTerribili\FastExcel\Tests;
 
-use Rap2hpoutre\FastExcel\FastExcel;
+use LucaTerribili\FastExcel\FastExcel;
 
 /**
  * Class ChunkTest.

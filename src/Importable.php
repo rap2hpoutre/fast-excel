@@ -1,6 +1,6 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel;
+namespace LucaTerribili\FastExcel;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;

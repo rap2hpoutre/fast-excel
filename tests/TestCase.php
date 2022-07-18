@@ -1,6 +1,6 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel\Tests;
+namespace LucaTerribili\FastExcel\Tests;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
 

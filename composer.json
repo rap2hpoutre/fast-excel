@@ -1,5 +1,5 @@
 {
-    "name": "rap2hpoutre/fast-excel",
+    "name": "lucaterribili/fast-excel",
     "type": "library",
     "keywords": [
         "laravel",
@@ -22,7 +22,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Rap2hpoutre\\FastExcel\\": "src/"
+            "LucaTerribili\\FastExcel\\": "src/"
         },
         "files": [
             "src/functions/fastexcel.php"
@@ -30,13 +30,13 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Rap2hpoutre\\FastExcel\\Tests\\": "tests/"
+            "LucaTerribili\\FastExcel\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Rap2hpoutre\\FastExcel\\Providers\\FastExcelServiceProvider"
+                "LucaTerribili\\FastExcel\\Providers\\FastExcelServiceProvider"
             ]
         }
     },

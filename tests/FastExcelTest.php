@@ -1,11 +1,11 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel\Tests;
+namespace LucaTerribili\FastExcel\Tests;
 
 use OpenSpout\Common\Entity\Style\Color;
 use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
-use Rap2hpoutre\FastExcel\FastExcel;
-use Rap2hpoutre\FastExcel\SheetCollection;
+use LucaTerribili\FastExcel\FastExcel;
+use LucaTerribili\FastExcel\SheetCollection;
 
 /**
  * Class FastExcelTest.
