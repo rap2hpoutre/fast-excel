@@ -25,6 +25,13 @@ jobs:
 
       - name: Validate composer.json and composer.lock
         run: composer validate --strict
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, mysql, mysqli, pdo_mysql, bcmath, intl, fileinfo
+          coverage: none
 
       - name: Cache Composer packages
         id: composer-cache
