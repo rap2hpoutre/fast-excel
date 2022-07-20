@@ -12,6 +12,7 @@ use OpenSpout\Reader\SheetInterface;
  * Trait Importable.
  *
  * @property int  $start_row
+ * @property ?int  $end_row
  * @property bool $transpose
  * @property bool $with_header
  */
@@ -140,7 +141,7 @@ trait Importable
 
         foreach ($sheet->getRowIterator() as $k => $rowAsObject) {
             $row = $rowAsObject->toArray();
-            if ($k >= $this->start_row) {
+            if ($k >= $this->start_row ) {
                 if ($this->with_header) {
                     if ($k == $this->start_row) {
                         $headers = $this->toStrings($row);
@@ -160,6 +161,10 @@ trait Importable
                 } else {
                     $collection[] = empty($headers) ? $row : array_combine($headers, $row);
                 }
+            }
+
+            if ($k > $this->end_row) {
+                break;
             }
         }
 

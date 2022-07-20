@@ -84,6 +84,12 @@ Import a `csv` with specific delimiter, enclosure characters and "gbk" encoding:
 $collection = (new FastExcel)->configureCsv(';', '#', 'gbk')->import('file.csv');
 ```
 
+Importing only the first 100 lines from a `csv` :
+
+```php
+$collection = (new FastExcel)->limitRows(100)->import('file.csv');
+```
+
 Import and insert to database:
 
 ```php
