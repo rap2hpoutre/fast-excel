@@ -2,9 +2,7 @@ name: Tests
 
 on:
   push:
-    branches: [ "master" ]
   pull_request:
-    branches: [ "master" ]
 
 permissions:
   contents: read
@@ -17,25 +15,29 @@ jobs:
       fail-fast: true
       matrix:
         os: [ ubuntu-latest ]
-        php: [ 7.1, 7.2, 7.3, 7.4, 8.0, 8.1 ]
+        php: [ 7.3, 7.4, 8.0, 8.1 ]
+        stability: [ lowest, highest ]
 
     steps:
       - uses: actions/checkout@v3
 
       - name: Validate composer.json and composer.lock
         run: composer validate --strict
-
-      - name: Cache Composer packages
-        id: composer-cache
-        uses: actions/cache@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          path: vendor
-          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, mysql, mysqli, pdo_mysql, bcmath, intl, fileinfo
+          coverage: none
+
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
+        uses: "ramsey/composer-install@v1"
+        with:
+          dependency-versions: "${{ matrix.stability }}"
+          composer-options: "--prefer-dist --no-cache"
+
 
       - name: Run test suite
         run: composer run-script test
