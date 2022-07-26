@@ -99,13 +99,13 @@ trait Importable
     {
         $reader = $this->reader($path);
 
-        if(iterator_count($reader->getSheetIterator()) < 2){
+        if (iterator_count($reader->getSheetIterator()) < 2) {
             throw new BadCountSheets();
         }
 
         $sheetIndex = $this->getSheetIndexByName($reader, $name);
 
-        if($sheetIndex === -1){
+        if ($sheetIndex === -1) {
             throw new SheetNameMissing($name);
         }
 
