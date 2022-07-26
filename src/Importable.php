@@ -6,7 +6,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use OpenSpout\Common\Type;
 use OpenSpout\Reader\Common\Creator\ReaderEntityFactory;
+use OpenSpout\Reader\ReaderInterface;
 use OpenSpout\Reader\SheetInterface;
+use Rap2hpoutre\FastExcel\Exceptions\BadCountSheets;
+use Rap2hpoutre\FastExcel\Exceptions\SheetNameMissing;
 
 /**
  * Trait Importable.
@@ -79,6 +82,49 @@ trait Importable
         $reader->close();
 
         return new SheetCollection($collections);
+    }
+
+    /**
+     * @param string        $path
+     * @param string        $name
+     * @param callable|null $callback
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     *
+     * @return Collection
+     */
+    public function importBySheetName($path, $name, callable $callback = null)
+    {
+        $reader = $this->reader($path);
+
+        if(iterator_count($reader->getSheetIterator()) < 2){
+            throw new BadCountSheets();
+        }
+
+        $sheetIndex = $this->getSheetByName($reader, $name);
+
+        if($sheetIndex === -1){
+            throw new SheetNameMissing($name);
+        }
+
+        return $this
+            ->sheet($sheetIndex)
+            ->import($path, $callback);
+    }
+
+    private function getSheetByName(ReaderInterface $reader, $name)
+    {
+        $sheetIndex = -1;
+
+        foreach ($reader->getSheetIterator() as $key => $sheet) {
+            if ($sheet->getName() == $name) {
+                $sheetIndex = $key;
+                break;
+            }
+        }
+        return $sheetIndex;
     }
 
     /**
