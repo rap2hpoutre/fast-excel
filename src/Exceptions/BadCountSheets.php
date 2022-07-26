@@ -8,6 +8,6 @@ class BadCountSheets extends Exception
 {
     public function __construct()
     {
-        parent::__construct("You file does not contains more than one sheet.");
+        parent::__construct('You file does not contains more than one sheet.');
     }
 }
