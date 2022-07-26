@@ -103,7 +103,7 @@ trait Importable
             throw new BadCountSheets();
         }
 
-        $sheetIndex = $this->getSheetByName($reader, $name);
+        $sheetIndex = $this->getSheetIndexByName($reader, $name);
 
         if($sheetIndex === -1){
             throw new SheetNameMissing($name);
@@ -114,7 +114,7 @@ trait Importable
             ->import($path, $callback);
     }
 
-    private function getSheetByName(ReaderInterface $reader, $name)
+    private function getSheetIndexByName(ReaderInterface $reader, $name)
     {
         $sheetIndex = -1;
 
