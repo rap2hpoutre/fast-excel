@@ -6,7 +6,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use OpenSpout\Common\Type;
 use OpenSpout\Reader\Common\Creator\ReaderEntityFactory;
+use OpenSpout\Reader\ReaderInterface;
 use OpenSpout\Reader\SheetInterface;
+use Rap2hpoutre\FastExcel\Exceptions\BadCountSheets;
+use Rap2hpoutre\FastExcel\Exceptions\SheetNameMissing;
 
 /**
  * Trait Importable.
@@ -23,6 +26,11 @@ trait Importable
     private $sheet_number = 1;
 
     /**
+     * @var string|null
+     */
+    private $sheet_name = null;
+
+    /**
      * @param \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface $reader_or_writer
      *
      * @return mixed
@@ -33,15 +41,19 @@ trait Importable
      * @param string        $path
      * @param callable|null $callback
      *
-     * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\IOException
      *
      * @return Collection
      */
     public function import($path, callable $callback = null)
     {
         $reader = $this->reader($path);
+
+        if ($this->sheet_name !== null) {
+            $this->setSheetIndexByName($reader);
+        }
 
         foreach ($reader->getSheetIterator() as $key => $sheet) {
             if ($this->sheet_number != $key) {
@@ -58,9 +70,9 @@ trait Importable
      * @param string        $path
      * @param callable|null $callback
      *
-     * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\IOException
      *
      * @return Collection
      */
@@ -81,11 +93,33 @@ trait Importable
         return new SheetCollection($collections);
     }
 
+    private function setSheetIndexByName(ReaderInterface $reader)
+    {
+        if (iterator_count($reader->getSheetIterator()) < 2) {
+            throw new BadCountSheets();
+        }
+
+        $sheetIndex = -1;
+
+        foreach ($reader->getSheetIterator() as $key => $sheet) {
+            if ($sheet->getName() == $this->sheet_name) {
+                $sheetIndex = $key;
+                break;
+            }
+        }
+
+        if ($sheetIndex === -1) {
+            throw new SheetNameMissing($this->sheet_name);
+        }
+
+        $this->sheet($sheetIndex);
+    }
+
     /**
      * @param $path
      *
-     * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Common\Exception\IOException
      *
      * @return \OpenSpout\Reader\ReaderInterface
      */

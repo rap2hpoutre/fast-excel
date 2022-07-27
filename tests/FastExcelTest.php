@@ -4,6 +4,8 @@ namespace Rap2hpoutre\FastExcel\Tests;
 
 use OpenSpout\Common\Entity\Style\Color;
 use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
+use Rap2hpoutre\FastExcel\Exceptions\BadCountSheets;
+use Rap2hpoutre\FastExcel\Exceptions\SheetNameMissing;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
 
@@ -215,5 +217,48 @@ class FastExcelTest extends TestCase
         $this->assertEquals($original_collection, (new FastExcel())->import($file));
 
         unlink($file);
+    }
+
+    /**
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testImportBySheetNameXLSX()
+    {
+        $collection = (new FastExcel())->sheetName('Sheet 2')->import(__DIR__.'/testMultiSheets.xlsx');
+        $this->assertEquals($this->collection(), $collection);
+    }
+
+    /**
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testSheetNameDoesNotExists()
+    {
+        $this->expectException(SheetNameMissing::class);
+        $this->expectExceptionMessage('Sheet name [Sheet C] is missing.');
+
+        (new FastExcel())->sheetName('Sheet C')->import(__DIR__.'/testMultiSheets.xlsx');
+    }
+
+    /**
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testBadCountSheets()
+    {
+        $this->expectException(BadCountSheets::class);
+        $this->expectExceptionMessage('You file does not contains more than one sheet.');
+
+        (new FastExcel())->sheetName('Sheet C')->import(__DIR__.'/test1.xlsx');
     }
 }

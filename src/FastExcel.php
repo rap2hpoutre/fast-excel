@@ -99,6 +99,18 @@ class FastExcel
     }
 
     /**
+     * @param $sheet_name
+     *
+     * @return $this
+     */
+    public function sheetName($sheet_name)
+    {
+        $this->sheet_name = $sheet_name;
+
+        return $this;
+    }
+
+    /**
      * @return $this
      */
     public function withoutHeaders()
