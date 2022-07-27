@@ -14,7 +14,7 @@ use Rap2hpoutre\FastExcel\Exceptions\SheetNameMissing;
 /**
  * Trait Importable.
  *
- * @property int  $start_row
+ * @property int $start_row
  * @property bool $transpose
  * @property bool $with_header
  */
@@ -26,6 +26,11 @@ trait Importable
     private $sheet_number = 1;
 
     /**
+     * @var string|null
+     */
+    private $sheet_name = null;
+
+    /**
      * @param \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface $reader_or_writer
      *
      * @return mixed
@@ -33,18 +38,22 @@ trait Importable
     abstract protected function setOptions(&$reader_or_writer);
 
     /**
-     * @param string        $path
+     * @param string $path
      * @param callable|null $callback
      *
-     * @throws \OpenSpout\Common\Exception\IOException
+     * @return Collection
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
      *
-     * @return Collection
+     * @throws \OpenSpout\Common\Exception\IOException
      */
     public function import($path, callable $callback = null)
     {
         $reader = $this->reader($path);
+
+        if ($this->sheet_name !== null) {
+            $this->setSheetIndexByName($reader);
+        }
 
         foreach ($reader->getSheetIterator() as $key => $sheet) {
             if ($this->sheet_number != $key) {
@@ -58,14 +67,14 @@ trait Importable
     }
 
     /**
-     * @param string        $path
+     * @param string $path
      * @param callable|null $callback
      *
-     * @throws \OpenSpout\Common\Exception\IOException
+     * @return Collection
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
      *
-     * @return Collection
+     * @throws \OpenSpout\Common\Exception\IOException
      */
     public function importSheets($path, callable $callback = null)
     {
@@ -84,57 +93,35 @@ trait Importable
         return new SheetCollection($collections);
     }
 
-    /**
-     * @param string        $path
-     * @param string        $name
-     * @param callable|null $callback
-     *
-     * @throws \OpenSpout\Common\Exception\IOException
-     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
-     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
-     *
-     * @return Collection
-     */
-    public function importBySheetName($path, $name, callable $callback = null)
+    private function setSheetIndexByName(ReaderInterface $reader)
     {
-        $reader = $this->reader($path);
-
         if (iterator_count($reader->getSheetIterator()) < 2) {
             throw new BadCountSheets();
         }
 
-        $sheetIndex = $this->getSheetIndexByName($reader, $name);
-
-        if ($sheetIndex === -1) {
-            throw new SheetNameMissing($name);
-        }
-
-        return $this
-            ->sheet($sheetIndex)
-            ->import($path, $callback);
-    }
-
-    private function getSheetIndexByName(ReaderInterface $reader, $name)
-    {
         $sheetIndex = -1;
 
         foreach ($reader->getSheetIterator() as $key => $sheet) {
-            if ($sheet->getName() == $name) {
+            if ($sheet->getName() == $this->sheet_name) {
                 $sheetIndex = $key;
                 break;
             }
         }
 
-        return $sheetIndex;
+        if ($sheetIndex === -1) {
+            throw new SheetNameMissing($this->sheet_name);
+        }
+
+        $this->sheet($sheetIndex);
     }
 
     /**
      * @param $path
      *
-     * @throws \OpenSpout\Common\Exception\IOException
+     * @return \OpenSpout\Reader\ReaderInterface
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      *
-     * @return \OpenSpout\Reader\ReaderInterface
+     * @throws \OpenSpout\Common\Exception\IOException
      */
     private function reader($path)
     {
@@ -175,7 +162,7 @@ trait Importable
 
     /**
      * @param SheetInterface $sheet
-     * @param callable|null  $callback
+     * @param callable|null $callback
      *
      * @return array
      */

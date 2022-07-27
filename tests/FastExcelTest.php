@@ -228,7 +228,7 @@ class FastExcelTest extends TestCase
      */
     public function testImportBySheetNameXLSX()
     {
-        $collection = (new FastExcel())->importBySheetName(__DIR__.'/testMultiSheets.xlsx', 'Sheet 2');
+        $collection = (new FastExcel())->sheetName('Sheet 2')->import(__DIR__.'/testMultiSheets.xlsx');
         $this->assertEquals($this->collection(), $collection);
     }
 
@@ -244,7 +244,7 @@ class FastExcelTest extends TestCase
         $this->expectException(SheetNameMissing::class);
         $this->expectExceptionMessage('Sheet name [Sheet C] is missing.');
 
-        (new FastExcel())->importBySheetName(__DIR__.'/testMultiSheets.xlsx', 'Sheet C');
+        (new FastExcel())->sheetName('Sheet C')->import(__DIR__.'/testMultiSheets.xlsx');
     }
 
     /**
@@ -259,6 +259,6 @@ class FastExcelTest extends TestCase
         $this->expectException(BadCountSheets::class);
         $this->expectExceptionMessage('You file does not contains more than one sheet.');
 
-        (new FastExcel())->importBySheetName(__DIR__.'/test1.xlsx', 'Sheet C');
+        (new FastExcel())->sheetName('Sheet C')->import(__DIR__.'/test1.xlsx');
     }
 }
