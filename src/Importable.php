@@ -13,7 +13,7 @@ use Rap2hpoutre\FastExcel\Exceptions\SheetNameMissing;
 /**
  * Trait Importable.
  *
- * @property int  $start_row
+ * @property int $start_row
  * @property bool $transpose
  * @property bool $with_header
  */
@@ -23,6 +23,11 @@ trait Importable
      * @var int
      */
     private $sheet_number = 1;
+
+    /**
+     * @var string|null
+     */
+    private $sheet_name = null;
 
     /**
      * @param AbstractOptions $options
@@ -44,6 +49,10 @@ trait Importable
     public function import($path, ?callable $callback = null)
     {
         $reader = $this->reader($path);
+
+        if ($this->sheet_name !== null) {
+            $this->setSheetIndexByName($reader);
+        }
 
         foreach ($reader->getSheetIterator() as $key => $sheet) {
             if ($this->sheet_number != $key) {
@@ -84,55 +93,30 @@ trait Importable
     }
 
     /**
-     * @param string|\Symfony\Component\HttpFoundation\File\UploadedFile $path
-     * @param string                                                     $name
-     * @param callable|null                                              $callback
+     * @param ReaderInterface $reader
      *
-     * @throws \OpenSpout\Common\Exception\IOException
-     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
-     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
-     *
-     * @return Collection
+     * @return void
      */
-    public function importBySheetName($path, $name, ?callable $callback = null)
+    private function setSheetIndexByName(ReaderInterface $reader)
     {
-        $reader = $this->reader($path);
-
         if (iterator_count($reader->getSheetIterator()) < 2) {
             throw new BadCountSheets();
         }
 
-        $sheetIndex = $this->getSheetIndexByName($reader, $name);
-
-        $reader->close();
-
-        if ($sheetIndex === -1) {
-            throw new SheetNameMissing($name);
-        }
-
-        return $this
-            ->sheet($sheetIndex)
-            ->import($path, $callback);
-    }
-
-    /**
-     * @param ReaderInterface $reader
-     * @param string          $name
-     *
-     * @return int
-     */
-    private function getSheetIndexByName(ReaderInterface $reader, $name)
-    {
         $sheetIndex = -1;
 
         foreach ($reader->getSheetIterator() as $key => $sheet) {
-            if ($sheet->getName() == $name) {
+            if ($sheet->getName() == $this->sheet_name) {
                 $sheetIndex = $key;
                 break;
             }
         }
 
-        return $sheetIndex;
+        if ($sheetIndex === -1) {
+            throw new SheetNameMissing($this->sheet_name);
+        }
+
+        $this->sheet($sheetIndex);
     }
 
     /**
@@ -358,7 +342,7 @@ trait Importable
 
     /**
      * @param SheetInterface $sheet
-     * @param callable|null  $callback
+     * @param callable|null $callback
      *
      * @return array
      */
