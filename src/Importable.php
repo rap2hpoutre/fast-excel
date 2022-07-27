@@ -43,7 +43,6 @@ trait Importable
      *
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
-     *
      * @throws \OpenSpout\Common\Exception\IOException
      *
      * @return Collection
@@ -73,7 +72,6 @@ trait Importable
      *
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
-     *
      * @throws \OpenSpout\Common\Exception\IOException
      *
      * @return Collection
@@ -121,7 +119,6 @@ trait Importable
      * @param $path
      *
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
-     *
      * @throws \OpenSpout\Common\Exception\IOException
      *
      * @return \OpenSpout\Reader\ReaderInterface
