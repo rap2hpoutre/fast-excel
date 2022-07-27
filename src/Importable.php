@@ -13,7 +13,7 @@ use Rap2hpoutre\FastExcel\Exceptions\SheetNameMissing;
 /**
  * Trait Importable.
  *
- * @property int $start_row
+ * @property int  $start_row
  * @property bool $transpose
  * @property bool $with_header
  */
@@ -342,7 +342,7 @@ trait Importable
 
     /**
      * @param SheetInterface $sheet
-     * @param callable|null $callback
+     * @param callable|null  $callback
      *
      * @return array
      */
