@@ -14,7 +14,7 @@ use Rap2hpoutre\FastExcel\Exceptions\SheetNameMissing;
 /**
  * Trait Importable.
  *
- * @property int $start_row
+ * @property int  $start_row
  * @property bool $transpose
  * @property bool $with_header
  */
@@ -38,14 +38,15 @@ trait Importable
     abstract protected function setOptions(&$reader_or_writer);
 
     /**
-     * @param string $path
+     * @param string        $path
      * @param callable|null $callback
      *
-     * @return Collection
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
      *
      * @throws \OpenSpout\Common\Exception\IOException
+     *
+     * @return Collection
      */
     public function import($path, callable $callback = null)
     {
@@ -67,14 +68,15 @@ trait Importable
     }
 
     /**
-     * @param string $path
+     * @param string        $path
      * @param callable|null $callback
      *
-     * @return Collection
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
      *
      * @throws \OpenSpout\Common\Exception\IOException
+     *
+     * @return Collection
      */
     public function importSheets($path, callable $callback = null)
     {
@@ -118,10 +120,11 @@ trait Importable
     /**
      * @param $path
      *
-     * @return \OpenSpout\Reader\ReaderInterface
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      *
      * @throws \OpenSpout\Common\Exception\IOException
+     *
+     * @return \OpenSpout\Reader\ReaderInterface
      */
     private function reader($path)
     {
@@ -162,7 +165,7 @@ trait Importable
 
     /**
      * @param SheetInterface $sheet
-     * @param callable|null $callback
+     * @param callable|null  $callback
      *
      * @return array
      */
