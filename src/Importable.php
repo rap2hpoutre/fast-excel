@@ -11,7 +11,7 @@ use OpenSpout\Reader\SheetInterface;
 /**
  * Trait Importable.
  *
- * @property int  $start_row
+ * @property int $start_row
  * @property bool $transpose
  * @property bool $with_header
  */
@@ -23,21 +23,21 @@ trait Importable
     private $sheet_number = 1;
 
     /**
-     * @param \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface $reader_or_writer
+     * @param  \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface  $reader_or_writer
      *
      * @return mixed
      */
     abstract protected function setOptions(&$reader_or_writer);
 
     /**
-     * @param string        $path
-     * @param callable|null $callback
+     * @param  string  $path
+     * @param  callable|null  $callback
      *
-     * @throws \OpenSpout\Common\Exception\IOException
+     * @return Collection
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
      *
-     * @return Collection
+     * @throws \OpenSpout\Common\Exception\IOException
      */
     public function import($path, callable $callback = null)
     {
@@ -55,14 +55,14 @@ trait Importable
     }
 
     /**
-     * @param string        $path
-     * @param callable|null $callback
+     * @param  string  $path
+     * @param  callable|null  $callback
      *
-     * @throws \OpenSpout\Common\Exception\IOException
+     * @return Collection
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
      *
-     * @return Collection
+     * @throws \OpenSpout\Common\Exception\IOException
      */
     public function importSheets($path, callable $callback = null)
     {
@@ -84,21 +84,27 @@ trait Importable
     /**
      * @param $path
      *
-     * @throws \OpenSpout\Common\Exception\IOException
+     * @return \OpenSpout\Reader\ReaderInterface
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      *
-     * @return \OpenSpout\Reader\ReaderInterface
+     * @throws \OpenSpout\Common\Exception\IOException
      */
     private function reader($path)
     {
-        if (Str::endsWith($path, Type::CSV)) {
-            $reader = ReaderEntityFactory::createCSVReader();
-        } elseif (Str::endsWith($path, Type::ODS)) {
-            $reader = ReaderEntityFactory::createODSReader();
+        if (Str::endsWith($path, 'csv')) {
+            $options = new \OpenSpout\Reader\CSV\Options();
+            $this->setOptions($options);
+            $reader = new \OpenSpout\Reader\CSV\Reader($options);
+        } elseif (Str::endsWith($path, 'ods')) {
+            $options = new \OpenSpout\Reader\ODS\Options();
+            $this->setOptions($options);
+            $reader = new \OpenSpout\Reader\ODS\Reader($options);
         } else {
-            $reader = ReaderEntityFactory::createXLSXReader();
+            $options = new \OpenSpout\Reader\XLSX\Options();
+            $this->setOptions($options);
+            $reader = new \OpenSpout\Reader\XLSX\Reader($options);
         }
-        $this->setOptions($reader);
+
         /* @var \OpenSpout\Reader\ReaderInterface $reader */
         $reader->open($path);
 
@@ -106,7 +112,7 @@ trait Importable
     }
 
     /**
-     * @param array $array
+     * @param  array  $array
      *
      * @return array
      */
@@ -116,10 +122,14 @@ trait Importable
 
         foreach ($array as $row => $columns) {
             foreach ($columns as $column => $value) {
-                data_set($collection, implode('.', [
-                    $column,
-                    $row,
-                ]), $value);
+                data_set(
+                    $collection,
+                    implode('.', [
+                        $column,
+                        $row,
+                    ]),
+                    $value
+                );
             }
         }
 
@@ -127,15 +137,15 @@ trait Importable
     }
 
     /**
-     * @param SheetInterface $sheet
-     * @param callable|null  $callback
+     * @param  SheetInterface  $sheet
+     * @param  callable|null  $callback
      *
      * @return array
      */
     private function importSheet(SheetInterface $sheet, callable $callback = null)
     {
-        $headers = [];
-        $collection = [];
+        $headers      = [];
+        $collection   = [];
         $count_header = 0;
 
         foreach ($sheet->getRowIterator() as $k => $rowAsObject) {
@@ -143,7 +153,7 @@ trait Importable
             if ($k >= $this->start_row) {
                 if ($this->with_header) {
                     if ($k == $this->start_row) {
-                        $headers = $this->toStrings($row);
+                        $headers      = $this->toStrings($row);
                         $count_header = count($headers);
                         continue;
                     }
@@ -171,7 +181,7 @@ trait Importable
     }
 
     /**
-     * @param array $values
+     * @param  array  $values
      *
      * @return array
      */
@@ -180,8 +190,10 @@ trait Importable
         foreach ($values as &$value) {
             if ($value instanceof \DateTime) {
                 $value = $value->format('Y-m-d H:i:s');
+            } elseif ($value instanceof \DateTimeImmutable) {
+                $value = $value->format('Y-m-d H:i:s');
             } elseif ($value) {
-                $value = (string) $value;
+                $value = (string)$value;
             }
         }
 

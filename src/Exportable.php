@@ -6,15 +6,18 @@ use Generator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Common\Type;
+use OpenSpout\Reader\CSV\Options;
 use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+use OpenSpout\Writer\XLSX\Writer;
 
 /**
  * Trait Exportable.
  *
- * @property bool                           $transpose
- * @property bool                           $with_header
+ * @property bool $transpose
+ * @property bool $with_header
  * @property \Illuminate\Support\Collection $data
  */
 trait Exportable
@@ -26,22 +29,22 @@ trait Exportable
     private $rows_style;
 
     /**
-     * @param \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface $reader_or_writer
+     * @param  \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface  $reader_or_writer
      *
      * @return mixed
      */
     abstract protected function setOptions(&$reader_or_writer);
 
     /**
-     * @param string        $path
-     * @param callable|null $callback
+     * @param  string  $path
+     * @param  callable|null  $callback
      *
-     * @throws \OpenSpout\Common\Exception\IOException
+     * @return string
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
      *
-     * @return string
+     * @throws \OpenSpout\Common\Exception\IOException
      */
     public function export($path, callable $callback = null)
     {
@@ -52,19 +55,19 @@ trait Exportable
 
     /**
      * @param $path
-     * @param callable|null $callback
+     * @param  callable|null  $callback
      *
-     * @throws \OpenSpout\Common\Exception\IOException
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse|string
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
      *
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse|string
+     * @throws \OpenSpout\Common\Exception\IOException
      */
     public function download($path, callable $callback = null)
     {
         if (method_exists(response(), 'streamDownload')) {
-            return response()->streamDownload(function () use ($path, $callback) {
+            return response()->streamDownload(function() use ($path, $callback) {
                 self::exportOrDownload($path, 'openToBrowser', $callback);
             });
         }
@@ -75,8 +78,8 @@ trait Exportable
 
     /**
      * @param $path
-     * @param string        $function
-     * @param callable|null $callback
+     * @param  string  $function
+     * @param  callable|null  $callback
      *
      * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
@@ -86,12 +89,15 @@ trait Exportable
      */
     private function exportOrDownload($path, $function, callable $callback = null)
     {
-        if (Str::endsWith($path, Type::CSV)) {
-            $writer = WriterEntityFactory::createCSVWriter();
-        } elseif (Str::endsWith($path, Type::ODS)) {
-            $writer = WriterEntityFactory::createODSWriter();
+        if (Str::endsWith($path, 'csv')) {
+            $options = new \OpenSpout\Writer\CSV\Options();
+            $writer  = new \OpenSpout\Writer\CSV\Writer($options);
+        } elseif (Str::endsWith($path, 'ods')) {
+            $options = new \OpenSpout\Writer\ODS\Options();
+            $writer  = new \OpenSpout\Writer\ODS\Writer($options);
         } else {
-            $writer = WriterEntityFactory::createXLSXWriter();
+            $options = new \OpenSpout\Writer\XLSX\Options();
+            $writer  = new \OpenSpout\Writer\XLSX\Writer($options);
         }
 
         $this->setOptions($writer);
@@ -130,17 +136,21 @@ trait Exportable
      */
     private function transposeData()
     {
-        $data = $this->data instanceof SheetCollection ? $this->data : collect([$this->data]);
+        $data           = $this->data instanceof SheetCollection ? $this->data : collect([$this->data]);
         $transposedData = [];
 
         foreach ($data as $key => $collection) {
             foreach ($collection as $row => $columns) {
                 foreach ($columns as $column => $value) {
-                    data_set($transposedData, implode('.', [
-                        $key,
-                        $column,
-                        $row,
-                    ]), $value);
+                    data_set(
+                        $transposedData,
+                        implode('.', [
+                            $key,
+                            $column,
+                            $row,
+                        ]),
+                        $value
+                    );
                 }
             }
         }
@@ -152,7 +162,7 @@ trait Exportable
     {
         // Apply callback
         if ($callback) {
-            $collection->transform(function ($value) use ($callback) {
+            $collection->transform(function($value) use ($callback) {
                 return $callback($value);
             });
         }
@@ -165,14 +175,14 @@ trait Exportable
 
         // createRowFromArray works only with arrays
         if (!is_array($collection->first())) {
-            $collection = $collection->map(function ($value) {
+            $collection = $collection->map(function($value) {
                 return $value->toArray();
             });
         }
 
         // is_array($first_row) ? $first_row : $first_row->toArray())
-        $all_rows = $collection->map(function ($value) {
-            return WriterEntityFactory::createRowFromArray($value);
+        $all_rows = $collection->map(function($value) {
+            return Row::fromValues($value);
         })->toArray();
         if ($this->rows_style) {
             $this->addRowsWithStyle($writer, $all_rows, $this->rows_style);
@@ -186,8 +196,7 @@ trait Exportable
         $styled_rows = [];
         // Style rows one by one
         foreach ($all_rows as $row) {
-            $row = WriterEntityFactory::createRowFromArray($row->toArray(), $rows_style);
-            array_push($styled_rows, $row);
+            $styled_rows[] = Row::fromValues($row->toArray(), $rows_style);
         }
         $writer->addRows($styled_rows);
     }
@@ -208,7 +217,7 @@ trait Exportable
                 $this->writeHeader($writer, $item);
             }
             // Write rows (one by one).
-            $writer->addRow(WriterEntityFactory::createRowFromArray($item->toArray(), $this->rows_style));
+            $writer->addRow(Row::fromValues($item->toArray(), $this->rows_style));
         }
     }
 
@@ -229,8 +238,8 @@ trait Exportable
         }
 
         $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
-
-        $writer->addRow(WriterEntityFactory::createRowFromArray($keys, $this->header_style));
+        $writer->addRow(Row::fromValues($keys));
+//        $writer->addRow(WriterEntityFactory::createRowFromArray($keys, $this->header_style));
     }
 
     /**
@@ -239,7 +248,7 @@ trait Exportable
     protected function prepareCollection(Collection $collection)
     {
         $need_conversion = false;
-        $first_row = $collection->first();
+        $first_row       = $collection->first();
 
         if (!$first_row) {
             return;
@@ -260,7 +269,7 @@ trait Exportable
      */
     private function transform(Collection $collection)
     {
-        $collection->transform(function ($data) {
+        $collection->transform(function($data) {
             return $this->transformRow($data);
         });
     }
@@ -270,15 +279,15 @@ trait Exportable
      */
     private function transformRow($data)
     {
-        return collect($data)->map(function ($value) {
-            return is_null($value) ? (string) $value : $value;
-        })->filter(function ($value) {
+        return collect($data)->map(function($value) {
+            return is_null($value) ? (string)$value : $value;
+        })->filter(function($value) {
             return is_string($value) || is_int($value) || is_float($value);
         });
     }
 
     /**
-     * @param Style $style
+     * @param  Style  $style
      *
      * @return Exportable
      */
@@ -290,7 +299,7 @@ trait Exportable
     }
 
     /**
-     * @param Style $style
+     * @param  Style  $style
      *
      * @return Exportable
      */
