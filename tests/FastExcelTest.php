@@ -4,6 +4,7 @@ namespace Smart145\FastExcel\Tests;
 
 use Box\Spout\Writer\Style\Color;
 use Box\Spout\Writer\Style\StyleBuilder;
+use PHPUnit\Framework\TestCase;
 use Smart145\FastExcel\FastExcel;
 use Smart145\FastExcel\SheetCollection;
 

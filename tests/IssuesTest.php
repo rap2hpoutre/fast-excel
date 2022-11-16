@@ -5,6 +5,7 @@ namespace Smart145\FastExcel\Tests;
 use Box\Spout\Common\Type;
 use Box\Spout\Reader\ReaderFactory;
 use Illuminate\Support\Collection;
+use PHPUnit\Framework\TestCase;
 use Smart145\FastExcel\FastExcel;
 use Smart145\FastExcel\SheetCollection;
 
