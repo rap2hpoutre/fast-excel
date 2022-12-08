@@ -95,11 +95,11 @@ trait Importable
     {
         $fileExtension = $fileExtension ?? (is_string($path) ? $path : $path->extension());
 
-        $reader = match($fileExtension) {
-            Type::CSV => ReaderEntityFactory::createCSVReader(),
+        $reader = match ($fileExtension) {
+            Type::CSV  => ReaderEntityFactory::createCSVReader(),
             Type::XLSX => ReaderEntityFactory::createXLSXReader(),
-            Type::ODS => ReaderEntityFactory::createODSReader(),
-            default => $this->checkPathEnding($path),
+            Type::ODS  => ReaderEntityFactory::createODSReader(),
+            default    => $this->checkPathEnding($path),
         };
 
         $this->setOptions($reader);
@@ -114,6 +114,7 @@ trait Importable
      * supported file extensions.
      *
      * @param $path
+     *
      * @return \OpenSpout\Reader\ReaderInterface
      */
     private function checkPathEnding($path)
