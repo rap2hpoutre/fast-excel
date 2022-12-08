@@ -32,6 +32,7 @@ trait Importable
     /**
      * @param string        $path
      * @param callable|null $callback
+     * @param string|null   $fileExtension
      *
      * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
@@ -39,9 +40,9 @@ trait Importable
      *
      * @return Collection
      */
-    public function import($path, callable $callback = null)
+    public function import($path, callable $callback = null, string $fileExtension = null)
     {
-        $reader = $this->reader($path);
+        $reader = $this->reader($path, $fileExtension);
 
         foreach ($reader->getSheetIterator() as $key => $sheet) {
             if ($this->sheet_number != $key) {
@@ -83,13 +84,39 @@ trait Importable
 
     /**
      * @param $path
+     * @param string|null $fileExtension
      *
      * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      *
      * @return \OpenSpout\Reader\ReaderInterface
      */
-    private function reader($path)
+    private function reader($path, string $fileExtension = null)
+    {
+        $fileExtension = $fileExtension ?? (is_string($path) ? $path : $path->extension());
+
+        $reader = match($fileExtension) {
+            Type::CSV => ReaderEntityFactory::createCSVReader(),
+            Type::XLSX => ReaderEntityFactory::createXLSXReader(),
+            Type::ODS => ReaderEntityFactory::createODSReader(),
+            default => $this->checkPathEnding($path),
+        };
+
+        $this->setOptions($reader);
+        /* @var \OpenSpout\Reader\ReaderInterface $reader */
+        $reader->open($path);
+
+        return $reader;
+    }
+
+    /**
+     * Determine the path if it ends with
+     * supported file extensions.
+     *
+     * @param $path
+     * @return \OpenSpout\Reader\ReaderInterface
+     */
+    private function checkPathEnding($path)
     {
         if (Str::endsWith($path, Type::CSV)) {
             $reader = ReaderEntityFactory::createCSVReader();
@@ -98,9 +125,6 @@ trait Importable
         } else {
             $reader = ReaderEntityFactory::createXLSXReader();
         }
-        $this->setOptions($reader);
-        /* @var \OpenSpout\Reader\ReaderInterface $reader */
-        $reader->open($path);
 
         return $reader;
     }

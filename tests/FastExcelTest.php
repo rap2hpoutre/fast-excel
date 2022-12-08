@@ -3,9 +3,11 @@
 namespace Rap2hpoutre\FastExcel\Tests;
 
 use OpenSpout\Common\Entity\Style\Color;
+use OpenSpout\Common\Type;
 use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
+use ReflectionMethod;
 
 /**
  * Class FastExcelTest.
@@ -101,6 +103,35 @@ class FastExcelTest extends TestCase
         });
         $this->assertEquals(
             collect([new Dumb('row1 col1'), new Dumb('row2 col1'), new Dumb('row3 col1')]),
+            $collection
+        );
+    }
+
+    /**
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testExcelImportWithFileExtension()
+    {
+        $method = new ReflectionMethod(FastExcel::class, 'import');
+        $num = $method->getNumberOfParameters();
+
+        $this->assertEquals($expected = 3, $num);
+
+        $method = new ReflectionMethod(FastExcel::class, 'reader');
+        $num = $method->getNumberOfParameters();
+
+        $this->assertEquals($expected = 2, $num);
+
+        $collection = (new FastExcel())->import(__DIR__.'/test1.xlsx', function ($value) {
+            return [
+                'test' => $value['col1'],
+            ];
+        }, Type::XLSX);
+
+        $this->assertEquals(
+            collect([['test' => 'row1 col1'], ['test' => 'row2 col1'], ['test' => 'row3 col1']]),
             $collection
         );
     }
