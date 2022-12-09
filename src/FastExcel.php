@@ -4,8 +4,11 @@ namespace Rap2hpoutre\FastExcel;
 
 use Generator;
 use Illuminate\Support\Collection;
+use OpenSpout\Reader\CSV\Options;
+use OpenSpout\Reader\CSV\Reader;
 use OpenSpout\Reader\CSV\Reader as CSVReader;
 use OpenSpout\Reader\ReaderInterface;
+use OpenSpout\Writer\CSV\Writer;
 use OpenSpout\Writer\CSV\Writer as CSVWriter;
 use OpenSpout\Writer\WriterInterface;
 
@@ -65,9 +68,9 @@ class FastExcel
     /**
      * FastExcel constructor.
      *
-     * @param Collection|Generator|array|null $data
+     * @param  array|Generator|Collection|null  $data
      */
-    public function __construct($data = null)
+    public function __construct(array|Generator|Collection $data = null)
     {
         $this->data = $data;
     }
@@ -186,14 +189,14 @@ class FastExcel
      */
     protected function setOptions(&$reader_or_writer)
     {
-        if ($reader_or_writer instanceof CSVReader || $reader_or_writer instanceof CSVWriter) {
-            $reader_or_writer->setFieldDelimiter($this->csv_configuration['delimiter']);
-            $reader_or_writer->setFieldEnclosure($this->csv_configuration['enclosure']);
-            if ($reader_or_writer instanceof CSVReader) {
-                $reader_or_writer->setEncoding($this->csv_configuration['encoding']);
+        if ($reader_or_writer instanceof Options || $reader_or_writer instanceof \OpenSpout\Writer\Common\Entity\Options) {
+            $reader_or_writer->FIELD_DELIMITER = $this->csv_configuration['delimiter'];
+            $reader_or_writer->FIELD_ENCLOSURE = $this->csv_configuration['enclosure'];
+            if ($reader_or_writer instanceof Options) {
+                $reader_or_writer->ENCODING = $this->csv_configuration['encoding'];
             }
-            if ($reader_or_writer instanceof CSVWriter) {
-                $reader_or_writer->setShouldAddBOM($this->csv_configuration['bom']);
+            if ($reader_or_writer instanceof \OpenSpout\Writer\Common\Entity\Options) {
+                $reader_or_writer->SHOULD_ADD_BOM = $this->csv_configuration['bom'];
             }
         }
 
