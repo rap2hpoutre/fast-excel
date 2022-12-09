@@ -94,9 +94,9 @@ trait Importable
         $fileExtension = $fileExtension ?? (is_string($path) ? $path : $path->extension());
 
         $options = match (true) {
-            'csv' === $fileExtension, Str::endsWith($path, 'csv')  => new \OpenSpout\Reader\CSV\Options(),
+            'csv' === $fileExtension, Str::endsWith($path, 'csv')   => new \OpenSpout\Reader\CSV\Options(),
             'xlsx' === $fileExtension, Str::endsWith($path, 'xlsx') => new \OpenSpout\Reader\XLSX\Options(),
-            'ods' === $fileExtension, Str::endsWith($path, 'ods')  => new \OpenSpout\Reader\ODS\Options(),
+            'ods' === $fileExtension, Str::endsWith($path, 'ods')   => new \OpenSpout\Reader\ODS\Options(),
         };
 
         $this->setOptions($options);

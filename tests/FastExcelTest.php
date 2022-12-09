@@ -4,7 +4,6 @@ namespace Rap2hpoutre\FastExcel\Tests;
 
 use OpenSpout\Common\Entity\Style\Color;
 use OpenSpout\Common\Entity\Style\Style;
-use OpenSpout\Common\Type;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
 use ReflectionMethod;
