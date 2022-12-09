@@ -6,10 +6,8 @@ use Generator;
 use Illuminate\Support\Collection;
 use OpenSpout\Reader\CSV\Options;
 use OpenSpout\Reader\CSV\Reader;
-use OpenSpout\Reader\CSV\Reader as CSVReader;
 use OpenSpout\Reader\ReaderInterface;
 use OpenSpout\Writer\CSV\Writer;
-use OpenSpout\Writer\CSV\Writer as CSVWriter;
 use OpenSpout\Writer\WriterInterface;
 
 /**
@@ -68,7 +66,7 @@ class FastExcel
     /**
      * FastExcel constructor.
      *
-     * @param  array|Generator|Collection|null  $data
+     * @param array|Generator|Collection|null $data
      */
     public function __construct(array|Generator|Collection $data = null)
     {

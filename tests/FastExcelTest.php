@@ -4,7 +4,6 @@ namespace Rap2hpoutre\FastExcel\Tests;
 
 use OpenSpout\Common\Entity\Style\Color;
 use OpenSpout\Common\Entity\Style\Style;
-use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
 
@@ -87,7 +86,7 @@ class FastExcelTest extends TestCase
      */
     public function testExcelImportWithCallback()
     {
-        $collection = (new FastExcel())->import(__DIR__.'/test1.xlsx', function($value) {
+        $collection = (new FastExcel())->import(__DIR__.'/test1.xlsx', function ($value) {
             return [
                 'test' => $value['col1'],
             ];
@@ -97,7 +96,7 @@ class FastExcelTest extends TestCase
             $collection
         );
 
-        $collection = (new FastExcel())->import(__DIR__.'/test1.xlsx', function($value) {
+        $collection = (new FastExcel())->import(__DIR__.'/test1.xlsx', function ($value) {
             return new Dumb($value['col1']);
         });
         $this->assertEquals(
@@ -115,7 +114,7 @@ class FastExcelTest extends TestCase
      */
     public function testExcelExportWithCallback()
     {
-        (new FastExcel(clone $this->collection()))->export(__DIR__.'/test2.xlsx', function($value) {
+        (new FastExcel(clone $this->collection()))->export(__DIR__.'/test2.xlsx', function ($value) {
             return [
                 'test' => $value['col1'],
             ];
@@ -136,7 +135,7 @@ class FastExcelTest extends TestCase
      */
     public function testExportMultiSheetXLSX()
     {
-        $file   = __DIR__.'/test_multi_sheets.xlsx';
+        $file = __DIR__.'/test_multi_sheets.xlsx';
         $sheets = new SheetCollection([clone $this->collection(), clone $this->collection()]);
         (new FastExcel($sheets))->export($file);
         $this->assertEquals($this->collection(), (new FastExcel())->import($file));
@@ -156,8 +155,8 @@ class FastExcelTest extends TestCase
             collect([['test' => 'row1 col1'], ['test' => 'row2 col1'], ['test' => 'row3 col1']]),
             $this->collection(),
         ];
-        $file        = __DIR__.'/test_multi_sheets.xlsx';
-        $sheets      = new SheetCollection($collections);
+        $file = __DIR__.'/test_multi_sheets.xlsx';
+        $sheets = new SheetCollection($collections);
         (new FastExcel($sheets))->export($file);
 
         $sheets = (new FastExcel())->importSheets($file);
@@ -182,8 +181,8 @@ class FastExcelTest extends TestCase
             'Sheet with name A' => collect([['test' => 'row1 col1'], ['test' => 'row2 col1'], ['test' => 'row3 col1']]),
             'Sheet with name B' => $this->collection(),
         ];
-        $file        = __DIR__.'/test_multi_sheets_with_sheets_names.xlsx';
-        $sheets      = new SheetCollection($collections);
+        $file = __DIR__.'/test_multi_sheets_with_sheets_names.xlsx';
+        $sheets = new SheetCollection($collections);
         (new FastExcel($sheets))->export($file);
 
         $sheets = (new FastExcel())->withSheetsNames()->importSheets($file);
