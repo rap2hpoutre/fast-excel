@@ -4,8 +4,6 @@ namespace Rap2hpoutre\FastExcel;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use OpenSpout\Common\Type;
-use OpenSpout\Reader\Common\Creator\ReaderEntityFactory;
 use OpenSpout\Reader\SheetInterface;
 
 /**
@@ -34,9 +32,9 @@ trait Importable
      * @param callable|null $callback
      * @param string|null   $fileExtension
      *
-     * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\IOException
      *
      * @return Collection
      */
@@ -59,9 +57,9 @@ trait Importable
      * @param string        $path
      * @param callable|null $callback
      *
-     * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\IOException
      *
      * @return Collection
      */
@@ -86,8 +84,8 @@ trait Importable
      * @param $path
      * @param string|null $fileExtension
      *
-     * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Common\Exception\IOException
      *
      * @return \OpenSpout\Reader\ReaderInterface
      */
@@ -95,37 +93,22 @@ trait Importable
     {
         $fileExtension = $fileExtension ?? (is_string($path) ? $path : $path->extension());
 
-        $reader = match ($fileExtension) {
-            Type::CSV  => ReaderEntityFactory::createCSVReader(),
-            Type::XLSX => ReaderEntityFactory::createXLSXReader(),
-            Type::ODS  => ReaderEntityFactory::createODSReader(),
-            default    => $this->checkPathEnding($path),
+        $options = match (true) {
+            'csv' === $fileExtension, Str::endsWith($path, 'csv')  => new \OpenSpout\Reader\CSV\Options(),
+            'xlsx' === $fileExtension, Str::endsWith($path, 'xlsx') => new \OpenSpout\Reader\XLSX\Options(),
+            'ods' === $fileExtension, Str::endsWith($path, 'ods')  => new \OpenSpout\Reader\ODS\Options(),
         };
 
-        $this->setOptions($reader);
+        $this->setOptions($options);
+
+        $reader = match (true) {
+            'csv' === $fileExtension, Str::endsWith($path, 'csv')   => new \OpenSpout\Reader\CSV\Reader($options),
+            'xlsx' === $fileExtension, Str::endsWith($path, 'xlsx') => new \OpenSpout\Reader\XLSX\Reader($options),
+            'ods' === $fileExtension, Str::endsWith($path, 'ods')   => new \OpenSpout\Reader\ODS\Reader($options),
+        };
+
         /* @var \OpenSpout\Reader\ReaderInterface $reader */
         $reader->open($path);
-
-        return $reader;
-    }
-
-    /**
-     * Determine the path if it ends with
-     * supported file extensions.
-     *
-     * @param $path
-     *
-     * @return \OpenSpout\Reader\ReaderInterface
-     */
-    private function checkPathEnding($path)
-    {
-        if (Str::endsWith($path, Type::CSV)) {
-            $reader = ReaderEntityFactory::createCSVReader();
-        } elseif (Str::endsWith($path, Type::ODS)) {
-            $reader = ReaderEntityFactory::createODSReader();
-        } else {
-            $reader = ReaderEntityFactory::createXLSXReader();
-        }
 
         return $reader;
     }
@@ -141,10 +124,14 @@ trait Importable
 
         foreach ($array as $row => $columns) {
             foreach ($columns as $column => $value) {
-                data_set($collection, implode('.', [
-                    $column,
-                    $row,
-                ]), $value);
+                data_set(
+                    $collection,
+                    implode('.', [
+                        $column,
+                        $row,
+                    ]),
+                    $value
+                );
             }
         }
 
@@ -204,6 +191,8 @@ trait Importable
     {
         foreach ($values as &$value) {
             if ($value instanceof \DateTime) {
+                $value = $value->format('Y-m-d H:i:s');
+            } elseif ($value instanceof \DateTimeImmutable) {
                 $value = $value->format('Y-m-d H:i:s');
             } elseif ($value) {
                 $value = (string) $value;

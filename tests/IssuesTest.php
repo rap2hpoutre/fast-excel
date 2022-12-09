@@ -3,7 +3,6 @@
 namespace Rap2hpoutre\FastExcel\Tests;
 
 use Illuminate\Support\Collection;
-use OpenSpout\Reader\Common\Creator\ReaderEntityFactory;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
 
@@ -124,7 +123,9 @@ class IssuesTest extends TestCase
     {
         $col = new SheetCollection(['1st Sheet' => $this->collection(), '2nd Sheet' => $this->collection()]);
         (new FastExcel($col))->export(__DIR__.'/test2.xlsx');
-        $reader = ReaderEntityFactory::createXLSXReader();
+
+        $options = new \OpenSpout\Reader\XLSX\Options();
+        $reader = new \OpenSpout\Reader\XLSX\Reader($options);
         $reader->open(__DIR__.'/test2.xlsx');
         foreach ($reader->getSheetIterator() as $key => $sheet) {
             $this->assertEquals($sheet->getName(), $key === 2 ? '2nd Sheet' : '1st Sheet');

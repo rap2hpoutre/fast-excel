@@ -3,8 +3,8 @@
 namespace Rap2hpoutre\FastExcel\Tests;
 
 use OpenSpout\Common\Entity\Style\Color;
+use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Common\Type;
-use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
 use ReflectionMethod;
@@ -128,7 +128,7 @@ class FastExcelTest extends TestCase
             return [
                 'test' => $value['col1'],
             ];
-        }, Type::XLSX);
+        }, 'xlsx');
 
         $this->assertEquals(
             collect([['test' => 'row1 col1'], ['test' => 'row2 col1'], ['test' => 'row3 col1']]),
@@ -235,10 +235,13 @@ class FastExcelTest extends TestCase
     public function testExportWithHeaderStyle()
     {
         $original_collection = $this->collection();
-        $style = (new StyleBuilder())
-           ->setFontBold()
-           ->setBackgroundColor(Color::YELLOW)
-           ->build();
+
+        $style = new Style();
+        $style->setFontBold();
+        $style->setFontSize(15);
+        $style->setFontColor(Color::BLUE);
+        $style->setShouldWrapText();
+        $style->setBackgroundColor(Color::YELLOW);
         $file = __DIR__.'/test-header-style.xlsx';
         (new FastExcel(clone $original_collection))
             ->headerStyle($style)
