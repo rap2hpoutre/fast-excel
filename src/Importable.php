@@ -4,14 +4,12 @@ namespace Rap2hpoutre\FastExcel;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use OpenSpout\Common\Type;
-use OpenSpout\Reader\Common\Creator\ReaderEntityFactory;
 use OpenSpout\Reader\SheetInterface;
 
 /**
  * Trait Importable.
  *
- * @property int $start_row
+ * @property int  $start_row
  * @property bool $transpose
  * @property bool $with_header
  */
@@ -23,21 +21,21 @@ trait Importable
     private $sheet_number = 1;
 
     /**
-     * @param  \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface  $reader_or_writer
+     * @param \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface $reader_or_writer
      *
      * @return mixed
      */
     abstract protected function setOptions(&$reader_or_writer);
 
     /**
-     * @param  string  $path
-     * @param  callable|null  $callback
+     * @param string        $path
+     * @param callable|null $callback
      *
-     * @return Collection
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
-     *
      * @throws \OpenSpout\Common\Exception\IOException
+     *
+     * @return Collection
      */
     public function import($path, callable $callback = null)
     {
@@ -55,14 +53,14 @@ trait Importable
     }
 
     /**
-     * @param  string  $path
-     * @param  callable|null  $callback
+     * @param string        $path
+     * @param callable|null $callback
      *
-     * @return Collection
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
-     *
      * @throws \OpenSpout\Common\Exception\IOException
+     *
+     * @return Collection
      */
     public function importSheets($path, callable $callback = null)
     {
@@ -84,10 +82,10 @@ trait Importable
     /**
      * @param $path
      *
-     * @return \OpenSpout\Reader\ReaderInterface
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
-     *
      * @throws \OpenSpout\Common\Exception\IOException
+     *
+     * @return \OpenSpout\Reader\ReaderInterface
      */
     private function reader($path)
     {
@@ -112,7 +110,7 @@ trait Importable
     }
 
     /**
-     * @param  array  $array
+     * @param array $array
      *
      * @return array
      */
@@ -137,15 +135,15 @@ trait Importable
     }
 
     /**
-     * @param  SheetInterface  $sheet
-     * @param  callable|null  $callback
+     * @param SheetInterface $sheet
+     * @param callable|null  $callback
      *
      * @return array
      */
     private function importSheet(SheetInterface $sheet, callable $callback = null)
     {
-        $headers      = [];
-        $collection   = [];
+        $headers = [];
+        $collection = [];
         $count_header = 0;
 
         foreach ($sheet->getRowIterator() as $k => $rowAsObject) {
@@ -153,7 +151,7 @@ trait Importable
             if ($k >= $this->start_row) {
                 if ($this->with_header) {
                     if ($k == $this->start_row) {
-                        $headers      = $this->toStrings($row);
+                        $headers = $this->toStrings($row);
                         $count_header = count($headers);
                         continue;
                     }
@@ -181,7 +179,7 @@ trait Importable
     }
 
     /**
-     * @param  array  $values
+     * @param array $values
      *
      * @return array
      */
@@ -193,7 +191,7 @@ trait Importable
             } elseif ($value instanceof \DateTimeImmutable) {
                 $value = $value->format('Y-m-d H:i:s');
             } elseif ($value) {
-                $value = (string)$value;
+                $value = (string) $value;
             }
         }
 

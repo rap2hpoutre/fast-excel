@@ -3,7 +3,6 @@
 namespace Rap2hpoutre\FastExcel\Tests;
 
 use Illuminate\Support\Collection;
-use OpenSpout\Reader\Common\Creator\ReaderEntityFactory;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
 
@@ -21,7 +20,7 @@ class IssuesTest extends TestCase
      */
     public function testIssue11()
     {
-        $original_collection = $this->collection()->map(function($v) {
+        $original_collection = $this->collection()->map(function ($v) {
             return array_merge($v, ['test' => ['hello', 'hi']]);
         });
         (new FastExcel(clone $original_collection))->export(__DIR__.'/test2.xlsx');
@@ -98,15 +97,15 @@ class IssuesTest extends TestCase
     public function testIssue32()
     {
         $original_collection = collect([
-                                           [
-                                               'duration_in_months' => 1,
-                                               'expires_at'         => '2018-08-06',
-                                           ],
-                                           [
-                                               'duration_in_months' => null,
-                                               'expires_at'         => '1970-01-01',
-                                           ],
-                                       ]);
+            [
+                'duration_in_months' => 1,
+                'expires_at'         => '2018-08-06',
+            ],
+            [
+                'duration_in_months' => null,
+                'expires_at'         => '1970-01-01',
+            ],
+        ]);
         (new FastExcel(clone $original_collection))->export(__DIR__.'/test2.xlsx');
         $res = (new FastExcel())->import(__DIR__.'/test2.xlsx');
         $this->assertEquals($original_collection[1], $res[1]);
@@ -126,7 +125,7 @@ class IssuesTest extends TestCase
         (new FastExcel($col))->export(__DIR__.'/test2.xlsx');
 
         $options = new \OpenSpout\Reader\XLSX\Options();
-        $reader  = new \OpenSpout\Reader\XLSX\Reader($options);
+        $reader = new \OpenSpout\Reader\XLSX\Reader($options);
         $reader->open(__DIR__.'/test2.xlsx');
         foreach ($reader->getSheetIterator() as $key => $sheet) {
             $this->assertEquals($sheet->getName(), $key === 2 ? '2nd Sheet' : '1st Sheet');
@@ -150,7 +149,7 @@ class IssuesTest extends TestCase
 
     public function testIssue86()
     {
-        $users = (new FastExcel())->withoutHeaders()->import(__DIR__.'/test1.xlsx', function($line) {
+        $users = (new FastExcel())->withoutHeaders()->import(__DIR__.'/test1.xlsx', function ($line) {
             return $line;
         });
         $this->assertCount(4, $users);
@@ -159,7 +158,7 @@ class IssuesTest extends TestCase
 
     public function testIssue104()
     {
-        $users = (new FastExcel())->import(__DIR__.'/test104.xlsx', function($line) {
+        $users = (new FastExcel())->import(__DIR__.'/test104.xlsx', function ($line) {
             return $line;
         });
         $this->assertCount(3, $users);

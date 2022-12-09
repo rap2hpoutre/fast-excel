@@ -8,16 +8,14 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
-use OpenSpout\Common\Type;
-use OpenSpout\Reader\CSV\Options;
 use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
 use OpenSpout\Writer\XLSX\Writer;
 
 /**
  * Trait Exportable.
  *
- * @property bool $transpose
- * @property bool $with_header
+ * @property bool                           $transpose
+ * @property bool                           $with_header
  * @property \Illuminate\Support\Collection $data
  */
 trait Exportable
@@ -29,22 +27,22 @@ trait Exportable
     private $rows_style;
 
     /**
-     * @param  \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface  $reader_or_writer
+     * @param \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface $reader_or_writer
      *
      * @return mixed
      */
     abstract protected function setOptions(&$reader_or_writer);
 
     /**
-     * @param  string  $path
-     * @param  callable|null  $callback
+     * @param string        $path
+     * @param callable|null $callback
      *
-     * @return string
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
-     *
      * @throws \OpenSpout\Common\Exception\IOException
+     *
+     * @return string
      */
     public function export($path, callable $callback = null)
     {
@@ -55,19 +53,19 @@ trait Exportable
 
     /**
      * @param $path
-     * @param  callable|null  $callback
+     * @param callable|null $callback
      *
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse|string
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
-     *
      * @throws \OpenSpout\Common\Exception\IOException
+     *
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse|string
      */
     public function download($path, callable $callback = null)
     {
         if (method_exists(response(), 'streamDownload')) {
-            return response()->streamDownload(function() use ($path, $callback) {
+            return response()->streamDownload(function () use ($path, $callback) {
                 self::exportOrDownload($path, 'openToBrowser', $callback);
             });
         }
@@ -78,8 +76,8 @@ trait Exportable
 
     /**
      * @param $path
-     * @param  string  $function
-     * @param  callable|null  $callback
+     * @param string        $function
+     * @param callable|null $callback
      *
      * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
@@ -91,13 +89,13 @@ trait Exportable
     {
         if (Str::endsWith($path, 'csv')) {
             $options = new \OpenSpout\Writer\CSV\Options();
-            $writer  = new \OpenSpout\Writer\CSV\Writer($options);
+            $writer = new \OpenSpout\Writer\CSV\Writer($options);
         } elseif (Str::endsWith($path, 'ods')) {
             $options = new \OpenSpout\Writer\ODS\Options();
-            $writer  = new \OpenSpout\Writer\ODS\Writer($options);
+            $writer = new \OpenSpout\Writer\ODS\Writer($options);
         } else {
             $options = new \OpenSpout\Writer\XLSX\Options();
-            $writer  = new \OpenSpout\Writer\XLSX\Writer($options);
+            $writer = new \OpenSpout\Writer\XLSX\Writer($options);
         }
 
         $this->setOptions($writer);
@@ -136,7 +134,7 @@ trait Exportable
      */
     private function transposeData()
     {
-        $data           = $this->data instanceof SheetCollection ? $this->data : collect([$this->data]);
+        $data = $this->data instanceof SheetCollection ? $this->data : collect([$this->data]);
         $transposedData = [];
 
         foreach ($data as $key => $collection) {
@@ -162,7 +160,7 @@ trait Exportable
     {
         // Apply callback
         if ($callback) {
-            $collection->transform(function($value) use ($callback) {
+            $collection->transform(function ($value) use ($callback) {
                 return $callback($value);
             });
         }
@@ -175,13 +173,13 @@ trait Exportable
 
         // createRowFromArray works only with arrays
         if (!is_array($collection->first())) {
-            $collection = $collection->map(function($value) {
+            $collection = $collection->map(function ($value) {
                 return $value->toArray();
             });
         }
 
         // is_array($first_row) ? $first_row : $first_row->toArray())
-        $all_rows = $collection->map(function($value) {
+        $all_rows = $collection->map(function ($value) {
             return Row::fromValues($value);
         })->toArray();
         if ($this->rows_style) {
@@ -248,7 +246,7 @@ trait Exportable
     protected function prepareCollection(Collection $collection)
     {
         $need_conversion = false;
-        $first_row       = $collection->first();
+        $first_row = $collection->first();
 
         if (!$first_row) {
             return;
@@ -269,7 +267,7 @@ trait Exportable
      */
     private function transform(Collection $collection)
     {
-        $collection->transform(function($data) {
+        $collection->transform(function ($data) {
             return $this->transformRow($data);
         });
     }
@@ -279,15 +277,15 @@ trait Exportable
      */
     private function transformRow($data)
     {
-        return collect($data)->map(function($value) {
-            return is_null($value) ? (string)$value : $value;
-        })->filter(function($value) {
+        return collect($data)->map(function ($value) {
+            return is_null($value) ? (string) $value : $value;
+        })->filter(function ($value) {
             return is_string($value) || is_int($value) || is_float($value);
         });
     }
 
     /**
-     * @param  Style  $style
+     * @param Style $style
      *
      * @return Exportable
      */
@@ -299,7 +297,7 @@ trait Exportable
     }
 
     /**
-     * @param  Style  $style
+     * @param Style $style
      *
      * @return Exportable
      */
