@@ -236,7 +236,7 @@ trait Exportable
         }
 
         $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
-        $writer->addRow(Row::fromValues($keys));
+        $writer->addRow(Row::fromValues($keys, $this->header_style));
 //        $writer->addRow(WriterEntityFactory::createRowFromArray($keys, $this->header_style));
     }
 
