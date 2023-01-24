@@ -185,13 +185,14 @@ function usersGenerator() {
 Add header and rows style with `headerStyle` and `rowsStyle` methods.
 
 ```php
-$header_style = (new StyleBuilder())->setFontBold()->build();
+use OpenSpout\Common\Entity\Style\Style;
 
-$rows_style = (new StyleBuilder())
+$header_style = (new Style())->setFontBold();
+
+$rows_style = (new Style())
     ->setFontSize(15)
     ->setShouldWrapText()
-    ->setBackgroundColor("EDEDED")
-    ->build();
+    ->setBackgroundColor("EDEDED");
 
 return (new FastExcel($list))
     ->headerStyle($header_style)
