@@ -4,9 +4,10 @@ namespace Rap2hpoutre\FastExcel;
 
 use Generator;
 use Illuminate\Support\Collection;
-use OpenSpout\Reader\CSV\Options;
+use OpenSpout\Reader\CSV\Options as CsvReaderOptions;
 use OpenSpout\Reader\CSV\Reader;
 use OpenSpout\Reader\ReaderInterface;
+use OpenSpout\Writer\CSV\Options as CsvWriterOptions;
 use OpenSpout\Writer\CSV\Writer;
 use OpenSpout\Writer\WriterInterface;
 
@@ -187,13 +188,13 @@ class FastExcel
      */
     protected function setOptions(&$reader_or_writer)
     {
-        if ($reader_or_writer instanceof Options || $reader_or_writer instanceof \OpenSpout\Writer\Common\Entity\Options) {
+        if ($reader_or_writer instanceof CsvReaderOptions || $reader_or_writer instanceof CsvWriterOptions) {
             $reader_or_writer->FIELD_DELIMITER = $this->csv_configuration['delimiter'];
             $reader_or_writer->FIELD_ENCLOSURE = $this->csv_configuration['enclosure'];
-            if ($reader_or_writer instanceof Options) {
+            if ($reader_or_writer instanceof CsvReaderOptions) {
                 $reader_or_writer->ENCODING = $this->csv_configuration['encoding'];
             }
-            if ($reader_or_writer instanceof \OpenSpout\Writer\Common\Entity\Options) {
+            if ($reader_or_writer instanceof CsvWriterOptions) {
                 $reader_or_writer->SHOULD_ADD_BOM = $this->csv_configuration['bom'];
             }
         }
