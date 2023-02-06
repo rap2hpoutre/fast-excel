@@ -185,7 +185,11 @@ trait Importable
      */
     private function toStrings($values)
     {
-        foreach ($values as &$value) {
+        $sum_column_values = array_count_values($values);
+        foreach ($values as $key => &$value) {
+            if($sum_column_values[$value] >= 2) {
+                $value .= $key;
+            }
             if ($value instanceof \DateTime) {
                 $value = $value->format('Y-m-d H:i:s');
             } elseif ($value instanceof \DateTimeImmutable) {
