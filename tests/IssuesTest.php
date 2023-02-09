@@ -172,8 +172,8 @@ class IssuesTest extends TestCase
     public function testIssue310()
     {
         $original_collection = $this->collection();
-        $delimiter           = ';';
-        $file                = 'issue_310.csv';
+        $delimiter = ';';
+        $file = 'issue_310.csv';
 
         (new FastExcel(clone $original_collection))
             ->configureCsv($delimiter)
