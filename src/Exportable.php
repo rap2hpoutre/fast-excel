@@ -98,7 +98,7 @@ trait Exportable
             $writer = new \OpenSpout\Writer\XLSX\Writer($options);
         }
 
-        $this->setOptions($writer);
+        $this->setOptions($options);
         /* @var \OpenSpout\Writer\WriterInterface $writer */
         $writer->$function($path);
 

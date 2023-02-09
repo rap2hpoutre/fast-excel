@@ -168,4 +168,24 @@ class IssuesTest extends TestCase
             'Password' => 'asdadasdasdasdasd',
         ]);
     }
+
+    public function testIssue310()
+    {
+        $original_collection = $this->collection();
+        $delimiter = ';';
+        $file = 'issue_310.csv';
+
+        (new FastExcel(clone $original_collection))
+            ->configureCsv($delimiter)
+            ->export($file);
+
+        $this->assertEquals(
+            $original_collection,
+            (new FastExcel())
+                ->configureCsv($delimiter)
+                ->import($file)
+        );
+
+        unlink($file);
+    }
 }
