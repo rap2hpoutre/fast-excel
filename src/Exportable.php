@@ -107,9 +107,10 @@ trait Exportable
      */
     private function exportOrDownload($path, string $function, callable $callback = null)
     {
-		 /* @var \OpenSpout\Writer\WriterInterface $writer */
+        /* @var \OpenSpout\Writer\WriterInterface $writer */
         $writer = $this->prepareWriter($path);
-        $this->setOptions($writer);
+        $options = $writer->getOptions();
+        $this->setOptions($options);
         $writer->$function($path);
 
         // It can export one sheet (Collection) or N sheets (SheetCollection)
