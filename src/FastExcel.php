@@ -170,7 +170,7 @@ class FastExcel
     }
 
     /**
-     * Configure the underlying Spout Reader using a callback.
+     * Configure the underlying Spout Writer using a callback.
      *
      * @param callable|null $callback
      *
