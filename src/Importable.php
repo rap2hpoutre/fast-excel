@@ -5,6 +5,7 @@ namespace Rap2hpoutre\FastExcel;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use OpenSpout\Reader\SheetInterface;
+use OpenSpout\Writer\Common\AbstractOptions;
 
 /**
  * Trait Importable.
@@ -21,11 +22,11 @@ trait Importable
     private $sheet_number = 1;
 
     /**
-     * @param \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface $reader_or_writer
+     * @param AbstractOptions $options
      *
      * @return mixed
      */
-    abstract protected function setOptions(&$reader_or_writer);
+    abstract protected function setOptions(&$options);
 
     /**
      * @param string        $path
