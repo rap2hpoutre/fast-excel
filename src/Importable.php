@@ -30,6 +30,7 @@ trait Importable
     /**
      * @param string        $path
      * @param callable|null $callback
+     * @param string|null   $fileExtension
      *
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
@@ -37,9 +38,9 @@ trait Importable
      *
      * @return Collection
      */
-    public function import($path, callable $callback = null)
+    public function import($path, callable $callback = null, string $fileExtension = null)
     {
-        $reader = $this->reader($path);
+        $reader = $this->reader($path, $fileExtension);
 
         foreach ($reader->getSheetIterator() as $key => $sheet) {
             if ($this->sheet_number != $key) {
@@ -81,27 +82,30 @@ trait Importable
 
     /**
      * @param $path
+     * @param string|null $fileExtension
      *
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Common\Exception\IOException
      *
      * @return \OpenSpout\Reader\ReaderInterface
      */
-    private function reader($path)
+    private function reader($path, string $fileExtension = null)
     {
-        if (Str::endsWith($path, 'csv')) {
-            $options = new \OpenSpout\Reader\CSV\Options();
-            $this->setOptions($options);
-            $reader = new \OpenSpout\Reader\CSV\Reader($options);
-        } elseif (Str::endsWith($path, 'ods')) {
-            $options = new \OpenSpout\Reader\ODS\Options();
-            $this->setOptions($options);
-            $reader = new \OpenSpout\Reader\ODS\Reader($options);
-        } else {
-            $options = new \OpenSpout\Reader\XLSX\Options();
-            $this->setOptions($options);
-            $reader = new \OpenSpout\Reader\XLSX\Reader($options);
-        }
+        $fileExtension = $fileExtension ?? (is_string($path) ? $path : $path->extension());
+
+        $options = match (true) {
+            'csv' === $fileExtension, Str::endsWith($path, 'csv')   => new \OpenSpout\Reader\CSV\Options(),
+            'xlsx' === $fileExtension, Str::endsWith($path, 'xlsx') => new \OpenSpout\Reader\XLSX\Options(),
+            'ods' === $fileExtension, Str::endsWith($path, 'ods')   => new \OpenSpout\Reader\ODS\Options(),
+        };
+
+        $this->setOptions($options);
+
+        $reader = match (true) {
+            'csv' === $fileExtension, Str::endsWith($path, 'csv')   => new \OpenSpout\Reader\CSV\Reader($options),
+            'xlsx' === $fileExtension, Str::endsWith($path, 'xlsx') => new \OpenSpout\Reader\XLSX\Reader($options),
+            'ods' === $fileExtension, Str::endsWith($path, 'ods')   => new \OpenSpout\Reader\ODS\Reader($options),
+        };
 
         /* @var \OpenSpout\Reader\ReaderInterface $reader */
         $reader->open($path);
