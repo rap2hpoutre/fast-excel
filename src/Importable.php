@@ -187,7 +187,7 @@ trait Importable
     {
         $sum_column_values = array_count_values($values);
         foreach ($values as $key => &$value) {
-            if($sum_column_values[$value] >= 2) {
+            if ($sum_column_values[$value] >= 2) {
                 $value .= $key;
             }
             if ($value instanceof \DateTime) {
