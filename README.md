@@ -4,9 +4,8 @@
 
 [![Version](https://poser.pugx.org/rap2hpoutre/fast-excel/version?format=flat)](https://packagist.org/packages/rap2hpoutre/fast-excel)
 [![License](https://poser.pugx.org/rap2hpoutre/fast-excel/license?format=flat)](https://packagist.org/packages/rap2hpoutre/fast-excel)
-[![Build Status](https://travis-ci.org/rap2hpoutre/fast-excel.svg?branch=master)](https://travis-ci.org/rap2hpoutre/fast-excel)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/rap2hpoutre/fast-excel/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/rap2hpoutre/fast-excel/?branch=master)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/4814d15bf1a545b99c90dc07917d7ec9)](https://www.codacy.com/app/rap2hpoutre/fast-excel?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rap2hpoutre/fast-excel&amp;utm_campaign=Badge_Grade)
+[![StyleCI](https://github.styleci.io/repos/128174809/shield?branch=master)](https://github.styleci.io/repos/128174809?branch=master)
+[![Tests](https://github.com/rap2hpoutre/fast-excel/actions/workflows/tests.yml/badge.svg)](https://github.com/rap2hpoutre/fast-excel/actions/workflows/tests.yml)
 [![Total Downloads](https://poser.pugx.org/rap2hpoutre/fast-excel/downloads)](https://packagist.org/packages/rap2hpoutre/fast-excel)
 
 Fast Excel import/export for Laravel, thanks to [Spout](https://github.com/box/spout).
@@ -82,7 +81,7 @@ $collection = (new FastExcel)->import('file.xlsx');
 Import a `csv` with specific delimiter, enclosure characters and "gbk" encoding:
 
 ```php
-$collection = (new FastExcel)->configureCsv(';', '#', '\n', 'gbk')->import('file.csv');
+$collection = (new FastExcel)->configureCsv(';', '#', 'gbk')->import('file.csv');
 ```
 
 Import and insert to database:
@@ -160,14 +159,53 @@ You can also import a specific sheet by its number:
 $users = (new FastExcel)->sheet(3)->import('file.xlsx');
 ```
 
+Import multiple sheets with sheets names:
+
+```php
+$sheets = (new FastExcel)->withSheetsNames()->importSheets('file.xlsx');
+```
+
+### Export large collections with chunk
+
+Export rows one by one to avoid `memory_limit` issues [using `yield`](https://www.php.net/manual/en/language.generators.syntax.php):
+
+```php
+function usersGenerator() {
+    foreach (User::cursor() as $user) {
+        yield $user;
+    }
+}
+
+// Export consumes only a few MB, even with 10M+ rows.
+(new FastExcel(usersGenerator()))->export('test.xlsx');
+```
+
+### Add header and rows style
+
+Add header and rows style with `headerStyle` and `rowsStyle` methods.
+
+```php
+use OpenSpout\Common\Entity\Style\Style;
+
+$header_style = (new Style())->setFontBold();
+
+$rows_style = (new Style())
+    ->setFontSize(15)
+    ->setShouldWrapText()
+    ->setBackgroundColor("EDEDED");
+
+return (new FastExcel($list))
+    ->headerStyle($header_style)
+    ->rowsStyle($rows_style)
+    ->download('file.xlsx');
+```
+
 ## Why?
 
 FastExcel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout):
 a simple, but elegant wrapper around [Spout](https://github.com/box/spout) with the goal
-of simplifying **imports and exports**.
-
-It could be considered as a faster (and memory friendly) alternative
-to [Laravel Excel](https://laravel-excel.maatwebsite.nl/), with less features.
+of simplifying **imports and exports**. It could be considered as a faster (and memory friendly) alternative
+to [Laravel Excel](https://laravel-excel.com/), with less features.
 Use it only for simple tasks.
 
 ## Benchmarks
@@ -180,5 +218,4 @@ Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iteration
 | Laravel Excel  | 123.56 M  | 11.56 s |
 | FastExcel  | 2.09 M | 2.76 s |
 
-Still, remember that [Laravel Excel](https://laravel-excel.maatwebsite.nl/) **has many more feature.**
-Please help me improve benchmarks, more tests are coming. Feel free to criticize.
+Still, remember that [Laravel Excel](https://laravel-excel.com/) **has many more features.**

@@ -1,14 +1,16 @@
 <?php
 
-namespace Smart145\FastExcel;
+namespace Rap2hpoutre\FastExcel;
 
-use Box\Spout\Reader\ReaderFactory;
-use Box\Spout\Reader\SheetInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+use OpenSpout\Reader\SheetInterface;
 
 /**
  * Trait Importable.
  *
+ * @property int  $start_row
+ * @property bool $transpose
  * @property bool $with_header
  */
 trait Importable
@@ -19,14 +21,7 @@ trait Importable
     private $sheet_number = 1;
 
     /**
-     * @param string $path
-     *
-     * @return string
-     */
-    abstract protected function getType($path);
-
-    /**
-     * @param \Box\Spout\Reader\ReaderInterface|\Box\Spout\Writer\WriterInterface $reader_or_writer
+     * @param \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface $reader_or_writer
      *
      * @return mixed
      */
@@ -36,9 +31,9 @@ trait Importable
      * @param string        $path
      * @param callable|null $callback
      *
-     * @throws \Box\Spout\Common\Exception\IOException
-     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
-     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\IOException
      *
      * @return Collection
      */
@@ -61,9 +56,9 @@ trait Importable
      * @param string        $path
      * @param callable|null $callback
      *
-     * @throws \Box\Spout\Common\Exception\IOException
-     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
-     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\IOException
      *
      * @return Collection
      */
@@ -73,7 +68,11 @@ trait Importable
 
         $collections = [];
         foreach ($reader->getSheetIterator() as $key => $sheet) {
-            $collections[] = $this->importSheet($sheet, $callback);
+            if ($this->with_sheets_names) {
+                $collections[$sheet->getName()] = $this->importSheet($sheet, $callback);
+            } else {
+                $collections[] = $this->importSheet($sheet, $callback);
+            }
         }
         $reader->close();
 
@@ -83,19 +82,56 @@ trait Importable
     /**
      * @param $path
      *
-     * @throws \Box\Spout\Common\Exception\IOException
-     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Common\Exception\IOException
      *
-     * @return \Box\Spout\Reader\ReaderInterface
+     * @return \OpenSpout\Reader\ReaderInterface
      */
     private function reader($path)
     {
-        $reader = ReaderFactory::create($this->getType($path));
-        $this->setOptions($reader);
-        /* @var \Box\Spout\Reader\ReaderInterface $reader */
+        if (Str::endsWith($path, 'csv')) {
+            $options = new \OpenSpout\Reader\CSV\Options();
+            $this->setOptions($options);
+            $reader = new \OpenSpout\Reader\CSV\Reader($options);
+        } elseif (Str::endsWith($path, 'ods')) {
+            $options = new \OpenSpout\Reader\ODS\Options();
+            $this->setOptions($options);
+            $reader = new \OpenSpout\Reader\ODS\Reader($options);
+        } else {
+            $options = new \OpenSpout\Reader\XLSX\Options();
+            $this->setOptions($options);
+            $reader = new \OpenSpout\Reader\XLSX\Reader($options);
+        }
+
+        /* @var \OpenSpout\Reader\ReaderInterface $reader */
         $reader->open($path);
 
         return $reader;
+    }
+
+    /**
+     * @param array $array
+     *
+     * @return array
+     */
+    private function transposeCollection(array $array)
+    {
+        $collection = [];
+
+        foreach ($array as $row => $columns) {
+            foreach ($columns as $column => $value) {
+                data_set(
+                    $collection,
+                    implode('.', [
+                        $column,
+                        $row,
+                    ]),
+                    $value
+                );
+            }
+        }
+
+        return $collection;
     }
 
     /**
@@ -110,30 +146,33 @@ trait Importable
         $collection = [];
         $count_header = 0;
 
-        if ($this->with_header) {
-            foreach ($sheet->getRowIterator() as $k => $row) {
-                if ($k == 1) {
-                    $headers = $this->toStrings($row);
-                    $count_header = count($headers);
-                    continue;
-                }
-                if ($count_header > $count_row = count($row)) {
-                    $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
-                } elseif ($count_header < $count_row = count($row)) {
-                    $row = array_slice($row, 0, $count_header);
+        foreach ($sheet->getRowIterator() as $k => $rowAsObject) {
+            $row = $rowAsObject->toArray();
+            if ($k >= $this->start_row) {
+                if ($this->with_header) {
+                    if ($k == $this->start_row) {
+                        $headers = $this->toStrings($row);
+                        $count_header = count($headers);
+                        continue;
+                    }
+                    if ($count_header > $count_row = count($row)) {
+                        $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
+                    } elseif ($count_header < $count_row = count($row)) {
+                        $row = array_slice($row, 0, $count_header);
+                    }
                 }
                 if ($callback) {
-                    if ($result = $callback(array_combine($headers, $row))) {
+                    if ($result = $callback(empty($headers) ? $row : array_combine($headers, $row))) {
                         $collection[] = $result;
                     }
                 } else {
-                    $collection[] = array_combine($headers, $row);
+                    $collection[] = empty($headers) ? $row : array_combine($headers, $row);
                 }
             }
-        } else {
-            foreach ($sheet->getRowIterator() as $row) {
-                $collection[] = $row;
-            }
+        }
+
+        if ($this->transpose) {
+            return $this->transposeCollection($collection);
         }
 
         return $collection;
@@ -147,7 +186,9 @@ trait Importable
     private function toStrings($values)
     {
         foreach ($values as &$value) {
-            if ($value instanceof \Datetime) {
+            if ($value instanceof \DateTime) {
+                $value = $value->format('Y-m-d H:i:s');
+            } elseif ($value instanceof \DateTimeImmutable) {
                 $value = $value->format('Y-m-d H:i:s');
             } elseif ($value) {
                 $value = (string) $value;
