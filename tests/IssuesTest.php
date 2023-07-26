@@ -1,10 +1,10 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel\Tests;
+namespace Smart145\FastExcel\Tests;
 
 use Illuminate\Support\Collection;
-use Rap2hpoutre\FastExcel\FastExcel;
-use Rap2hpoutre\FastExcel\SheetCollection;
+use Smart145\FastExcel\FastExcel;
+use Smart145\FastExcel\SheetCollection;
 
 /**
  * Class IssuesTest.

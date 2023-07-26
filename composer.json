@@ -1,5 +1,5 @@
 {
-    "name": "rap2hpoutre/fast-excel",
+    "name": "smart145/fast-excel",
     "type": "library",
     "keywords": [
         "laravel",
@@ -21,7 +21,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Rap2hpoutre\\FastExcel\\": "src/"
+            "Smart145\\FastExcel\\": "src/"
         },
         "files": [
             "src/functions/fastexcel.php"
@@ -29,13 +29,13 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Rap2hpoutre\\FastExcel\\Tests\\": "tests/"
+            "Smart145\\FastExcel\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Rap2hpoutre\\FastExcel\\Providers\\FastExcelServiceProvider"
+                "Smart145\\FastExcel\\Providers\\FastExcelServiceProvider"
             ]
         }
     },

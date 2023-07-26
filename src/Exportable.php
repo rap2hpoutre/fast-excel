@@ -1,8 +1,9 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel;
+namespace Smart145\FastExcel;
 
 use Generator;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -20,6 +21,12 @@ use OpenSpout\Writer\XLSX\Writer;
  */
 trait Exportable
 {
+
+    /**
+     * @var array
+     */
+    private $columns_width;
+
     /**
      * @var Style
      */
@@ -235,9 +242,20 @@ trait Exportable
             return;
         }
 
-        $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
+        $keys = $this->hasColumnsHeader()
+            ? array_keys($this->columns_width)
+            : array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
+
         $writer->addRow(Row::fromValues($keys, $this->header_style));
 //        $writer->addRow(WriterEntityFactory::createRowFromArray($keys, $this->header_style));
+    }
+
+    /**
+     * @return bool
+     */
+    private function hasColumnsHeader()
+    {
+        return $this->columns_width && \count($this->columns_width) && is_string(array_keys($this->columns_width)[0]);
     }
 
     /**
@@ -304,6 +322,17 @@ trait Exportable
     public function rowsStyle(Style $style)
     {
         $this->rows_style = $style;
+
+        return $this;
+    }
+
+    /**
+     * @param $widths
+     * @return $this
+     */
+    public function setColumnsWidth($widths)
+    {
+        $this->columns_width = $widths;
 
         return $this;
     }

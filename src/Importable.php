@@ -1,6 +1,6 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel;
+namespace Smart145\FastExcel;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
