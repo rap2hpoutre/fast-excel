@@ -1,14 +1,15 @@
 language: php
 
 php:
-  - 7.1
+  - 7.1.0
+  - 7.2.0
+  - 7.3.0
+  - 7.4.0
+  - 8.0.0
+  - 8.1.0
 
 install:
   - travis_retry composer install --no-interaction --prefer-source
 
 script:
   - vendor/bin/phpunit
-
-after_script:
-  - wget https://scrutinizer-ci.com/ocular.phar
-  - php ocular.phar code-coverage:upload --format=php-clover coverage.clover
