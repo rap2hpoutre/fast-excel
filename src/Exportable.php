@@ -185,6 +185,10 @@ trait Exportable
         // createRowFromArray works only with arrays
         if (!is_array($collection->first())) {
             $collection = $collection->map(function ($value) {
+                if (is_object($value) && !($value instanceof Collection)) {
+                    return (array) $value;
+                }
+
                 return $value->toArray();
             });
         }
