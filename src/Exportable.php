@@ -131,9 +131,6 @@ trait Exportable
                 $writer->addNewSheetAndMakeItCurrent();
             }
         }
-        if ($has_sheets) {
-            $this->resizeColumnWidths($writer->getCurrentSheet());
-        }
 
         $writer->close();
     }
@@ -255,6 +252,14 @@ trait Exportable
             : array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
 
         $writer->addRow(Row::fromValues($keys, $this->header_style));
+
+        if (!empty($this->columns_width)) {
+            $sheet = $writer->getCurrentSheet();
+
+            foreach (array_values($this->columns_width) as $key => $value) {
+                $sheet->setColumnWidth($value, $key + 1); // Excel start from column 1
+            }
+        }
 //        $writer->addRow(WriterEntityFactory::createRowFromArray($keys, $this->header_style));
     }
 
@@ -343,20 +348,5 @@ trait Exportable
         $this->columns_width = $widths;
 
         return $this;
-    }
-
-    /**
-     * @param $sheet
-     * @return void
-     */
-    private function resizeColumnWidths($sheet): void
-    {
-        if (empty($this->columns_width) || empty($sheet)) {
-            return;
-        }
-
-        foreach (array_values($this->columns_width) as $key => $value) {
-            $sheet->setColumnWidth($value, $key + 1); // Excel start from column 1
-        }
     }
 }
