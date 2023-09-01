@@ -52,7 +52,7 @@ trait Exportable
     }
 
     /**
-     * @param $path
+     * @param               $path
      * @param callable|null $callback
      *
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
@@ -75,7 +75,7 @@ trait Exportable
     }
 
     /**
-     * @param $path
+     * @param               $path
      * @param string        $function
      * @param callable|null $callback
      *
