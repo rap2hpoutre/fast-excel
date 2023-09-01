@@ -67,7 +67,7 @@ trait Exportable
         if (method_exists(response(), 'streamDownload')) {
             return response()->streamDownload(function () use ($path, $callback) {
                 self::exportOrDownload($path, 'openToBrowser', $callback);
-            });
+            }, $path);
         }
         self::exportOrDownload($path, 'openToBrowser', $callback);
 
