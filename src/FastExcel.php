@@ -5,11 +5,8 @@ namespace Rap2hpoutre\FastExcel;
 use Generator;
 use Illuminate\Support\Collection;
 use OpenSpout\Reader\CSV\Options as CsvReaderOptions;
-use OpenSpout\Reader\CSV\Reader;
-use OpenSpout\Reader\ReaderInterface;
+use OpenSpout\Writer\Common\AbstractOptions;
 use OpenSpout\Writer\CSV\Options as CsvWriterOptions;
-use OpenSpout\Writer\CSV\Writer;
-use OpenSpout\Writer\WriterInterface;
 
 /**
  * Class FastExcel.
@@ -57,12 +54,7 @@ class FastExcel
     /**
      * @var callable
      */
-    protected $reader_configurator = null;
-
-    /**
-     * @var callable
-     */
-    protected $writer_configurator = null;
+    protected $options_configurator = null;
 
     /**
      * FastExcel constructor.
@@ -161,11 +153,12 @@ class FastExcel
      * @param callable|null $callback
      *
      * @return $this
+     *
+     * @deprecated Has no effect with spout v4
+     * @see        configureOptionsUsing
      */
     public function configureReaderUsing(?callable $callback = null)
     {
-        $this->reader_configurator = $callback;
-
         return $this;
     }
 
@@ -175,39 +168,49 @@ class FastExcel
      * @param callable|null $callback
      *
      * @return $this
+     *
+     * @deprecated Has no effect with spout v4
+     * @see        configureOptionsUsing
      */
     public function configureWriterUsing(?callable $callback = null)
     {
-        $this->writer_configurator = $callback;
+        return $this;
+    }
+
+    /**
+     * Configure the underlying Spout Reader options using a callback.
+     *
+     * @param callable|null $callback
+     *
+     * @return $this
+     */
+    public function configureOptionsUsing(?callable $callback = null)
+    {
+        $this->options_configurator = $callback;
 
         return $this;
     }
 
     /**
-     * @param \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface $reader_or_writer
+     * @param AbstractOptions $options
      */
-    protected function setOptions(&$reader_or_writer)
+    protected function setOptions(&$options)
     {
-        if ($reader_or_writer instanceof CsvReaderOptions || $reader_or_writer instanceof CsvWriterOptions) {
-            $reader_or_writer->FIELD_DELIMITER = $this->csv_configuration['delimiter'];
-            $reader_or_writer->FIELD_ENCLOSURE = $this->csv_configuration['enclosure'];
-            if ($reader_or_writer instanceof CsvReaderOptions) {
-                $reader_or_writer->ENCODING = $this->csv_configuration['encoding'];
+        if ($options instanceof CsvReaderOptions || $options instanceof CsvWriterOptions) {
+            $options->FIELD_DELIMITER = $this->csv_configuration['delimiter'];
+            $options->FIELD_ENCLOSURE = $this->csv_configuration['enclosure'];
+            if ($options instanceof CsvReaderOptions) {
+                $options->ENCODING = $this->csv_configuration['encoding'];
             }
-            if ($reader_or_writer instanceof CsvWriterOptions) {
-                $reader_or_writer->SHOULD_ADD_BOM = $this->csv_configuration['bom'];
+            if ($options instanceof CsvWriterOptions) {
+                $options->SHOULD_ADD_BOM = $this->csv_configuration['bom'];
             }
         }
 
-        if ($reader_or_writer instanceof ReaderInterface && is_callable($this->reader_configurator)) {
+        if (is_callable($this->options_configurator)) {
             call_user_func(
-                $this->reader_configurator,
-                $reader_or_writer
-            );
-        } elseif ($reader_or_writer instanceof WriterInterface && is_callable($this->writer_configurator)) {
-            call_user_func(
-                $this->writer_configurator,
-                $reader_or_writer
+                $this->options_configurator,
+                $options
             );
         }
     }
