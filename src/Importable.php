@@ -147,27 +147,29 @@ trait Importable
         $collection = [];
         $count_header = 0;
 
-        foreach ($sheet->getRowIterator() as $k => $rowAsObject) {
-            $row = $rowAsObject->toArray();
-            if ($k >= $this->start_row) {
+        foreach ($sheet->getRowIterator() as $row => $columnsAsObject) {
+            $columns = $columnsAsObject->toArray();
+            $count_columns = count($columns);
+
+            if ($row >= $this->start_row) {
                 if ($this->with_header) {
-                    if ($k == $this->start_row) {
-                        $headers = $this->toStrings($row);
+                    if ($row == $this->start_row) {
+                        $headers = $this->toStrings($columns);
                         $count_header = count($headers);
                         continue;
                     }
-                    if ($count_header > $count_row = count($row)) {
-                        $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
-                    } elseif ($count_header < $count_row = count($row)) {
-                        $row = array_slice($row, 0, $count_header);
+                    if ($count_header > $count_columns) {
+                        $columns = array_merge($columns, array_fill(0, $count_header - $count_columns, null));
+                    } elseif ($count_header < $count_columns) {
+                        $columns = array_slice($columns, 0, $count_header);
                     }
                 }
                 if ($callback) {
-                    if ($result = $callback(empty($headers) ? $row : array_combine($headers, $row))) {
+                    if ($result = $callback(empty($headers) ? $columns : array_combine($headers, $columns))) {
                         $collection[] = $result;
                     }
                 } else {
-                    $collection[] = empty($headers) ? $row : array_combine($headers, $row);
+                     $collection[] = $this->with_header ? $this->checkHeaders($headers, $columns) : $columns;
                 }
             }
         }
@@ -197,5 +199,34 @@ trait Importable
         }
 
         return $values;
+    }
+    
+    /**
+     * if not actived => Empty column headers skipped and their values(rows) not appear on your results
+     *                => Duplicate headers replaced 
+     *
+     * if actived     => Empty column headers named by "COL_INDEX"
+     *                => Duplicate headers rename and add "COL_INDEX" to it
+     * just set third parameter to False and it works as always be
+     *
+     * @param $headers
+     * @param $columns
+     * @param true $active
+     * @return array|mixed
+     */
+    private function checkHeaders($headers, $columns, $active = true){
+        $result = [];
+        if($active){
+            foreach($headers as $index => $header){
+                /* Name COL_XX for empty headers */
+                $key = empty($header) ? 'COL_'.$index : $header;
+                /* Duplicate headers check and add col_index to duplicated ones */
+                $key = array_key_exists($key, $result) ? $key."_".$index : $key;
+                $result[$key] = $columns[$index];
+            }
+        }else{
+            $result = empty($headers) ? $columns : array_combine($headers, $columns);
+        }
+        return $result;
     }
 }
