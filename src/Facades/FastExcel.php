@@ -29,4 +29,3 @@ class FastExcel extends Facade
         return 'fastexcel';
     }
 }
-

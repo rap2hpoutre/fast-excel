@@ -3,7 +3,6 @@
 namespace Smart145\FastExcel;
 
 use Generator;
-
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -58,7 +57,7 @@ trait Exportable
     }
 
     /**
-     * @param $path
+     * @param               $path
      * @param callable|null $callback
      *
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
@@ -81,7 +80,7 @@ trait Exportable
     }
 
     /**
-     * @param $path
+     * @param               $path
      * @param string        $function
      * @param callable|null $callback
      *
