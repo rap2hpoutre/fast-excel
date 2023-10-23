@@ -3,14 +3,14 @@
 namespace Smart145\FastExcel;
 
 use Generator;
-use Illuminate\Support\Arr;
+
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
-use OpenSpout\Writer\Common\AbstractOptions;
 use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+use OpenSpout\Writer\XLSX\Writer;
 
 /**
  * Trait Exportable.
@@ -21,7 +21,6 @@ use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
  */
 trait Exportable
 {
-
     /**
      * @var array
      */
@@ -34,11 +33,11 @@ trait Exportable
     private $rows_style;
 
     /**
-     * @param AbstractOptions $options
+     * @param \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface $reader_or_writer
      *
      * @return mixed
      */
-    abstract protected function setOptions(&$options);
+    abstract protected function setOptions(&$reader_or_writer);
 
     /**
      * @param string        $path
@@ -59,7 +58,7 @@ trait Exportable
     }
 
     /**
-     * @param               $path
+     * @param $path
      * @param callable|null $callback
      *
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
@@ -74,7 +73,7 @@ trait Exportable
         if (method_exists(response(), 'streamDownload')) {
             return response()->streamDownload(function () use ($path, $callback) {
                 self::exportOrDownload($path, 'openToBrowser', $callback);
-            }, $path);
+            });
         }
         self::exportOrDownload($path, 'openToBrowser', $callback);
 
@@ -82,7 +81,7 @@ trait Exportable
     }
 
     /**
-     * @param               $path
+     * @param $path
      * @param string        $function
      * @param callable|null $callback
      *
@@ -197,6 +196,7 @@ trait Exportable
             foreach ($removableKeys as $toRemove) {
                 unset($value[$toRemove]);
             }
+
             return Row::fromValues($value);
         })->toArray();
         if ($this->rows_style) {
@@ -346,6 +346,7 @@ trait Exportable
 
     /**
      * @param $widths
+     *
      * @return $this
      */
     public function setColumnsWidth($widths)
@@ -355,3 +356,4 @@ trait Exportable
         return $this;
     }
 }
+
