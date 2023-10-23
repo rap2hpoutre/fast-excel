@@ -191,7 +191,12 @@ trait Exportable
         }
 
         // is_array($first_row) ? $first_row : $first_row->toArray())
-        $all_rows = $collection->map(function ($value) {
+        $first_row = $collection->first();
+        $removableKeys = array_filter(array_keys($first_row ?? []), fn ($key) => str_starts_with($key, '_'));
+        $all_rows = $collection->map(function ($value) use ($removableKeys) {
+            foreach ($removableKeys as $toRemove) {
+                unset($value[$toRemove]);
+            }
             return Row::fromValues($value);
         })->toArray();
         if ($this->rows_style) {
