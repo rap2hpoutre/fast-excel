@@ -1,6 +1,6 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel;
+namespace Smart145\FastExcel;
 
 use Generator;
 use Illuminate\Support\Collection;
@@ -8,8 +8,8 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
-use OpenSpout\Writer\Common\AbstractOptions;
 use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+use OpenSpout\Writer\XLSX\Writer;
 
 /**
  * Trait Exportable.
@@ -21,17 +21,22 @@ use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
 trait Exportable
 {
     /**
+     * @var array
+     */
+    private $columns_width;
+
+    /**
      * @var Style
      */
     private $header_style;
     private $rows_style;
 
     /**
-     * @param AbstractOptions $options
+     * @param \OpenSpout\Reader\ReaderInterface|\OpenSpout\Writer\WriterInterface $reader_or_writer
      *
      * @return mixed
      */
-    abstract protected function setOptions(&$options);
+    abstract protected function setOptions(&$reader_or_writer);
 
     /**
      * @param string        $path
@@ -67,7 +72,7 @@ trait Exportable
         if (method_exists(response(), 'streamDownload')) {
             return response()->streamDownload(function () use ($path, $callback) {
                 self::exportOrDownload($path, 'openToBrowser', $callback);
-            }, $path);
+            });
         }
         self::exportOrDownload($path, 'openToBrowser', $callback);
 
@@ -124,6 +129,7 @@ trait Exportable
                 $writer->addNewSheetAndMakeItCurrent();
             }
         }
+
         $writer->close();
     }
 
@@ -174,12 +180,22 @@ trait Exportable
         // createRowFromArray works only with arrays
         if (!is_array($collection->first())) {
             $collection = $collection->map(function ($value) {
+                if (is_object($value) && !($value instanceof Collection)) {
+                    return (array) $value;
+                }
+
                 return $value->toArray();
             });
         }
 
         // is_array($first_row) ? $first_row : $first_row->toArray())
-        $all_rows = $collection->map(function ($value) {
+        $first_row = $collection->first();
+        $removableKeys = array_filter(array_keys($first_row ?? []), fn ($key) => str_starts_with($key, '_'));
+        $all_rows = $collection->map(function ($value) use ($removableKeys) {
+            foreach ($removableKeys as $toRemove) {
+                unset($value[$toRemove]);
+            }
+
             return Row::fromValues($value);
         })->toArray();
         if ($this->rows_style) {
@@ -235,9 +251,28 @@ trait Exportable
             return;
         }
 
-        $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
+        $keys = $this->hasColumnsHeader()
+            ? array_keys($this->columns_width)
+            : array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
+
         $writer->addRow(Row::fromValues($keys, $this->header_style));
+
+        if (!empty($this->columns_width)) {
+            $sheet = $writer->getCurrentSheet();
+
+            foreach (array_values($this->columns_width) as $key => $value) {
+                $sheet->setColumnWidth($value, $key + 1); // Excel start from column 1
+            }
+        }
 //        $writer->addRow(WriterEntityFactory::createRowFromArray($keys, $this->header_style));
+    }
+
+    /**
+     * @return bool
+     */
+    private function hasColumnsHeader()
+    {
+        return $this->columns_width && \count($this->columns_width) && is_string(array_keys($this->columns_width)[0]);
     }
 
     /**
@@ -304,6 +339,18 @@ trait Exportable
     public function rowsStyle(Style $style)
     {
         $this->rows_style = $style;
+
+        return $this;
+    }
+
+    /**
+     * @param $widths
+     *
+     * @return $this
+     */
+    public function setColumnsWidth($widths)
+    {
+        $this->columns_width = $widths;
 
         return $this;
     }
