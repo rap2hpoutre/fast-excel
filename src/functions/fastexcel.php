@@ -21,3 +21,19 @@ if (!function_exists('fastexcel')) {
         return $data === null ? app()->make('fastexcel') : app()->makeWith('fastexcel', $data);
     }
 }
+
+if(!function_exists('obtainTempDirectory')) {
+    /**
+     * Get a temporary directory.
+     *
+     * @return TemporaryDirectory
+     */
+    function obtainTempDirectory(): TemporaryDirectory
+    {
+        return (new TemporaryDirectory())
+            ->name('fast-excel-'.microtime())
+            ->force()
+            ->deleteWhenDestroyed()
+            ->create();
+    }
+}

@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 
 class FastExcelServiceProvider extends ServiceProvider
 {
+    public const CONFIG_FILENAME = 'fast-excel';
+
     /**
      * Bootstrap any application services.
      *
@@ -13,7 +15,9 @@ class FastExcelServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        $this->publishes([
+            $this->getConfigFile() => config_path(self::CONFIG_FILENAME . '.php'),
+        ], 'config');
     }
 
     /**
@@ -25,6 +29,11 @@ class FastExcelServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->mergeConfigFrom(
+            $this->getConfigFile(),
+            self::CONFIG_FILENAME
+        );
+
         $this->app->bind('fastexcel', function ($app, $data = null) {
             if (is_array($data)) {
                 $data = collect($data);
@@ -32,5 +41,13 @@ class FastExcelServiceProvider extends ServiceProvider
 
             return new \Rap2hpoutre\FastExcel\FastExcel($data);
         });
+    }
+
+    /**
+     * @return string
+     */
+    protected function getConfigFile(): string
+    {
+        return __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . self::CONFIG_FILENAME . '.php';
     }
 }

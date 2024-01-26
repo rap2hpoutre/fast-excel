@@ -4,6 +4,7 @@ namespace Rap2hpoutre\FastExcel;
 
 use Generator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use OpenSpout\Common\Entity\Row;
@@ -125,6 +126,11 @@ trait Exportable
             }
         }
         $writer->close();
+
+        if (config('fast-excel.s3_disk_support')) {
+            $content = Storage::disk()->get($path);
+            Storage::disk('s3')->put($path, $content);
+        }
     }
 
     /**

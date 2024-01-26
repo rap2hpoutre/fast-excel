@@ -3,6 +3,7 @@
 namespace Rap2hpoutre\FastExcel;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Reader\SheetInterface;
@@ -91,6 +92,13 @@ trait Importable
      */
     private function reader($path)
     {
+        if (config('fast-excel.s3_disk_support')) {
+            $content = Storage::disk('s3')->get($path);
+            $tempDir = obtainTempDirectory();
+            $path = $tempDir->path(basename($path));
+            Storage::disk('local')->put($path, $content);
+        }
+
         if (Str::endsWith($path, 'csv')) {
             $options = new \OpenSpout\Reader\CSV\Options();
             $this->setOptions($options);
