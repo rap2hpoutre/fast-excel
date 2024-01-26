@@ -22,7 +22,7 @@ if (!function_exists('fastexcel')) {
     }
 }
 
-if(!function_exists('obtainTempDirectory')) {
+if (!function_exists('obtainTempDirectory')) {
     /**
      * Get a temporary directory.
      *

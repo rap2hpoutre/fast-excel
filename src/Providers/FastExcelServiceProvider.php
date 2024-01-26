@@ -16,7 +16,7 @@ class FastExcelServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
-            $this->getConfigFile() => config_path(self::CONFIG_FILENAME . '.php'),
+            $this->getConfigFile() => config_path(self::CONFIG_FILENAME.'.php'),
         ], 'config');
     }
 
@@ -48,6 +48,6 @@ class FastExcelServiceProvider extends ServiceProvider
      */
     protected function getConfigFile(): string
     {
-        return __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . self::CONFIG_FILENAME . '.php';
+        return __DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.self::CONFIG_FILENAME.'.php';
     }
 }
