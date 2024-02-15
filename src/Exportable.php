@@ -36,6 +36,7 @@ trait Exportable
     /**
      * @param string        $path
      * @param callable|null $callback
+     * @param string        $ext
      *
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
@@ -54,6 +55,7 @@ trait Exportable
     /**
      * @param               $path
      * @param callable|null $callback
+     * @param string        $ext
      *
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
