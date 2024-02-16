@@ -100,7 +100,7 @@ trait Exportable
         $this->setOptions($options);
 
         // extract file type for writing to php://output
-        if (str_starts_with($path,'php://output')) {
+        if (str_starts_with($path, 'php://output')) {
             $path = explode(';', $path)[0];
         }
 
