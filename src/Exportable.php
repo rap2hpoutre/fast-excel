@@ -4,7 +4,6 @@ namespace Rap2hpoutre\FastExcel;
 
 use Generator;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use InvalidArgumentException;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
@@ -36,7 +35,6 @@ trait Exportable
     /**
      * @param string        $path
      * @param callable|null $callback
-     * @param string        $ext
      *
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
@@ -45,9 +43,9 @@ trait Exportable
      *
      * @return string
      */
-    public function export($path, callable $callback = null, $ext = null)
+    public function export($path, callable $callback = null)
     {
-        self::exportOrDownload($path, 'openToFile', $callback, $ext);
+        self::exportOrDownload($path, 'openToFile', $callback);
 
         return realpath($path) ?: $path;
     }
@@ -55,7 +53,6 @@ trait Exportable
     /**
      * @param               $path
      * @param callable|null $callback
-     * @param string        $ext
      *
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
@@ -64,14 +61,14 @@ trait Exportable
      *
      * @return \Symfony\Component\HttpFoundation\StreamedResponse|string
      */
-    public function download($path, callable $callback = null, $ext = null)
+    public function download($path, callable $callback = null)
     {
         if (method_exists(response(), 'streamDownload')) {
             return response()->streamDownload(function () use ($path, $callback) {
                 self::exportOrDownload($path, 'openToBrowser', $callback);
             }, $path);
         }
-        self::exportOrDownload($path, 'openToBrowser', $callback, $ext);
+        self::exportOrDownload($path, 'openToBrowser', $callback);
 
         return '';
     }
@@ -89,10 +86,10 @@ trait Exportable
      */
     private function exportOrDownload($path, $function, callable $callback = null, $ext = null)
     {
-        if (Str::endsWith($path, 'csv') || $ext === 'csv') {
+        if (str_ends_with($path, 'csv')) {
             $options = new \OpenSpout\Writer\CSV\Options();
             $writer = new \OpenSpout\Writer\CSV\Writer($options);
-        } elseif (Str::endsWith($path, 'ods') || $ext === 'ods') {
+        } elseif (str_ends_with($path, 'ods')) {
             $options = new \OpenSpout\Writer\ODS\Options();
             $writer = new \OpenSpout\Writer\ODS\Writer($options);
         } else {
@@ -101,6 +98,12 @@ trait Exportable
         }
 
         $this->setOptions($options);
+
+        // extract file type for writing to php://output
+        if (str_starts_with($path,'php://export')) {
+            $path = explode(';', $path)[0];
+        }
+
         /* @var \OpenSpout\Writer\WriterInterface $writer */
         $writer->$function($path);
 
