@@ -84,7 +84,7 @@ trait Exportable
      * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
      * @throws \OpenSpout\Common\Exception\SpoutException
      */
-    private function exportOrDownload($path, $function, callable $callback = null, $ext = null)
+    private function exportOrDownload($path, $function, callable $callback = null)
     {
         if (str_ends_with($path, 'csv')) {
             $options = new \OpenSpout\Writer\CSV\Options();
