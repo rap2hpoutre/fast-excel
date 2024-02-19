@@ -86,12 +86,18 @@ trait Exportable
      */
     private function exportOrDownload($path, $function, callable $callback = null)
     {
-        if (str_ends_with($path, 'csv')) {
-            $options = new \OpenSpout\Writer\CSV\Options();
-            $writer = new \OpenSpout\Writer\CSV\Writer($options);
-        } elseif (str_ends_with($path, 'ods')) {
-            $options = new \OpenSpout\Writer\ODS\Options();
-            $writer = new \OpenSpout\Writer\ODS\Writer($options);
+        $ext = strtoupper(substr($path, -3));
+        if (in_array($ext, ['CSV', 'ODS'], true)) {
+            $optionCls = "\OpenSpout\Writer\{$ext}\Options";
+            $writerCls = "\OpenSpout\Writer\{$ext}\Writer";
+            $options = new $optionCls();
+            $writer = new $writerClass($options);
+        // if (str_ends_with($path, 'csv')) {
+        //     $options = new \OpenSpout\Writer\CSV\Options();
+        //     $writer = new \OpenSpout\Writer\CSV\Writer($options);
+        // } elseif (str_ends_with($path, 'ods')) {
+        //     $options = new \OpenSpout\Writer\ODS\Options();
+        //     $writer = new \OpenSpout\Writer\ODS\Writer($options);
         } else {
             $options = new \OpenSpout\Writer\XLSX\Options();
             $writer = new \OpenSpout\Writer\XLSX\Writer($options);
