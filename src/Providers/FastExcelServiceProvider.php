@@ -2,8 +2,8 @@
 
 namespace Rap2hpoutre\FastExcel\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Contracts\Support\DeferrableProvider;
+use Illuminate\Support\ServiceProvider;
 
 class FastExcelServiceProvider extends ServiceProvider implements DeferrableProvider
 {
