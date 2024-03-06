@@ -15,11 +15,11 @@ jobs:
       fail-fast: true
       matrix:
         os: [ ubuntu-latest ]
-        php: [ 8.1, 8.2 ]
+        php: [ 8.1, 8.2, 8.3 ]
         stability: [ lowest, highest ]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Validate composer.json and composer.lock
         run: composer validate --strict
@@ -33,7 +33,7 @@ jobs:
 
 
       - name: Install dependencies
-        uses: "ramsey/composer-install@v1"
+        uses: "ramsey/composer-install@v2"
         with:
           dependency-versions: "${{ matrix.stability }}"
           composer-options: "--prefer-dist --no-cache"
