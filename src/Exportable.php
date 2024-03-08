@@ -4,7 +4,6 @@ namespace Rap2hpoutre\FastExcel;
 
 use Generator;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use InvalidArgumentException;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
@@ -87,10 +86,10 @@ trait Exportable
      */
     private function exportOrDownload($path, $function, callable $callback = null)
     {
-        if (Str::endsWith($path, 'csv')) {
+        if (str_ends_with($path, 'csv')) {
             $options = new \OpenSpout\Writer\CSV\Options();
             $writer = new \OpenSpout\Writer\CSV\Writer($options);
-        } elseif (Str::endsWith($path, 'ods')) {
+        } elseif (str_ends_with($path, 'ods')) {
             $options = new \OpenSpout\Writer\ODS\Options();
             $writer = new \OpenSpout\Writer\ODS\Writer($options);
         } else {
@@ -99,6 +98,12 @@ trait Exportable
         }
 
         $this->setOptions($options);
+
+        // extract file type for writing to php://output
+        if (str_starts_with($path, 'php://output')) {
+            $path = explode(';', $path)[0];
+        }
+
         /* @var \OpenSpout\Writer\WriterInterface $writer */
         $writer->$function($path);
 
