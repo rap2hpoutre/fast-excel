@@ -172,7 +172,11 @@ trait Exportable
         }
 
         // createRowFromArray works only with arrays
-        if (!is_array($collection->first())) {
+        if (is_a($collection->first(), \stdClass::class)) {
+            $collection = $collection->map(function ($value) {
+                return get_object_vars($value);
+            });
+        } else if (!is_array($collection->first())) {
             $collection = $collection->map(function ($value) {
                 return $value->toArray();
             });
@@ -235,7 +239,13 @@ trait Exportable
             return;
         }
 
-        $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
+        if(is_a($first_row, \stdClass::class)) {
+            $first_row = get_object_vars($first_row);
+        } else if (!is_array($first_row)) {
+            $first_row = $first_row->toArray();
+        }
+
+        $keys = array_keys($first_row);
         $writer->addRow(Row::fromValues($keys, $this->header_style));
 //        $writer->addRow(WriterEntityFactory::createRowFromArray($keys, $this->header_style));
     }
