@@ -35,6 +35,11 @@ class FastExcel
      * @var int
      */
     private $start_row = 1;
+    
+    /**
+     * @var int
+     */
+    private $row_limit = 0;
 
     /**
      * @var bool
@@ -118,6 +123,17 @@ class FastExcel
     public function startRow(int $row)
     {
         $this->start_row = $row;
+
+        return $this;
+    }
+    
+    /**
+     * @param  int $row_limit row limit
+     * @return $this
+     */
+    public function rowLimit(int $row_limit)
+    {
+        $this->row_limit = $row_limit;
 
         return $this;
     }

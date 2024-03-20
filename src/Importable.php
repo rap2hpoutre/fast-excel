@@ -148,6 +148,8 @@ trait Importable
         $collection = [];
         $count_header = 0;
 
+        $row_count = 0;
+
         foreach ($sheet->getRowIterator() as $k => $rowAsObject) {
             $row = array_map(function (Cell $cell) {
                 return match (true) {
@@ -157,6 +159,11 @@ trait Importable
             }, $rowAsObject->getCells());
 
             if ($k >= $this->start_row) {
+                if(($this->row_limit) > 0 && $row_count > $this->row_limit) {
+                    break;
+                }
+    
+                $row_count++;
                 if ($this->with_header) {
                     if ($k == $this->start_row) {
                         $headers = $this->toStrings($row);
