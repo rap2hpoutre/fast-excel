@@ -16,7 +16,7 @@ class Dumb extends Model
      *
      * @param $data
      */
-    public function __construct(string $data = "")
+    public function __construct(string $data = '')
     {
         parent::__construct();
         $this->data = $data;
