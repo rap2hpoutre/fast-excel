@@ -2,6 +2,7 @@
 
 namespace Rap2hpoutre\FastExcel;
 
+use DateTimeInterface;
 use Generator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -280,7 +281,7 @@ trait Exportable
         return collect($data)->map(function ($value) {
             return is_null($value) ? (string) $value : $value;
         })->filter(function ($value) {
-            return is_string($value) || is_int($value) || is_float($value);
+            return is_string($value) || is_int($value) || is_float($value) || $value instanceof DateTimeInterface;
         });
     }
 
