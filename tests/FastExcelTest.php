@@ -73,9 +73,9 @@ class FastExcelTest extends TestCase
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
      * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
      */
-    private function export($file, $override_collection = null)
+    private function export($file)
     {
-        $original_collection = $override_collection ?? $this->collection();
+        $original_collection = $this->collection();
 
         (new FastExcel(clone $original_collection))->export($file);
         $this->assertEquals($original_collection, (new FastExcel())->import($file));
