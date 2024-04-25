@@ -27,12 +27,23 @@ trait Exportable
     private $header_style;
     private $rows_style;
 
+    /** @var Style[] */
+    private $column_styles = [];
+
     /**
      * @param AbstractOptions $options
      *
      * @return mixed
      */
     abstract protected function setOptions(&$options);
+
+    /** @param Style[] $styles */
+    public function setColumnStyles($styles): static
+    {
+        $this->column_styles = $styles;
+
+        return $this;
+    }
 
     /**
      * @param string        $path
@@ -183,19 +194,19 @@ trait Exportable
         $all_rows = $collection->map(function ($value) {
             return Row::fromValues($value);
         })->toArray();
-        if ($this->rows_style) {
-            $this->addRowsWithStyle($writer, $all_rows, $this->rows_style);
+        if ($this->rows_style || count($this->column_styles)) {
+            $this->addRowsWithStyle($writer, $all_rows, $this->rows_style, $this->column_styles);
         } else {
             $writer->addRows($all_rows);
         }
     }
 
-    private function addRowsWithStyle($writer, $all_rows, $rows_style)
+    private function addRowsWithStyle($writer, $all_rows, $rows_style, $column_styles)
     {
         $styled_rows = [];
         // Style rows one by one
         foreach ($all_rows as $row) {
-            $styled_rows[] = Row::fromValues($row->toArray(), $rows_style);
+            $styled_rows[] = Row::fromValues($row->toArray(), $rows_style, $column_styles);
         }
         $writer->addRows($styled_rows);
     }
@@ -216,7 +227,7 @@ trait Exportable
                 $this->writeHeader($writer, $item);
             }
             // Write rows (one by one).
-            $writer->addRow(Row::fromValues($item->toArray(), $this->rows_style));
+            $writer->addRow(Row::fromValues($item->toArray(), $this->rows_style, $this->column_styles));
         }
     }
 
