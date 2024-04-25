@@ -28,7 +28,7 @@ class FastExcelTest extends TestCase
             ['col1' => new \DateTimeImmutable('2018-07-02 00:00:00.000000')],
         ]);
 
-        $file = __DIR__ . '/test-dates-export.xlsx';
+        $file = __DIR__.'/test-dates-export.xlsx';
         (new FastExcel(clone $collection))
             ->setColumnStyles([
                 0 => (new Style())->setFormat('mm/dd/yyyy'),
