@@ -321,7 +321,7 @@ trait Exportable
     }
 
     /**
-     * Create openspout row from values with optional row and cell styling
+     * Create openspout row from values with optional row and cell styling.
      *
      * @SuppressWarnings(PHPMD.StaticAccess)
      */
