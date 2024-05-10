@@ -206,7 +206,7 @@ trait Exportable
         $styled_rows = [];
         // Style rows one by one
         foreach ($all_rows as $row) {
-            $styled_rows[] = Row::fromValues($row->toArray(), $rows_style, $column_styles);
+            $styled_rows[] = $this->createRow($row->toArray(), $rows_style, $column_styles);
         }
         $writer->addRows($styled_rows);
     }
@@ -227,7 +227,7 @@ trait Exportable
                 $this->writeHeader($writer, $item);
             }
             // Write rows (one by one).
-            $writer->addRow(Row::fromValues($item->toArray(), $this->rows_style, $this->column_styles));
+            $writer->addRow($this->createRow($item->toArray(), $this->rows_style, $this->column_styles));
         }
     }
 
@@ -248,7 +248,7 @@ trait Exportable
         }
 
         $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
-        $writer->addRow(Row::fromValues($keys, $this->header_style));
+        $writer->addRow($this->createRow($keys, $this->header_style));
 //        $writer->addRow(WriterEntityFactory::createRowFromArray($keys, $this->header_style));
     }
 
@@ -318,5 +318,15 @@ trait Exportable
         $this->rows_style = $style;
 
         return $this;
+    }
+
+    /**
+     * Create openspout row from values with optional row and cell styling
+     *
+     * @SuppressWarnings(PHPMD.StaticAccess)
+     */
+    private function createRow(array $values = [], ?Style $rows_style = null, array $column_styles = []): Row
+    {
+        return Row::fromValuesWithStyles($values, $rows_style, $column_styles);
     }
 }
