@@ -2,20 +2,11 @@
 
 namespace Rap2hpoutre\FastExcel\Providers;
 
+use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider;
 
-class FastExcelServiceProvider extends ServiceProvider
+class FastExcelServiceProvider extends ServiceProvider implements DeferrableProvider
 {
-    /**
-     * Bootstrap any application services.
-     *
-     * @return void
-     */
-    public function boot()
-    {
-        //
-    }
-
     /**
      * Register any application services.
      *
@@ -32,5 +23,17 @@ class FastExcelServiceProvider extends ServiceProvider
 
             return new \Rap2hpoutre\FastExcel\FastExcel($data);
         });
+    }
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides(): array
+    {
+        return [
+            'fastexcel',
+        ];
     }
 }
