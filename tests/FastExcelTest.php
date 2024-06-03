@@ -4,6 +4,7 @@ namespace Rap2hpoutre\FastExcel\Tests;
 
 use OpenSpout\Common\Entity\Style\Color;
 use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Common\Exception\IOException;
 use OpenSpout\Reader\XLSX\Options;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
@@ -13,6 +14,31 @@ use Rap2hpoutre\FastExcel\SheetCollection;
  */
 class FastExcelTest extends TestCase
 {
+    /**
+     * @throws IOException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     */
+    public function testExportXlsxWithDates()
+    {
+        $collection = collect([
+            ['col1' => new \DateTimeImmutable('1980-09-18 00:00:00.000000')],
+            ['col1' => new \DateTimeImmutable('2018-07-02 00:00:00.000000')],
+        ]);
+
+        $file = __DIR__.'/test-dates-export.xlsx';
+        (new FastExcel(clone $collection))
+            ->setColumnStyles([
+                0 => (new Style())->setFormat('mm/dd/yyyy'),
+            ])
+            ->export($file);
+
+        $this->assertEquals($collection, (new FastExcel())->import($file));
+        unlink($file);
+    }
+
     /**
      * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
