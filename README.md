@@ -42,6 +42,7 @@ $list = collect([
     [ 'id' => 2, 'name' => 'John' ],
 ]);
 
+// return path where file.xlsx was stored
 (new FastExcel($list))->export('file.xlsx');
 ```
 
