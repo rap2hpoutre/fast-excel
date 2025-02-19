@@ -56,7 +56,7 @@ trait Exportable
      *
      * @return string
      */
-    public function export($path, callable $callback = null)
+    public function export($path, ?callable $callback = null)
     {
         self::exportOrDownload($path, 'openToFile', $callback);
 
@@ -74,7 +74,7 @@ trait Exportable
      *
      * @return \Symfony\Component\HttpFoundation\StreamedResponse|string
      */
-    public function download($path, callable $callback = null)
+    public function download($path, ?callable $callback = null)
     {
         if (method_exists(response(), 'streamDownload')) {
             return response()->streamDownload(function () use ($path, $callback) {
@@ -97,7 +97,7 @@ trait Exportable
      * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
      * @throws \OpenSpout\Common\Exception\SpoutException
      */
-    private function exportOrDownload($path, $function, callable $callback = null)
+    private function exportOrDownload($path, $function, ?callable $callback = null)
     {
         if (Str::endsWith($path, 'csv')) {
             $options = new \OpenSpout\Writer\CSV\Options();

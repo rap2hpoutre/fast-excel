@@ -61,7 +61,7 @@ class FastExcel
      *
      * @param array|Generator|Collection|null $data
      */
-    public function __construct(array|Generator|Collection $data = null)
+    public function __construct(array|Generator|Collection|null $data = null)
     {
         $this->data = $data;
     }
