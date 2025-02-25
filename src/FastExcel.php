@@ -69,7 +69,7 @@ class FastExcel
     /**
      * Manually set data apart from the constructor.
      *
-     * @param Collection|Generator|array $data
+     * @param Collection|Generator|Traversable|array $data
      *
      * @return FastExcel
      */

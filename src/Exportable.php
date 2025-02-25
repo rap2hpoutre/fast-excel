@@ -11,6 +11,7 @@ use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\Common\AbstractOptions;
 use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+use Traversable;
 
 /**
  * Trait Exportable.
@@ -122,7 +123,7 @@ trait Exportable
         foreach ($data as $key => $collection) {
             if ($collection instanceof Collection) {
                 $this->writeRowsFromCollection($writer, $collection, $callback);
-            } elseif ($collection instanceof Generator) {
+            } elseif ($collection instanceof Generator || $collection instanceof Traversable) {
                 $this->writeRowsFromGenerator($writer, $collection, $callback);
             } elseif (is_array($collection)) {
                 $this->writeRowsFromArray($writer, $collection, $callback);
@@ -211,7 +212,7 @@ trait Exportable
         $writer->addRows($styled_rows);
     }
 
-    private function writeRowsFromGenerator($writer, Generator $generator, ?callable $callback = null)
+    private function writeRowsFromGenerator($writer, Generator|Traversable $generator, ?callable $callback = null)
     {
         foreach ($generator as $key => $item) {
             // Apply callback
