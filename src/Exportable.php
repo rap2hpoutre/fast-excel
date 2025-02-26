@@ -5,7 +5,6 @@ namespace Rap2hpoutre\FastExcel;
 use DateTimeInterface;
 use Generator;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use InvalidArgumentException;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
@@ -99,18 +98,25 @@ trait Exportable
      */
     private function exportOrDownload($path, $function, callable $callback = null)
     {
-        if (Str::endsWith($path, 'csv')) {
-            $options = new \OpenSpout\Writer\CSV\Options();
-            $writer = new \OpenSpout\Writer\CSV\Writer($options);
-        } elseif (Str::endsWith($path, 'ods')) {
-            $options = new \OpenSpout\Writer\ODS\Options();
-            $writer = new \OpenSpout\Writer\ODS\Writer($options);
+        $ext = strtoupper(substr($path, -3));
+        $knownExts = ['CSV', 'ODS'];
+        if (in_array($ext, $knownExts, true)) {
+            $optionCls = "\OpenSpout\Writer\{$ext}\Options";
+            $writerCls = "\OpenSpout\Writer\{$ext}\Writer";
+            $options = new $optionCls();
+            $writer = new $writerClass($options);
         } else {
             $options = new \OpenSpout\Writer\XLSX\Options();
             $writer = new \OpenSpout\Writer\XLSX\Writer($options);
         }
 
         $this->setOptions($options);
+
+        // extract file type for writing to php://output
+        if (str_starts_with($path, 'php://output')) {
+            $path = explode(';', $path)[0];
+        }
+
         /* @var \OpenSpout\Writer\WriterInterface $writer */
         $writer->$function($path);
 
