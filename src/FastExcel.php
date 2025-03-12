@@ -123,7 +123,7 @@ class FastExcel
     }
 
     /**
-     * Enable passing sheet name to callback
+     * Enable passing sheet name to callback.
      *
      * @return $this
      */
