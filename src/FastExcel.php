@@ -123,6 +123,18 @@ class FastExcel
     }
 
     /**
+     * Enable passing sheet name to callback.
+     *
+     * @return $this
+     */
+    public function withSheetContext()
+    {
+        $this->with_sheet_context = true;
+
+        return $this;
+    }
+
+    /**
      * @return $this
      */
     public function transpose()
