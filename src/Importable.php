@@ -180,16 +180,16 @@ trait Importable
      * - Returns combined associative row when headers exist, or the raw row when not.
      * - Returns null to skip processing (before start_row or header row itself).
      *
-     * @param int   $k
+     * @param int   $key
      * @param array $row
      * @param array $headers
      * @param int   $count_header
      *
      * @return array|null
      */
-    private function normalizeRow(int $k, array $row, array &$headers, int &$count_header): ?array
+    private function normalizeRow(int $key, array $row, array &$headers, int &$count_header): ?array
     {
-        if ($k < $this->start_row) {
+        if ($key < $this->start_row) {
             return null;
         }
 
@@ -223,7 +223,7 @@ trait Importable
         $collection = [];
         $count_header = 0;
 
-        foreach ($sheet->getRowIterator() as $k => $rowAsObject) {
+        foreach ($sheet->getRowIterator() as $key => $rowAsObject) {
             $row = array_map(function (Cell $cell) {
                 return match (true) {
                     $cell instanceof Cell\FormulaCell => $cell->getComputedValue(),
@@ -231,7 +231,7 @@ trait Importable
                 };
             }, $rowAsObject->getCells());
 
-            $current = $this->normalizeRow($k, $row, $headers, $count_header);
+            $current = $this->normalizeRow($key, $row, $headers, $count_header);
             if ($current === null) {
                 continue;
             }
