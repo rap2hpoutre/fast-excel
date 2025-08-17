@@ -71,6 +71,7 @@ trait Importable
     {
         return new LazyCollection(function () use ($path, $callback) {
             $reader = $this->reader($path);
+
             try {
                 foreach ($reader->getSheetIterator() as $key => $sheet) {
                     if ($this->sheet_number != $key) {
@@ -196,6 +197,7 @@ trait Importable
             if ($k == $this->start_row) {
                 $headers = $this->toStrings($row);
                 $count_header = count($headers);
+
                 return null; // skip header row
             }
 
