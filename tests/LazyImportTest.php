@@ -28,14 +28,14 @@ class LazyImportTest extends TestCase
         $lazy = $fe->importLazy(__DIR__.'/test1.xlsx', function ($row) {
             return [
                 'col1' => $row['col1'],
-                'col2'  => $row['col2'],
+                'col2' => $row['col2'],
             ];
         });
 
         $expected = (new FastExcel())->import(__DIR__.'/test1.xlsx', function ($row) {
             return [
                 'col1' => $row['col1'],
-                'col2'  => $row['col2'],
+                'col2' => $row['col2'],
             ];
         });
 
