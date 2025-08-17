@@ -100,7 +100,7 @@ trait Importable
      *
      * @return Collection
      */
-    public function importSheets($path, callable $callback = null)
+    public function importSheets($path, ?callable $callback = null)
     {
         $reader = $this->reader($path);
 
@@ -215,7 +215,7 @@ trait Importable
      *
      * @return array
      */
-    private function importSheet(SheetInterface $sheet, callable $callback = null)
+    private function importSheet(SheetInterface $sheet, ?callable $callback = null)
     {
         $headers = [];
         $collection = [];
@@ -258,7 +258,7 @@ trait Importable
      *
      * @return \Generator
      */
-    private function importSheetGenerator(SheetInterface $sheet, callable $callback = null): \Generator
+    private function importSheetGenerator(SheetInterface $sheet, ?callable $callback = null): \Generator
     {
         $headers = [];
         $count_header = 0;
