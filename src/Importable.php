@@ -194,7 +194,7 @@ trait Importable
         }
 
         if ($this->with_header) {
-            if ($k == $this->start_row) {
+            if ($key == $this->start_row) {
                 $headers = $this->toStrings($row);
                 $count_header = count($headers);
 
@@ -265,7 +265,7 @@ trait Importable
         $headers = [];
         $count_header = 0;
 
-        foreach ($sheet->getRowIterator() as $k => $rowAsObject) {
+        foreach ($sheet->getRowIterator() as $key => $rowAsObject) {
             $row = array_map(function (Cell $cell) {
                 return match (true) {
                     $cell instanceof Cell\FormulaCell => $cell->getComputedValue(),
@@ -273,7 +273,7 @@ trait Importable
                 };
             }, $rowAsObject->getCells());
 
-            $current = $this->normalizeRow($k, $row, $headers, $count_header);
+            $current = $this->normalizeRow($key, $row, $headers, $count_header);
             if ($current === null) {
                 continue;
             }
