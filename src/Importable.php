@@ -3,6 +3,7 @@
 namespace Rap2hpoutre\FastExcel;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\LazyCollection;
 use Illuminate\Support\Str;
 use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Reader\SheetInterface;
@@ -52,6 +53,41 @@ trait Importable
         $reader->close();
 
         return collect($collection ?? []);
+    }
+
+    /**
+     * Import file lazily using LazyCollection for memory efficiency.
+     *
+     * @param string        $path
+     * @param callable|null $callback
+     *
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\IOException
+     *
+     * @return LazyCollection
+     */
+    public function importLazy($path, callable $callback = null)
+    {
+        return new LazyCollection(function () use ($path, $callback) {
+            $reader = $this->reader($path);
+            try {
+                foreach ($reader->getSheetIterator() as $key => $sheet) {
+                    if ($this->sheet_number != $key) {
+                        continue;
+                    }
+                    if ($this->transpose) {
+                        // Fallback to non-lazy processing when transposing
+                        throw new \Exception('Transposing is not supported with lazy import.');
+                    }
+
+                    yield from $this->importSheetGenerator($sheet, $callback);
+                    break;
+                }
+            } finally {
+                $reader->close();
+            }
+        });
     }
 
     /**
@@ -137,6 +173,43 @@ trait Importable
     }
 
     /**
+     * Normalize a row according to start_row and headers.
+     * - Updates $headers and $count_header when encountering header row.
+     * - Pads/truncates rows to header size when headers exist.
+     * - Returns combined associative row when headers exist, or the raw row when not.
+     * - Returns null to skip processing (before start_row or header row itself).
+     *
+     * @param int   $k
+     * @param array $row
+     * @param array $headers
+     * @param int   $count_header
+     *
+     * @return array|null
+     */
+    private function normalizeRow(int $k, array $row, array &$headers, int &$count_header): ?array
+    {
+        if ($k < $this->start_row) {
+            return null;
+        }
+
+        if ($this->with_header) {
+            if ($k == $this->start_row) {
+                $headers = $this->toStrings($row);
+                $count_header = count($headers);
+                return null; // skip header row
+            }
+
+            if ($count_header > $count_row = count($row)) {
+                $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
+            } elseif ($count_header < $count_row = count($row)) {
+                $row = array_slice($row, 0, $count_header);
+            }
+        }
+
+        return empty($headers) ? $row : array_combine($headers, $row);
+    }
+
+    /**
      * @param SheetInterface $sheet
      * @param callable|null  $callback
      *
@@ -156,26 +229,17 @@ trait Importable
                 };
             }, $rowAsObject->getCells());
 
-            if ($k >= $this->start_row) {
-                if ($this->with_header) {
-                    if ($k == $this->start_row) {
-                        $headers = $this->toStrings($row);
-                        $count_header = count($headers);
-                        continue;
-                    }
-                    if ($count_header > $count_row = count($row)) {
-                        $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
-                    } elseif ($count_header < $count_row = count($row)) {
-                        $row = array_slice($row, 0, $count_header);
-                    }
+            $current = $this->normalizeRow($k, $row, $headers, $count_header);
+            if ($current === null) {
+                continue;
+            }
+
+            if ($callback) {
+                if ($result = $callback($current)) {
+                    $collection[] = $result;
                 }
-                if ($callback) {
-                    if ($result = $callback(empty($headers) ? $row : array_combine($headers, $row))) {
-                        $collection[] = $result;
-                    }
-                } else {
-                    $collection[] = empty($headers) ? $row : array_combine($headers, $row);
-                }
+            } else {
+                $collection[] = $current;
             }
         }
 
@@ -184,6 +248,43 @@ trait Importable
         }
 
         return $collection;
+    }
+
+    /**
+     * Create a generator that lazily yields imported rows from a sheet.
+     *
+     * @param SheetInterface $sheet
+     * @param callable|null  $callback
+     *
+     * @return \Generator
+     */
+    private function importSheetGenerator(SheetInterface $sheet, callable $callback = null): \Generator
+    {
+        $headers = [];
+        $count_header = 0;
+
+        foreach ($sheet->getRowIterator() as $k => $rowAsObject) {
+            $row = array_map(function (Cell $cell) {
+                return match (true) {
+                    $cell instanceof Cell\FormulaCell => $cell->getComputedValue(),
+                    default                           => $cell->getValue(),
+                };
+            }, $rowAsObject->getCells());
+
+            $current = $this->normalizeRow($k, $row, $headers, $count_header);
+            if ($current === null) {
+                continue;
+            }
+
+            if ($callback) {
+                $result = $callback($current);
+                if ($result) {
+                    yield $result;
+                }
+            } else {
+                yield $current;
+            }
+        }
     }
 
     /**
