@@ -40,7 +40,7 @@ trait Importable
      *
      * @return Collection
      */
-    public function import($path, callable $callback = null)
+    public function import($path, ?callable $callback = null)
     {
         $reader = $this->reader($path);
 
@@ -67,7 +67,7 @@ trait Importable
      *
      * @return LazyCollection
      */
-    public function importLazy($path, callable $callback = null)
+    public function importLazy($path, ?callable $callback = null)
     {
         return new LazyCollection(function () use ($path, $callback) {
             $reader = $this->reader($path);
