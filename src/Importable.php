@@ -21,6 +21,10 @@ trait Importable
      * @var int
      */
     private $sheet_number = 1;
+    /**
+     * @var bool
+     */
+    private $with_sheet_context = false;
 
     /**
      * @param AbstractOptions $options
@@ -147,6 +151,7 @@ trait Importable
         $headers = [];
         $collection = [];
         $count_header = 0;
+        $sheetName = $sheet->getName();
 
         foreach ($sheet->getRowIterator() as $k => $rowAsObject) {
             $row = array_map(function (Cell $cell) {
@@ -169,12 +174,21 @@ trait Importable
                         $row = array_slice($row, 0, $count_header);
                     }
                 }
+
+                $rowData = empty($headers) ? $row : array_combine($headers, $row);
+
                 if ($callback) {
-                    if ($result = $callback(empty($headers) ? $row : array_combine($headers, $row))) {
+                    if ($this->with_sheet_context) {
+                        $result = $callback($sheetName, $rowData);
+                    } else {
+                        $result = $callback($rowData);
+                    }
+
+                    if ($result) {
                         $collection[] = $result;
                     }
                 } else {
-                    $collection[] = empty($headers) ? $row : array_combine($headers, $row);
+                    $collection[] = $rowData;
                 }
             }
         }
