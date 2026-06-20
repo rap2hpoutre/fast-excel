@@ -52,9 +52,14 @@ class FastExcel
     ];
 
     /**
-     * @var callable
+     * @var callable|null
      */
     protected $options_configurator = null;
+
+    /**
+     * @var callable|null
+     */
+    protected $writer_configurator = null;
 
     /**
      * FastExcel constructor.
@@ -163,17 +168,20 @@ class FastExcel
     }
 
     /**
-     * Configure the underlying Spout Reader using a callback.
+     * Configure a custom writer factory using a callback.
      *
-     * @param callable|null $callback
+     * The callback receives the configured options and file extension
+     * ('csv', 'ods' or 'xlsx') and should return a \OpenSpout\Writer\WriterInterface instance.
+     * Return null to fall back to the default writer for that extension.
+     *
+     * @param callable|null $callback function (AbstractOptions $options, string $extension): ?\OpenSpout\Writer\WriterInterface
      *
      * @return $this
-     *
-     * @deprecated Has no effect with spout v4
-     * @see        configureOptionsUsing
      */
     public function configureWriterUsing(?callable $callback = null)
     {
+        $this->writer_configurator = $callback;
+
         return $this;
     }
 

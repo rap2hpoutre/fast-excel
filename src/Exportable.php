@@ -11,12 +11,14 @@ use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\Common\AbstractOptions;
 use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+use OpenSpout\Writer\WriterInterface;
 
 /**
  * Trait Exportable.
  *
  * @property bool                           $transpose
  * @property bool                           $with_header
+ * @property callable|null                  $writer_configurator
  * @property \Illuminate\Support\Collection $data
  */
 trait Exportable
@@ -99,19 +101,7 @@ trait Exportable
      */
     private function exportOrDownload($path, $function, callable $callback = null)
     {
-        if (Str::endsWith($path, 'csv')) {
-            $options = new \OpenSpout\Writer\CSV\Options();
-            $writer = new \OpenSpout\Writer\CSV\Writer($options);
-        } elseif (Str::endsWith($path, 'ods')) {
-            $options = new \OpenSpout\Writer\ODS\Options();
-            $writer = new \OpenSpout\Writer\ODS\Writer($options);
-        } else {
-            $options = new \OpenSpout\Writer\XLSX\Options();
-            $writer = new \OpenSpout\Writer\XLSX\Writer($options);
-        }
-
-        $this->setOptions($options);
-        /* @var \OpenSpout\Writer\WriterInterface $writer */
+        $writer = $this->makeWriter($path);
         $writer->$function($path);
 
         $has_sheets = ($writer instanceof \OpenSpout\Writer\XLSX\Writer || $writer instanceof \OpenSpout\Writer\ODS\Writer);
@@ -137,6 +127,52 @@ trait Exportable
             }
         }
         $writer->close();
+    }
+
+    private function makeWriter(string $path): WriterInterface
+    {
+        $extension = $this->resolveWriterExtension($path);
+
+        if ($extension === 'csv') {
+            $options = new \OpenSpout\Writer\CSV\Options();
+        } elseif ($extension === 'ods') {
+            $options = new \OpenSpout\Writer\ODS\Options();
+        } else {
+            $options = new \OpenSpout\Writer\XLSX\Options();
+        }
+
+        $this->setOptions($options);
+
+        if (is_callable($this->writer_configurator ?? null)) {
+            $writer = call_user_func($this->writer_configurator, $options, $extension);
+
+            if ($writer instanceof WriterInterface) {
+                return $writer;
+            }
+        }
+
+        if ($extension === 'csv') {
+            return new \OpenSpout\Writer\CSV\Writer($options);
+        }
+
+        if ($extension === 'ods') {
+            return new \OpenSpout\Writer\ODS\Writer($options);
+        }
+
+        return new \OpenSpout\Writer\XLSX\Writer($options);
+    }
+
+    private function resolveWriterExtension(string $path): string
+    {
+        if (Str::endsWith($path, 'csv')) {
+            return 'csv';
+        }
+
+        if (Str::endsWith($path, 'ods')) {
+            return 'ods';
+        }
+
+        return 'xlsx';
     }
 
     /**

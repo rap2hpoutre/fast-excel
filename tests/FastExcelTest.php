@@ -249,9 +249,54 @@ class FastExcelTest extends TestCase
 
     /**
      * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
      */
+    public function testConfigureWriterUsingWithCustomCsvWriter()
+    {
+        $usedCustomWriter = false;
+        $original_collection = $this->collection();
+        $file = __DIR__.'/test-custom-writer.csv';
+
+        (new FastExcel(clone $original_collection))
+            ->configureWriterUsing(function ($options, $extension) use (&$usedCustomWriter) {
+                $this->assertEquals('csv', $extension);
+                $this->assertInstanceOf(\OpenSpout\Writer\CSV\Options::class, $options);
+                $usedCustomWriter = true;
+
+                return new \OpenSpout\Writer\CSV\Writer($options);
+            })
+            ->export($file);
+
+        $this->assertTrue($usedCustomWriter);
+        $this->assertEquals($original_collection, (new FastExcel())->import($file));
+        unlink($file);
+    }
+
+    /**
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testConfigureWriterUsingFallbackToDefaultWriter()
+    {
+        $original_collection = $this->collection();
+        $file = __DIR__.'/test-writer-fallback.csv';
+
+        (new FastExcel(clone $original_collection))
+            ->configureWriterUsing(function ($options, $extension) {
+                return null;
+            })
+            ->export($file);
+
+        $this->assertEquals($original_collection, (new FastExcel())->import($file));
+        unlink($file);
+    }
+
     public function testImportXlsxWithCustomDateOption()
     {
         // Default options, dates will end parsed
