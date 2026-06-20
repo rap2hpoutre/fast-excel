@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Rap2hpoutre\FastExcel\FastExcel configureCsv($delimiter = ',', $enclosure = '"', $encoding = 'UTF-8', $bom = false)
  * @method static \Rap2hpoutre\FastExcel\FastExcel configureReaderUsing(?callable $callback = null)
  * @method static \Rap2hpoutre\FastExcel\FastExcel configureWriterUsing(?callable $callback = null)
+ * @method static \Rap2hpoutre\FastExcel\FastExcel withSheetContext()
  *
  * @see \Rap2hpoutre\FastExcel\FastExcel
  */
