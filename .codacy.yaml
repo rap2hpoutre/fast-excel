@@ -1,9 +1,11 @@
 ---
 # Codacy configuration.
 # FastExcel is a small library — the value of static analysis is in the PHP
-# source. Docs, GitHub config, and Markdown shouldn't fail the quality gate,
-# so they're excluded from analysis to keep pull-request checks meaningful.
+# source. Docs, GitHub config, Markdown, and tests shouldn't fail the quality
+# gate, so they're excluded from analysis to keep pull-request checks meaningful.
+# (Test classes legitimately trip method-count and duplication heuristics.)
 exclude_paths:
   - '.github/**'
   - '**.md'
   - 'docs/**'
+  - 'tests/**'
