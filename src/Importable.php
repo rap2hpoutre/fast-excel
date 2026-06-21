@@ -3,7 +3,6 @@
 namespace Rap2hpoutre\FastExcel;
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Reader\SheetInterface;
 use OpenSpout\Writer\Common\AbstractOptions;
@@ -30,8 +29,8 @@ trait Importable
     abstract protected function setOptions(&$options);
 
     /**
-     * @param string        $path
-     * @param callable|null $callback
+     * @param string|\Symfony\Component\HttpFoundation\File\UploadedFile $path
+     * @param callable|null                                              $callback
      *
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
@@ -55,8 +54,8 @@ trait Importable
     }
 
     /**
-     * @param string        $path
-     * @param callable|null $callback
+     * @param string|\Symfony\Component\HttpFoundation\File\UploadedFile $path
+     * @param callable|null                                              $callback
      *
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
@@ -82,7 +81,7 @@ trait Importable
     }
 
     /**
-     * @param $path
+     * @param string|object $path
      *
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Common\Exception\IOException
@@ -91,11 +90,13 @@ trait Importable
      */
     private function reader($path)
     {
-        if (Str::endsWith($path, 'csv')) {
+        $type = $this->readerType($path);
+
+        if ($type === 'csv') {
             $options = new \OpenSpout\Reader\CSV\Options();
             $this->setOptions($options);
             $reader = new \OpenSpout\Reader\CSV\Reader($options);
-        } elseif (Str::endsWith($path, 'ods')) {
+        } elseif ($type === 'ods') {
             $options = new \OpenSpout\Reader\ODS\Options();
             $this->setOptions($options);
             $reader = new \OpenSpout\Reader\ODS\Reader($options);
@@ -106,9 +107,173 @@ trait Importable
         }
 
         /* @var \OpenSpout\Reader\ReaderInterface $reader */
-        $reader->open($path);
+        $reader->open($this->readerPath($path));
 
         return $reader;
+    }
+
+    /**
+     * Resolve the reader type (csv|ods|xlsx) for the given path or uploaded file.
+     *
+     * Files uploaded through a form are stored under an extension-less temporary
+     * path (e.g. /tmp/phpXXXX), so the type cannot be guessed from the path alone.
+     * In that case we rely on the uploaded file's original extension / mime type,
+     * falling back to sniffing the file contents.
+     *
+     * @param string|object $path
+     *
+     * @return string
+     */
+    private function readerType($path): string
+    {
+        // Illuminate/Symfony UploadedFile (duck-typed to avoid a hard dependency).
+        if (is_object($path) && method_exists($path, 'getClientOriginalExtension')) {
+            $extension = strtolower((string) $path->getClientOriginalExtension());
+            if (in_array($extension, ['csv', 'ods', 'xlsx'], true)) {
+                return $extension;
+            }
+
+            $mime = method_exists($path, 'getClientMimeType') ? (string) $path->getClientMimeType() : '';
+
+            return $this->readerTypeFromMime($mime, $this->readerPath($path));
+        }
+
+        $path = (string) $path;
+
+        if (str_ends_with($path, 'csv')) {
+            return 'csv';
+        }
+        if (str_ends_with($path, 'ods')) {
+            return 'ods';
+        }
+        if (str_ends_with($path, 'xlsx')) {
+            return 'xlsx';
+        }
+
+        // No recognizable extension (e.g. an uploaded temp file): sniff the contents.
+        return $this->readerTypeFromMime($this->guessMimeType($path), $path);
+    }
+
+    /**
+     * Map a mime type to a reader type, sniffing the file as a last resort.
+     *
+     * @param string $mime
+     * @param string $path
+     *
+     * @return string
+     */
+    private function readerTypeFromMime(string $mime, string $path): string
+    {
+        $mime = strtolower($mime);
+
+        if (str_contains($mime, 'csv')) {
+            return 'csv';
+        }
+        if (str_contains($mime, 'opendocument.spreadsheet')) {
+            return 'ods';
+        }
+        if (str_contains($mime, 'spreadsheetml') || str_contains($mime, 'officedocument')) {
+            return 'xlsx';
+        }
+
+        return $this->sniffReaderType($mime, $path);
+    }
+
+    /**
+     * Determine the reader type when the mime type is inconclusive by inspecting
+     * the file contents.
+     *
+     * @param string $mime
+     * @param string $path
+     *
+     * @return string
+     */
+    private function sniffReaderType(string $mime, string $path): string
+    {
+        // XLSX and ODS are zip archives; distinguish them by peeking inside.
+        if (is_file($path) && $this->isZipArchive($path)) {
+            return $this->zipContains($path, 'mimetype', 'opendocument.spreadsheet') ? 'ods' : 'xlsx';
+        }
+
+        // Plain delimited text with no zip signature: treat as CSV.
+        if ($mime === '' || str_starts_with($mime, 'text/')) {
+            return 'csv';
+        }
+
+        return 'xlsx';
+    }
+
+    /**
+     * @param string|object $path
+     *
+     * @return string
+     */
+    private function readerPath($path): string
+    {
+        if (is_object($path) && method_exists($path, 'getPathname')) {
+            return (string) $path->getPathname();
+        }
+
+        return (string) $path;
+    }
+
+    /**
+     * @param string $path
+     *
+     * @return string
+     */
+    private function guessMimeType($path): string
+    {
+        if (is_file($path) && function_exists('mime_content_type')) {
+            $mime = @mime_content_type($path);
+            if ($mime !== false) {
+                return $mime;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @param string $path
+     *
+     * @return bool
+     */
+    private function isZipArchive($path): bool
+    {
+        $handle = @fopen($path, 'rb');
+        if ($handle === false) {
+            return false;
+        }
+        $signature = fread($handle, 2);
+        fclose($handle);
+
+        return $signature === 'PK';
+    }
+
+    /**
+     * Check whether a zip entry's content contains a given needle.
+     *
+     * @param string $path
+     * @param string $entry
+     * @param string $needle
+     *
+     * @return bool
+     */
+    private function zipContains($path, $entry, $needle): bool
+    {
+        if (!class_exists(\ZipArchive::class)) {
+            return false;
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($path) !== true) {
+            return false;
+        }
+        $content = $zip->getFromName($entry);
+        $zip->close();
+
+        return is_string($content) && str_contains($content, $needle);
     }
 
     /**
