@@ -299,7 +299,7 @@ class IssuesTest extends TestCase
         $seen = 0;
         $result = (new FastExcel())->import($file, function ($line) use (&$seen) {
             $this->assertArrayHasKey('col1', $line);
-            ++$seen;
+            $seen++;
 
             return null; // stream: do not accumulate the row
         });
