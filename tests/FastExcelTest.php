@@ -300,13 +300,14 @@ class FastExcelTest extends TestCase
             $table->string('email');
         });
 
-        User::query()->insert([
+        $user = new User();
+        $user->newQuery()->insert([
             ['name' => 'Joe', 'email' => 'joe@example.com'],
             ['name' => 'Jane', 'email' => 'jane@example.com'],
         ]);
 
         $file = __DIR__.'/issue_12.xlsx';
-        (new FastExcel(User::all()))->export($file);
+        (new FastExcel($user->newQuery()->get()))->export($file);
 
         $imported = (new FastExcel())->import($file);
 
