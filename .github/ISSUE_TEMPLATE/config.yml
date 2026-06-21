@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Question / "How do I…?"
+    url: https://github.com/rap2hpoutre/fast-excel#docs
+    about: Usage questions belong in the README first, then Stack Overflow. The issue tracker is for bugs and feature requests only.
+  - name: 🔎 Search existing issues
+    url: https://github.com/rap2hpoutre/fast-excel/issues?q=is%3Aissue
+    about: Your problem may already be reported or answered. Please search before opening a new issue.
