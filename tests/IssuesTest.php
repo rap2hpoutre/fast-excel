@@ -284,8 +284,8 @@ class IssuesTest extends TestCase
 
     /**
      * Issue #162: importing a large file with a callback that returns null must
-     * process every row without accumulating them, so memory stays flat. (A
-     * callback returning a value is collected, which is what grows memory.)
+     * process every row without accumulating them, so memory stays flat. A
+     * callback that returns a value is collected instead, which grows memory.
      *
      * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
