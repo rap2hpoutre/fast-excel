@@ -3,7 +3,6 @@
 namespace Rap2hpoutre\FastExcel\Tests;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
-use Illuminate\Database\Eloquent\Model;
 use OpenSpout\Common\Entity\Style\Color;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Common\Exception\IOException;
@@ -301,19 +300,13 @@ class FastExcelTest extends TestCase
             $table->string('email');
         });
 
-        $user = new class extends Model {
-            protected $table = 'users';
-            public $timestamps = false;
-            protected $fillable = ['name', 'email'];
-        };
-
-        $user->newQuery()->insert([
+        User::query()->insert([
             ['name' => 'Joe', 'email' => 'joe@example.com'],
             ['name' => 'Jane', 'email' => 'jane@example.com'],
         ]);
 
         $file = __DIR__.'/issue_12.xlsx';
-        (new FastExcel($user->newQuery()->get()))->export($file);
+        (new FastExcel(User::all()))->export($file);
 
         $imported = (new FastExcel())->import($file);
 
