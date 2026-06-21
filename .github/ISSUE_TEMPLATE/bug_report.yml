@@ -1,0 +1,70 @@
+name: 🐞 Bug report
+description: Report a reproducible bug in FastExcel
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug! Please fill in as much as you can —
+        a minimal reproduction is the single biggest factor in getting a fix.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you start
+      options:
+        - label: I searched existing issues and didn't find a duplicate.
+          required: true
+        - label: I'm on the latest version of `rap2hpoutre/fast-excel`.
+          required: true
+  - type: input
+    id: package-version
+    attributes:
+      label: FastExcel version
+      placeholder: e.g. v5.7.0
+    validations:
+      required: true
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP version
+      placeholder: e.g. 8.3
+    validations:
+      required: true
+  - type: input
+    id: laravel-version
+    attributes:
+      label: Laravel version
+      placeholder: e.g. 11.x (or "none / standalone")
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: A minimal code sample that triggers the bug. Include the file type (xlsx/csv/ods) if relevant.
+      render: php
+      placeholder: |
+        $rows = (new FastExcel)->import('file.csv');
+        // ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the full error message / stack trace if there is one.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else that might help (sample file, screenshots, etc.).
+    validations:
+      required: false
