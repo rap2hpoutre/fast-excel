@@ -181,6 +181,40 @@ function usersGenerator() {
 (new FastExcel(usersGenerator()))->export('test.xlsx');
 ```
 
+### Import large files (low memory)
+
+`import` returns a Collection containing every row, so memory grows with the size
+of the file. To import a large file without running out of memory, pass a callback
+and **return `null`** — the row is then processed but not accumulated, so memory
+stays flat:
+
+```php
+// Memory stays flat regardless of the number of rows.
+(new FastExcel)->import('file.xlsx', function ($line) {
+    User::create([
+        'name'  => $line['Name'],
+        'email' => $line['Email'],
+    ]);
+
+    return null; // don't keep the row in memory
+});
+```
+
+> If the callback returns a value (for example the created model), that value is
+> collected and returned to you — handy for small files, but it keeps every row in
+> memory. Return `null` when you only need the side effect (e.g. inserting rows).
+
+Importing a 500,000-row file (`val-…` strings, 5 columns):
+
+| How you import | Peak memory |
+| --- | --- |
+| `import($file)` (returns a Collection) | ~268 MB |
+| `import($file, fn ($row) => null)` (streaming) | ~4 MB |
+
+Reading speed is dominated by the underlying [OpenSpout](https://github.com/openspout/openspout)
+parser and is the same either way; the difference above is memory, which is what
+lets very large files finish at all.
+
 ### Add header and rows style
 
 Add header and rows style with `headerStyle` and `rowsStyle` methods.
