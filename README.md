@@ -183,10 +183,11 @@ function usersGenerator() {
 
 ### Import large files (low memory)
 
-`import` returns a Collection containing every row, so memory grows with the size
-of the file. To import a large file without running out of memory, pass a callback
-and **return `null`** — the row is then processed but not accumulated, so memory
-stays flat:
+`import` returns a Collection containing every row, so memory grows with the size of
+the file. On a file larger than your PHP `memory_limit`, the default `import()` fails
+outright with `Allowed memory size of N bytes exhausted`. To import a large file
+without running out of memory, pass a callback and **return `null`** — each row is
+then processed but not accumulated, so memory stays flat:
 
 ```php
 // Memory stays flat regardless of the number of rows.
@@ -204,16 +205,18 @@ stays flat:
 > collected and returned to you — handy for small files, but it keeps every row in
 > memory. Return `null` when you only need the side effect (e.g. inserting rows).
 
-Importing a 500,000-row file (`val-…` strings, 5 columns):
+Importing a 730,000-row file (8 columns), measured under a constrained
+`memory_limit`:
 
-| How you import | Peak memory |
-| --- | --- |
-| `import($file)` (returns a Collection) | ~268 MB |
-| `import($file, fn ($row) => null)` (streaming) | ~4 MB |
+| How you import | Peak memory | Result |
+| --- | --- | --- |
+| `import($file)` (returns a Collection) | ~440 MB | **fails** once it exceeds `memory_limit` |
+| `import($file, fn ($row) => null)` (streaming) | ~4 MB | always completes |
 
-Reading speed is dominated by the underlying [OpenSpout](https://github.com/openspout/openspout)
-parser and is the same either way; the difference above is memory, which is what
-lets very large files finish at all.
+Reading speed is the same either way — it is dominated by the underlying
+[OpenSpout](https://github.com/openspout/openspout) parser, not by how the rows are
+returned. The difference above is memory, which is what lets very large files finish
+at all.
 
 ### Add header and rows style
 
