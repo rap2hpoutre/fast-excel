@@ -5,5 +5,5 @@
 # so they're excluded from analysis to keep pull-request checks meaningful.
 exclude_paths:
   - '.github/**'
-  - '**/*.md'
+  - '**.md'
   - 'docs/**'
