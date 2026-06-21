@@ -210,8 +210,18 @@ class IssuesTest extends TestCase
         copy(__DIR__.'/test104.xlsx', $xlsxNoExt);
         $this->assertCount(3, (new FastExcel())->import($xlsxNoExt));
 
+        // An ODS stored under an extension-less path is detected by sniffing the
+        // zip mimetype entry (ODS and XLSX are both zip archives).
+        $ods = __DIR__.'/issue_185.ods';
+        (new FastExcel($this->collection()))->export($ods);
+        $odsNoExt = tempnam(sys_get_temp_dir(), 'php');
+        copy($ods, $odsNoExt);
+        $this->assertEquals($this->collection(), (new FastExcel())->import($odsNoExt));
+
         unlink($csvNoExt);
         unlink($xlsxNoExt);
+        unlink($odsNoExt);
+        unlink($ods);
     }
 
     /**
@@ -260,7 +270,15 @@ class IssuesTest extends TestCase
         $csvUploadNoExt = $makeUploadedFile(__DIR__.'/test2.csv', 'data', 'text/csv');
         $this->assertCount(3, (new FastExcel())->import($csvUploadNoExt));
 
+        // ODS uploaded file, resolved from its original extension.
+        $ods = __DIR__.'/issue_185_upload.ods';
+        (new FastExcel($this->collection()))->export($ods);
+        $odsUpload = $makeUploadedFile($ods, 'book.ods', 'application/vnd.oasis.opendocument.spreadsheet');
+        $this->assertEquals($this->collection(), (new FastExcel())->import($odsUpload));
+
         unlink($csvUpload->getPathname());
         unlink($csvUploadNoExt->getPathname());
+        unlink($odsUpload->getPathname());
+        unlink($ods);
     }
 }
