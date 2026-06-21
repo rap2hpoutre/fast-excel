@@ -42,7 +42,8 @@ $list = collect([
     [ 'id' => 2, 'name' => 'John' ],
 ]);
 
-(new FastExcel($list))->export('file.xlsx');
+// export() returns the absolute path to the written file
+$path = (new FastExcel($list))->export('file.xlsx');
 ```
 
 Export `xlsx`, `ods` and `csv`:
