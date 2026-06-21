@@ -130,6 +130,15 @@
 
     <rule ref="PSR1"/>
     <rule ref="PSR2"/>
-    <rule ref="PSR12"/>
+    <rule ref="PSR12">
+        <!--
+            The codebase follows the Laravel style (no spaces around string
+            concatenation, e.g. __DIR__.'/file'), which is what StyleCI enforces.
+            PSR12.Operators.OperatorSpacing requires spaces, contradicting that
+            and producing false positives on every concatenation. Disable it so
+            phpcs agrees with the actual code style (and stops failing Codacy).
+        -->
+        <exclude name="PSR12.Operators.OperatorSpacing"/>
+    </rule>
 
 </ruleset>
