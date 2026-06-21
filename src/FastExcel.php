@@ -2,11 +2,11 @@
 
 namespace Rap2hpoutre\FastExcel;
 
-use Generator;
 use Illuminate\Support\Collection;
 use OpenSpout\Reader\CSV\Options as CsvReaderOptions;
 use OpenSpout\Writer\Common\AbstractOptions;
 use OpenSpout\Writer\CSV\Options as CsvWriterOptions;
+use Traversable;
 
 /**
  * Class FastExcel.
@@ -17,7 +17,7 @@ class FastExcel
     use Exportable;
 
     /**
-     * @var Collection|Generator|array
+     * @var Collection|Traversable|array
      */
     protected $data;
 
@@ -64,9 +64,9 @@ class FastExcel
     /**
      * FastExcel constructor.
      *
-     * @param array|Generator|Collection|null $data
+     * @param array|Traversable|null $data
      */
-    public function __construct(array|Generator|Collection|null $data = null)
+    public function __construct(array|Traversable|null $data = null)
     {
         $this->data = $data;
     }
@@ -74,7 +74,7 @@ class FastExcel
     /**
      * Manually set data apart from the constructor.
      *
-     * @param Collection|Generator|array $data
+     * @param Collection|Traversable|array $data
      *
      * @return FastExcel
      */

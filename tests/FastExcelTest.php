@@ -107,6 +107,27 @@ class FastExcelTest extends TestCase
     }
 
     /**
+     * Export data given as any Traversable (e.g. an Iterator), not only a
+     * Collection, Generator or array.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testExportFromTraversable()
+    {
+        // ArrayIterator is a Traversable that is neither a Generator nor a Collection.
+        $data = new \ArrayIterator($this->collection()->toArray());
+
+        $file = (new FastExcel($data))->export(__DIR__.'/test2.xlsx');
+        $this->assertEquals($this->collection(), (new FastExcel())->import(__DIR__.'/test2.xlsx'));
+
+        unlink($file);
+    }
+
+    /**
      * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
