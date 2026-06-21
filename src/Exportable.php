@@ -5,7 +5,6 @@ namespace Rap2hpoutre\FastExcel;
 use DateTimeInterface;
 use Generator;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use InvalidArgumentException;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
@@ -164,11 +163,11 @@ trait Exportable
 
     private function resolveWriterExtension(string $path): string
     {
-        if (Str::endsWith($path, 'csv')) {
+        if (str_ends_with($path, 'csv')) {
             return 'csv';
         }
 
-        if (Str::endsWith($path, 'ods')) {
+        if (str_ends_with($path, 'ods')) {
             return 'ods';
         }
 
