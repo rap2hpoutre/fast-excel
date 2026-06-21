@@ -188,4 +188,79 @@ class IssuesTest extends TestCase
 
         unlink($file);
     }
+
+    /**
+     * Issue #185: importing an uploaded CSV/ODS fails because the format is
+     * guessed from the path extension, and uploaded files live under an
+     * extension-less temporary path (e.g. /tmp/phpXXXX).
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testIssue185()
+    {
+        // A CSV stored under an extension-less path must be detected by content.
+        $csvNoExt = tempnam(sys_get_temp_dir(), 'php');
+        copy(__DIR__.'/test2.csv', $csvNoExt);
+        $this->assertCount(3, (new FastExcel())->import($csvNoExt));
+
+        // An XLSX stored under an extension-less path must still work.
+        $xlsxNoExt = tempnam(sys_get_temp_dir(), 'php');
+        copy(__DIR__.'/test104.xlsx', $xlsxNoExt);
+        $this->assertCount(3, (new FastExcel())->import($xlsxNoExt));
+
+        unlink($csvNoExt);
+        unlink($xlsxNoExt);
+    }
+
+    /**
+     * Issue #185: importing directly from an UploadedFile-like object should
+     * resolve the format from its original extension / client mime type.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testIssue185UploadedFile()
+    {
+        $makeUploadedFile = function (string $source, string $originalName, string $mime) {
+            $tmp = tempnam(sys_get_temp_dir(), 'php');
+            copy($source, $tmp);
+
+            // Duck-typed stand-in for Illuminate/Symfony UploadedFile so the
+            // test does not require illuminate/http to be installed.
+            return new class($tmp, $originalName, $mime) {
+                public function __construct(private string $tmp, private string $name, private string $mime)
+                {
+                }
+
+                public function getClientOriginalExtension(): string
+                {
+                    return pathinfo($this->name, PATHINFO_EXTENSION);
+                }
+
+                public function getClientMimeType(): string
+                {
+                    return $this->mime;
+                }
+
+                public function getPathname(): string
+                {
+                    return $this->tmp;
+                }
+            };
+        };
+
+        // Resolved from the original extension.
+        $csvUpload = $makeUploadedFile(__DIR__.'/test2.csv', 'data.csv', 'text/csv');
+        $this->assertCount(3, (new FastExcel())->import($csvUpload));
+
+        // Resolved from the client mime type when the original name has no extension.
+        $csvUploadNoExt = $makeUploadedFile(__DIR__.'/test2.csv', 'data', 'text/csv');
+        $this->assertCount(3, (new FastExcel())->import($csvUploadNoExt));
+
+        unlink($csvUpload->getPathname());
+        unlink($csvUploadNoExt->getPathname());
+    }
 }
