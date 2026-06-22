@@ -169,6 +169,48 @@ class IssuesTest extends TestCase
         ]);
     }
 
+    /**
+     * PR #312: when the header row contains duplicate column names,
+     * array_combine() would silently collapse the repeated keys and lose
+     * data. Duplicate headers must be made unique so every column survives,
+     * while the first occurrence keeps its original name (backwards compat).
+     *
+     * @see https://github.com/rap2hpoutre/fast-excel/pull/312
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testIssue312()
+    {
+        $file = __DIR__.'/issue_312.csv';
+        file_put_contents($file, implode("\n", [
+            'name,name,name,email',
+            'John,Jonathan,Johnny,john@example.com',
+            'Jane,Janet,Janie,jane@example.com',
+        ])."\n");
+
+        $rows = (new FastExcel())->import($file);
+
+        // No column is dropped: all four values survive under unique keys,
+        // and the first "name" keeps its original (unsuffixed) label.
+        $this->assertEquals([
+            'name'   => 'John',
+            'name_2' => 'Jonathan',
+            'name_3' => 'Johnny',
+            'email'  => 'john@example.com',
+        ], $rows->first());
+
+        $this->assertEquals([
+            'name'   => 'Jane',
+            'name_2' => 'Janet',
+            'name_3' => 'Janie',
+            'email'  => 'jane@example.com',
+        ], $rows->last());
+
+        unlink($file);
+    }
+
     public function testIssue310()
     {
         $original_collection = $this->collection();

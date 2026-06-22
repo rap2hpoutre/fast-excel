@@ -324,7 +324,7 @@ trait Importable
             if ($k >= $this->start_row) {
                 if ($this->with_header) {
                     if ($k == $this->start_row) {
-                        $headers = $this->toStrings($row);
+                        $headers = $this->deduplicateHeaders($this->toStrings($row));
                         $count_header = count($headers);
                         continue;
                     }
@@ -369,5 +369,38 @@ trait Importable
         }
 
         return $values;
+    }
+
+    /**
+     * Make header names unique so array_combine() does not silently drop
+     * columns that share the same label. The first occurrence of a name is
+     * kept untouched (preserving backwards compatibility); every later
+     * duplicate gets a numeric suffix, e.g. "name", "name_2", "name_3".
+     *
+     * @param array $headers
+     *
+     * @return array
+     */
+    private function deduplicateHeaders($headers)
+    {
+        $seen = [];
+
+        foreach ($headers as &$header) {
+            $name = (string) $header;
+
+            if (!isset($seen[$name])) {
+                $seen[$name] = 1;
+                continue;
+            }
+
+            do {
+                $candidate = $name.'_'.(++$seen[$name]);
+            } while (isset($seen[$candidate]));
+
+            $seen[$candidate] = 1;
+            $header = $candidate;
+        }
+
+        return $headers;
     }
 }
