@@ -391,8 +391,7 @@ trait Exportable
             return;
         }
 
-        // OpenSpout treats '' as an empty cell and does not write row XML for empty rows.
-        $writer->addRow(Row::fromValues([' ']));
+        $writer->addRow($this->createRow([' ']));
     }
 
     /**
