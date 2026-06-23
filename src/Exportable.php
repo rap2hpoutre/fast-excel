@@ -3,7 +3,6 @@
 namespace Rap2hpoutre\FastExcel;
 
 use DateTimeInterface;
-use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use OpenSpout\Common\Entity\Row;
@@ -11,6 +10,7 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\Common\AbstractOptions;
 use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
 use OpenSpout\Writer\WriterInterface;
+use Traversable;
 
 /**
  * Trait Exportable.
@@ -111,7 +111,7 @@ trait Exportable
         foreach ($data as $key => $collection) {
             if ($collection instanceof Collection) {
                 $this->writeRowsFromCollection($writer, $collection, $callback);
-            } elseif ($collection instanceof Generator) {
+            } elseif ($collection instanceof Traversable) {
                 $this->writeRowsFromGenerator($writer, $collection, $callback);
             } elseif (is_array($collection)) {
                 $this->writeRowsFromArray($writer, $collection, $callback);
@@ -246,7 +246,7 @@ trait Exportable
         $writer->addRows($styled_rows);
     }
 
-    private function writeRowsFromGenerator($writer, Generator $generator, ?callable $callback = null)
+    private function writeRowsFromGenerator($writer, Traversable $generator, ?callable $callback = null)
     {
         foreach ($generator as $key => $item) {
             // Apply callback
