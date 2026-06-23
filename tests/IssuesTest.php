@@ -283,6 +283,34 @@ class IssuesTest extends TestCase
     }
 
     /**
+     * Issue #162: importing a large file with a callback that returns null must
+     * process every row without accumulating them, so memory stays flat. A
+     * callback that returns a value is collected instead, which grows memory.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testIssue162()
+    {
+        $file = __DIR__.'/issue_162.xlsx';
+        (new FastExcel($this->collection()))->export($file);
+
+        $seen = 0;
+        $result = (new FastExcel())->import($file, function ($line) use (&$seen) {
+            $this->assertArrayHasKey('col1', $line);
+            $seen++;
+
+            return null; // stream: do not accumulate the row
+        });
+
+        $this->assertSame(3, $seen);    // every row was processed
+        $this->assertCount(0, $result); // nothing was kept in memory
+
+        unlink($file);
+    }
+
+    /**
      * Issues #312 and #259: a header row with duplicate or empty names must not
      * lose data. Duplicates keep the first occurrence and get a numeric suffix,
      * empty headers get a positional name, so no column collides in the result.
