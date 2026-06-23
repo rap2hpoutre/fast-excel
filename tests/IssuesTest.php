@@ -337,4 +337,48 @@ class IssuesTest extends TestCase
 
         unlink($file);
     }
+
+    /**
+     * Issue #193: the string-vs-number cell type on export must be configurable.
+     * By default numbers stay numeric; stringValues() forces every scalar to a
+     * text cell (preserving leading zeros / long IDs); setColumnFormat() lets
+     * each column opt in or out and takes precedence over stringValues().
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testIssue193()
+    {
+        $file = __DIR__.'/issue_193.xlsx';
+        $row = ['id' => 7, 'phone' => '0660123', 'price' => 12.5];
+
+        // Default: numbers stay numeric, strings stay strings (leading zero kept).
+        (new FastExcel(collect([$row])))->export($file);
+        $default = (new FastExcel())->import($file)->first();
+        $this->assertSame(7, $default['id']);
+        $this->assertSame('0660123', $default['phone']);
+        $this->assertSame(12.5, $default['price']);
+
+        // stringValues(): every scalar becomes a text cell.
+        (new FastExcel(collect([$row])))->stringValues()->export($file);
+        $strings = (new FastExcel())->import($file)->first();
+        $this->assertSame('7', $strings['id']);
+        $this->assertSame('0660123', $strings['phone']);
+        $this->assertSame('12.5', $strings['price']);
+
+        // setColumnFormat() overrides per column (and wins over stringValues()).
+        (new FastExcel(collect([$row])))
+            ->stringValues()
+            ->setColumnFormat(['phone' => 'number', 'price' => 'number'])
+            ->export($file);
+        $mixed = (new FastExcel())->import($file)->first();
+        $this->assertSame('7', $mixed['id']);          // still string (global flag)
+        $this->assertSame(660123, $mixed['phone']);    // forced numeric
+        $this->assertSame(12.5, $mixed['price']);      // forced numeric
+
+        unlink($file);
+    }
 }

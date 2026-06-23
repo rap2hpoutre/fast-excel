@@ -238,6 +238,30 @@ return (new FastExcel($list))
     ->download('file.xlsx');
 ```
 
+### Export values as strings or numbers
+
+By default numbers are written as numbers and strings as strings. Use
+`stringValues()` to force every value to a text cell — handy to keep leading
+zeros or long numeric IDs (e.g. phone numbers) intact:
+
+```php
+// 0660123456 stays "0660123456" instead of becoming 660123456
+(new FastExcel($users))->stringValues()->export('users.xlsx');
+```
+
+Need finer control? `setColumnFormat()` overrides the type per column and takes
+precedence over `stringValues()`:
+
+```php
+(new FastExcel($users))
+    ->stringValues()                                  // text by default
+    ->setColumnFormat([
+        'id'    => 'number',                          // keep as number
+        'phone' => 'string',                          // keep as text
+    ])
+    ->export('users.xlsx');
+```
+
 ## Why?
 
 FastExcel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout):
