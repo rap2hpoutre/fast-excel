@@ -337,4 +337,44 @@ class IssuesTest extends TestCase
 
         unlink($file);
     }
+
+    /**
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     *
+     * @see https://github.com/rap2hpoutre/fast-excel/issues/372
+     */
+    public function testIssue372()
+    {
+        $file = __DIR__.'/issue372.xlsx';
+
+        (new FastExcel(new SheetCollection([
+            'A' => collect([['a' => 'b']]),
+            'B' => collect(),
+        ])))->export($file);
+
+        $reader = new \OpenSpout\Reader\XLSX\Reader(new \OpenSpout\Reader\XLSX\Options());
+        $reader->open($file);
+
+        $sheets = [];
+        foreach ($reader->getSheetIterator() as $sheet) {
+            $rowCount = 0;
+            foreach ($sheet->getRowIterator() as $row) {
+                ++$rowCount;
+            }
+            $sheets[$sheet->getName()] = $rowCount;
+        }
+
+        $reader->close();
+
+        $this->assertArrayHasKey('A', $sheets);
+        $this->assertArrayHasKey('B', $sheets);
+        $this->assertSame(2, $sheets['A']);
+        $this->assertSame(1, $sheets['B']);
+
+        unlink($file);
+    }
 }
