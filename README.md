@@ -34,7 +34,7 @@ $users = User::all();
 
 ## Export
 
-Export a Model or a **Collection**:
+Export a Model, Query or **Collection**:
 
 ```php
 $list = collect([

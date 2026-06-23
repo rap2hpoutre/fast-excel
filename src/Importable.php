@@ -324,7 +324,7 @@ trait Importable
             if ($k >= $this->start_row) {
                 if ($this->with_header) {
                     if ($k == $this->start_row) {
-                        $headers = $this->toStrings($row);
+                        $headers = $this->uniqueHeaders($this->toStrings($row));
                         $count_header = count($headers);
                         continue;
                     }
@@ -369,5 +369,39 @@ trait Importable
         }
 
         return $values;
+    }
+
+    /**
+     * Make header names usable as array keys. Empty headers get a positional
+     * name (`column_N`) and duplicated headers are de-duplicated: the first
+     * occurrence is kept and later ones get a numeric suffix (`Name`, `Name_2`).
+     * Without this, columns that share a name collide in array_combine() and
+     * their values are silently lost.
+     *
+     * @param array $headers
+     *
+     * @return array
+     */
+    private function uniqueHeaders(array $headers)
+    {
+        $used = [];
+        foreach ($headers as $index => $header) {
+            $header = (string) $header;
+            if ($header === '') {
+                $header = 'column_'.($index + 1);
+            }
+
+            $base = $header;
+            $suffix = 1;
+            while (isset($used[$header])) {
+                $suffix++;
+                $header = $base.'_'.$suffix;
+            }
+
+            $used[$header] = true;
+            $headers[$index] = $header;
+        }
+
+        return $headers;
     }
 }
