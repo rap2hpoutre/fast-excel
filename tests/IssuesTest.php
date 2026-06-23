@@ -363,7 +363,7 @@ class IssuesTest extends TestCase
         foreach ($reader->getSheetIterator() as $sheet) {
             $rowCount = 0;
             foreach ($sheet->getRowIterator() as $row) {
-                ++$rowCount;
+                $rowCount++;
             }
             $sheets[$sheet->getName()] = $rowCount;
         }
