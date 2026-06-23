@@ -281,4 +281,32 @@ class IssuesTest extends TestCase
         unlink($odsUpload->getPathname());
         unlink($ods);
     }
+
+    /**
+     * Issues #312 and #259: a header row with duplicate or empty names must not
+     * lose data. Duplicates keep the first occurrence and get a numeric suffix,
+     * empty headers get a positional name, so no column collides in the result.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testIssue312()
+    {
+        // Header row with a duplicate ("Name") and an empty column.
+        $file = __DIR__.'/issue_312.csv';
+        file_put_contents($file, "Name,Name,,Age\nJoe,Smith,x,30\nJane,Doe,y,25\n");
+
+        $rows = (new FastExcel())->import($file);
+
+        $first = $rows->first();
+        $this->assertSame(['Name', 'Name_2', 'column_3', 'Age'], array_keys($first));
+        $this->assertSame('Joe', $first['Name']);
+        $this->assertSame('Smith', $first['Name_2']);   // would have been lost before
+        $this->assertSame('x', $first['column_3']);
+        $this->assertSame('30', $first['Age']);
+        $this->assertCount(2, $rows);
+
+        unlink($file);
+    }
 }
