@@ -211,6 +211,15 @@ trait Exportable
                 return $callback($value);
             });
         }
+
+        if ($collection->isEmpty()) {
+            if ($this->data instanceof SheetCollection) {
+                $this->writePlaceholderRowForEmptySheet($writer);
+            }
+
+            return;
+        }
+
         // Prepare collection (i.e remove non-string)
         $this->prepareCollection($collection);
         // Add header row.
@@ -248,7 +257,10 @@ trait Exportable
 
     private function writeRowsFromGenerator($writer, Traversable $generator, ?callable $callback = null)
     {
+        $hasRows = false;
+
         foreach ($generator as $key => $item) {
+            $hasRows = true;
             // Apply callback
             if ($callback) {
                 $item = $callback($item);
@@ -264,11 +276,23 @@ trait Exportable
             // Write rows (one by one).
             $writer->addRow($this->createRow($item->toArray(), $this->rows_style, $this->column_styles));
         }
+
+        if (!$hasRows && $this->data instanceof SheetCollection) {
+            $this->writePlaceholderRowForEmptySheet($writer);
+        }
     }
 
     private function writeRowsFromArray($writer, array $array, ?callable $callback = null)
     {
         $collection = collect($array);
+
+        if ($collection->isEmpty()) {
+            if ($this->data instanceof SheetCollection) {
+                $this->writePlaceholderRowForEmptySheet($writer);
+            }
+
+            return;
+        }
 
         if (is_object($collection->first()) || is_array($collection->first())) {
             // provided $array was valid and could be converted to a collection
@@ -353,6 +377,21 @@ trait Exportable
         $this->rows_style = $style;
 
         return $this;
+    }
+
+    /**
+     * OpenSpout multi-sheet workbooks require at least one non-empty row per worksheet.
+     * Empty rows are skipped by the XLSX writer and would otherwise produce a corrupt file.
+     *
+     * @param \OpenSpout\Writer\WriterInterface $writer
+     */
+    private function writePlaceholderRowForEmptySheet($writer): void
+    {
+        if (!$writer instanceof \OpenSpout\Writer\XLSX\Writer && !$writer instanceof \OpenSpout\Writer\ODS\Writer) {
+            return;
+        }
+
+        $writer->addRow($this->createRow([' ']));
     }
 
     /**
