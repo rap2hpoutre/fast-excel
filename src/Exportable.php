@@ -101,9 +101,19 @@ trait Exportable
     private function exportOrDownload($path, $function, ?callable $callback = null)
     {
         $writer = $this->makeWriter($path);
-        $writer->$function($path);
 
         $has_sheets = ($writer instanceof \OpenSpout\Writer\XLSX\Writer || $writer instanceof \OpenSpout\Writer\ODS\Writer);
+
+        // CSV (and any other single-sheet format) cannot hold multiple sheets.
+        // Fail with a clear message instead of a cryptic "undefined method
+        // ...::getCurrentSheet()" fatal further down.
+        if (!$has_sheets && $this->data instanceof SheetCollection && $this->data->count() > 1) {
+            throw new InvalidArgumentException(
+                'The "'.pathinfo($path, PATHINFO_EXTENSION).'" format does not support multiple sheets; use xlsx or ods.'
+            );
+        }
+
+        $writer->$function($path);
 
         // It can export one sheet (Collection) or N sheets (SheetCollection)
         $data = $this->transpose ? $this->transposeData() : ($this->data instanceof SheetCollection ? $this->data : collect([$this->data]));
@@ -118,7 +128,7 @@ trait Exportable
             } else {
                 throw new InvalidArgumentException('Unsupported type for $data');
             }
-            if (is_string($key)) {
+            if ($has_sheets && is_string($key)) {
                 $writer->getCurrentSheet()->setName($key);
             }
             if ($has_sheets && $data->keys()->last() !== $key) {

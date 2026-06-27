@@ -283,6 +283,44 @@ class IssuesTest extends TestCase
     }
 
     /**
+     * Issue #244: exporting multiple sheets to a single-sheet format (CSV) must
+     * fail with a clear message instead of a cryptic
+     * "Call to undefined method ...\CSV\Writer::getCurrentSheet()" fatal.
+     */
+    public function testIssue244()
+    {
+        $sheets = new SheetCollection([
+            'articles' => collect([['col1' => 'a1', 'col2' => 'a2']]),
+            'blogs'    => collect([['col1' => 'b1', 'col2' => 'b2']]),
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('does not support multiple sheets');
+
+        (new FastExcel($sheets))->export(__DIR__.'/issue_244.csv');
+    }
+
+    /**
+     * A single-sheet SheetCollection must still export fine to CSV (the sheet
+     * name is simply ignored, since CSV has no sheets).
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testIssue244SingleSheetCsv()
+    {
+        $sheets = new SheetCollection(['only' => $this->collection()]);
+
+        $file = __DIR__.'/issue_244_single.csv';
+        (new FastExcel($sheets))->export($file);
+
+        $this->assertEquals($this->collection(), (new FastExcel())->import($file));
+
+        unlink($file);
+    }
+
+    /**
      * Issue #162: importing a large file with a callback that returns null must
      * process every row without accumulating them, so memory stays flat. A
      * callback that returns a value is collected instead, which grows memory.
