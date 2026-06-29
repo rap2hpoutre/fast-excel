@@ -459,4 +459,58 @@ class IssuesTest extends TestCase
 
         unlink($file);
     }
+
+    /**
+     * Issue #252: exporting multiple sheets where each sheet is a Generator (or
+     * any other Traversable, not only a Collection). Each sheet value goes
+     * through the same Traversable dispatch as a single-sheet export, so headers
+     * and rows are written per sheet.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     *
+     * @see https://github.com/rap2hpoutre/fast-excel/issues/252
+     */
+    public function testIssue252()
+    {
+        $file = __DIR__.'/issue252.xlsx';
+
+        $generator = function () {
+            yield ['name' => 'Alice', 'age' => 30];
+            yield ['name' => 'Bob', 'age' => 25];
+        };
+
+        (new FastExcel(new SheetCollection([
+            'People'  => $generator(),                                   // Generator sheet
+            'Numbers' => new \ArrayIterator([['n' => 1], ['n' => 2]]),   // non-Generator Traversable
+        ])))->export($file);
+
+        $reader = new \OpenSpout\Reader\XLSX\Reader(new \OpenSpout\Reader\XLSX\Options());
+        $reader->open($file);
+
+        $sheets = [];
+        foreach ($reader->getSheetIterator() as $sheet) {
+            $rows = [];
+            foreach ($sheet->getRowIterator() as $row) {
+                $rows[] = array_map(fn ($cell) => $cell->getValue(), $row->getCells());
+            }
+            $sheets[$sheet->getName()] = $rows;
+        }
+
+        $reader->close();
+
+        // Both Traversable sheets are written with a header row + their data.
+        $this->assertSame(['name', 'age'], $sheets['People'][0]);
+        $this->assertSame('Alice', $sheets['People'][1][0]);
+        $this->assertSame('Bob', $sheets['People'][2][0]);
+        $this->assertCount(3, $sheets['People']);
+
+        $this->assertSame(['n'], $sheets['Numbers'][0]);
+        $this->assertCount(3, $sheets['Numbers']);
+
+        unlink($file);
+    }
 }
