@@ -30,6 +30,8 @@ trait Exportable
 
     /** @var Style[] */
     private $header_column_styles = [];
+
+    /** @var Style[] */
     private $column_styles = [];
 
     /** @var bool */

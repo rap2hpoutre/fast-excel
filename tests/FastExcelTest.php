@@ -269,6 +269,35 @@ class FastExcelTest extends TestCase
     }
 
     /**
+     * Issue #367: each header column can be styled individually via
+     * setHeaderColumnStyles(), the header-row counterpart of setColumnStyles().
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testExportWithHeaderColumnStyles()
+    {
+        $original_collection = $this->collection();
+
+        $file = __DIR__.'/test-header-column-styles.xlsx';
+        (new FastExcel(clone $original_collection))
+            ->setHeaderColumnStyles([
+                0 => (new Style())->setBackgroundColor(Color::YELLOW),
+                1 => (new Style())->setFontColor(Color::BLUE),
+            ])
+            ->export($file);
+
+        // The reader does not expose cell styles, so assert the styled export
+        // still round-trips the data (same approach as the other style tests).
+        $this->assertEquals($original_collection, (new FastExcel())->import($file));
+
+        unlink($file);
+    }
+
+    /**
      * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
