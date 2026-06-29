@@ -4,8 +4,11 @@ namespace Rap2hpoutre\FastExcel;
 
 use Illuminate\Support\Collection;
 use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Reader\ReaderInterface;
 use OpenSpout\Reader\SheetInterface;
 use OpenSpout\Writer\Common\AbstractOptions;
+use Rap2hpoutre\FastExcel\Exceptions\BadCountSheets;
+use Rap2hpoutre\FastExcel\Exceptions\SheetNameMissing;
 
 /**
  * Trait Importable.
@@ -20,6 +23,11 @@ trait Importable
      * @var int
      */
     private $sheet_number = 1;
+
+    /**
+     * @var string|null
+     */
+    private $sheet_name = null;
 
     /**
      * @param AbstractOptions $options
@@ -41,6 +49,10 @@ trait Importable
     public function import($path, ?callable $callback = null)
     {
         $reader = $this->reader($path);
+
+        if ($this->sheet_name !== null) {
+            $this->setSheetIndexByName($reader);
+        }
 
         foreach ($reader->getSheetIterator() as $key => $sheet) {
             if ($this->sheet_number != $key) {
@@ -78,6 +90,33 @@ trait Importable
         $reader->close();
 
         return new SheetCollection($collections);
+    }
+
+    /**
+     * @param ReaderInterface $reader
+     *
+     * @return void
+     */
+    private function setSheetIndexByName(ReaderInterface $reader)
+    {
+        if (iterator_count($reader->getSheetIterator()) < 2) {
+            throw new BadCountSheets();
+        }
+
+        $sheetIndex = -1;
+
+        foreach ($reader->getSheetIterator() as $key => $sheet) {
+            if ($sheet->getName() == $this->sheet_name) {
+                $sheetIndex = $key;
+                break;
+            }
+        }
+
+        if ($sheetIndex === -1) {
+            throw new SheetNameMissing($this->sheet_name);
+        }
+
+        $this->sheet($sheetIndex);
     }
 
     /**
