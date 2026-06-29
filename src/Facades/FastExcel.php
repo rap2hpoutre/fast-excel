@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Rap2hpoutre\FastExcel\FastExcel configureReaderUsing(?callable $callback = null)
  * @method static \Rap2hpoutre\FastExcel\FastExcel configureWriterUsing(?callable $callback = null)
  * @method static \Rap2hpoutre\FastExcel\FastExcel configureOptionsUsing(?callable $callback = null)
+ * @method static \Rap2hpoutre\FastExcel\FastExcel withSheetContext()
  *
  * @see \Rap2hpoutre\FastExcel\FastExcel
  */
