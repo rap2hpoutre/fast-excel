@@ -31,6 +31,12 @@ trait Exportable
     /** @var Style[] */
     private $column_styles = [];
 
+    /** @var bool */
+    private $string_values = false;
+
+    /** @var array<string, string> */
+    private $column_formats = [];
+
     /**
      * @param AbstractOptions $options
      *
@@ -42,6 +48,36 @@ trait Exportable
     public function setColumnStyles($styles): static
     {
         $this->column_styles = $styles;
+
+        return $this;
+    }
+
+    /**
+     * Export every scalar value as a string (text cell). Useful to preserve
+     * leading zeros or long numeric IDs (e.g. phone numbers) that would
+     * otherwise be written as numbers. Per-column setColumnFormat() rules take
+     * precedence over this flag.
+     *
+     * @param bool $enabled
+     */
+    public function stringValues(bool $enabled = true): static
+    {
+        $this->string_values = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Force the cell type for specific columns, keyed by column name, e.g.
+     * ['phone' => 'string', 'price' => 'number']. A 'string' column is written
+     * as text; a 'number' column casts numeric strings back to int/float. These
+     * rules win over stringValues().
+     *
+     * @param array<string, string> $formats
+     */
+    public function setColumnFormat(array $formats): static
+    {
+        $this->column_formats = $formats;
 
         return $this;
     }
@@ -338,7 +374,7 @@ trait Exportable
                 $need_conversion = true;
             }
         }
-        if ($need_conversion) {
+        if ($need_conversion || $this->string_values || count($this->column_formats)) {
             $this->transform($collection);
         }
     }
@@ -358,11 +394,40 @@ trait Exportable
      */
     private function transformRow($data)
     {
-        return collect($data)->map(function ($value) {
-            return is_null($value) ? (string) $value : $value;
+        return collect($data)->map(function ($value, $key) {
+            if (is_null($value)) {
+                return (string) $value;
+            }
+
+            return $this->formatValue($value, $key);
         })->filter(function ($value) {
             return is_string($value) || is_int($value) || is_float($value) || $value instanceof DateTimeInterface;
         });
+    }
+
+    /**
+     * Apply the configured export format to a single value. A per-column rule
+     * (setColumnFormat) wins over the global stringValues() flag. Dates and
+     * non-numeric strings are always left untouched.
+     *
+     * @param mixed      $value
+     * @param int|string $key
+     *
+     * @return mixed
+     */
+    private function formatValue($value, $key)
+    {
+        $format = $this->column_formats[$key] ?? ($this->string_values ? 'string' : null);
+
+        if ($format === 'string' && (is_int($value) || is_float($value))) {
+            return (string) $value;
+        }
+
+        if ($format === 'number' && is_string($value) && is_numeric($value)) {
+            return $value + 0;
+        }
+
+        return $value;
     }
 
     /**
