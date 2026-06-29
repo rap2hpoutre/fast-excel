@@ -3,7 +3,6 @@
 namespace Rap2hpoutre\FastExcel;
 
 use DateTimeInterface;
-use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use OpenSpout\Common\Entity\Row;
@@ -11,6 +10,7 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\Common\AbstractOptions;
 use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
 use OpenSpout\Writer\WriterInterface;
+use Traversable;
 
 /**
  * Trait Exportable.
@@ -137,9 +137,19 @@ trait Exportable
     private function exportOrDownload($path, $function, ?callable $callback = null)
     {
         $writer = $this->makeWriter($path);
-        $writer->$function($path);
 
         $has_sheets = ($writer instanceof \OpenSpout\Writer\XLSX\Writer || $writer instanceof \OpenSpout\Writer\ODS\Writer);
+
+        // CSV (and any other single-sheet format) cannot hold multiple sheets.
+        // Fail with a clear message instead of a cryptic "undefined method
+        // ...::getCurrentSheet()" fatal further down.
+        if (!$has_sheets && $this->data instanceof SheetCollection && $this->data->count() > 1) {
+            throw new InvalidArgumentException(
+                'The "'.pathinfo($path, PATHINFO_EXTENSION).'" format does not support multiple sheets; use xlsx or ods.'
+            );
+        }
+
+        $writer->$function($path);
 
         // It can export one sheet (Collection) or N sheets (SheetCollection)
         $data = $this->transpose ? $this->transposeData() : ($this->data instanceof SheetCollection ? $this->data : collect([$this->data]));
@@ -147,14 +157,14 @@ trait Exportable
         foreach ($data as $key => $collection) {
             if ($collection instanceof Collection) {
                 $this->writeRowsFromCollection($writer, $collection, $callback);
-            } elseif ($collection instanceof Generator) {
+            } elseif ($collection instanceof Traversable) {
                 $this->writeRowsFromGenerator($writer, $collection, $callback);
             } elseif (is_array($collection)) {
                 $this->writeRowsFromArray($writer, $collection, $callback);
             } else {
                 throw new InvalidArgumentException('Unsupported type for $data');
             }
-            if (is_string($key)) {
+            if ($has_sheets && is_string($key)) {
                 $writer->getCurrentSheet()->setName($key);
             }
             if ($has_sheets && $data->keys()->last() !== $key) {
@@ -247,6 +257,15 @@ trait Exportable
                 return $callback($value);
             });
         }
+
+        if ($collection->isEmpty()) {
+            if ($this->data instanceof SheetCollection) {
+                $this->writePlaceholderRowForEmptySheet($writer);
+            }
+
+            return;
+        }
+
         // Prepare collection (i.e remove non-string)
         $this->prepareCollection($collection);
         // Add header row.
@@ -282,9 +301,12 @@ trait Exportable
         $writer->addRows($styled_rows);
     }
 
-    private function writeRowsFromGenerator($writer, Generator $generator, ?callable $callback = null)
+    private function writeRowsFromGenerator($writer, Traversable $generator, ?callable $callback = null)
     {
+        $hasRows = false;
+
         foreach ($generator as $key => $item) {
+            $hasRows = true;
             // Apply callback
             if ($callback) {
                 $item = $callback($item);
@@ -300,11 +322,23 @@ trait Exportable
             // Write rows (one by one).
             $writer->addRow($this->createRow($item->toArray(), $this->rows_style, $this->column_styles));
         }
+
+        if (!$hasRows && $this->data instanceof SheetCollection) {
+            $this->writePlaceholderRowForEmptySheet($writer);
+        }
     }
 
     private function writeRowsFromArray($writer, array $array, ?callable $callback = null)
     {
         $collection = collect($array);
+
+        if ($collection->isEmpty()) {
+            if ($this->data instanceof SheetCollection) {
+                $this->writePlaceholderRowForEmptySheet($writer);
+            }
+
+            return;
+        }
 
         if (is_object($collection->first()) || is_array($collection->first())) {
             // provided $array was valid and could be converted to a collection
@@ -418,6 +452,21 @@ trait Exportable
         $this->rows_style = $style;
 
         return $this;
+    }
+
+    /**
+     * OpenSpout multi-sheet workbooks require at least one non-empty row per worksheet.
+     * Empty rows are skipped by the XLSX writer and would otherwise produce a corrupt file.
+     *
+     * @param \OpenSpout\Writer\WriterInterface $writer
+     */
+    private function writePlaceholderRowForEmptySheet($writer): void
+    {
+        if (!$writer instanceof \OpenSpout\Writer\XLSX\Writer && !$writer instanceof \OpenSpout\Writer\ODS\Writer) {
+            return;
+        }
+
+        $writer->addRow($this->createRow([' ']));
     }
 
     /**
