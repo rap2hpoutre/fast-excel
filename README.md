@@ -238,6 +238,22 @@ return (new FastExcel($list))
     ->download('file.xlsx');
 ```
 
+You can also style each header column individually with `setHeaderColumnStyles`
+(the header-row counterpart of `setColumnStyles`). Keys are the zero-based
+column positions:
+
+```php
+use OpenSpout\Common\Entity\Style\Color;
+use OpenSpout\Common\Entity\Style\Style;
+
+return (new FastExcel($list))
+    ->setHeaderColumnStyles([
+        0 => (new Style())->setBackgroundColor(Color::YELLOW),
+        1 => (new Style())->setFontColor(Color::BLUE),
+    ])
+    ->download('file.xlsx');
+```
+
 ### Export values as strings or numbers
 
 By default numbers are written as numbers and strings as strings. Use

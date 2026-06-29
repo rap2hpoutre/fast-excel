@@ -29,6 +29,9 @@ trait Exportable
     private $rows_style;
 
     /** @var Style[] */
+    private $header_column_styles = [];
+
+    /** @var Style[] */
     private $column_styles = [];
 
     /** @var bool */
@@ -43,6 +46,14 @@ trait Exportable
      * @return mixed
      */
     abstract protected function setOptions(&$options);
+
+    /** @param Style[] $styles */
+    public function setHeaderColumnStyles($styles): static
+    {
+        $this->header_column_styles = $styles;
+
+        return $this;
+    }
 
     /** @param Style[] $styles */
     public function setColumnStyles($styles): static
@@ -353,8 +364,8 @@ trait Exportable
         }
 
         $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
-        $writer->addRow($this->createRow($keys, $this->header_style));
-//        $writer->addRow(WriterEntityFactory::createRowFromArray($keys, $this->header_style));
+        $writer->addRow($this->createRow($keys, $this->header_style, $this->header_column_styles));
+        //        $writer->addRow(WriterEntityFactory::createRowFromArray($keys, $this->header_style));
     }
 
     /**
