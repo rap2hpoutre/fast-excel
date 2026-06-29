@@ -243,6 +243,46 @@ class FastExcelTest extends TestCase
     }
 
     /**
+     * Issue #366: withSheetContext() makes the importSheets callback receive the
+     * current sheet name as its first argument, so the same field names can be
+     * handled differently per sheet.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testImportSheetsWithSheetContext()
+    {
+        $collections = [
+            'Users'    => collect([['name' => 'Jane'], ['name' => 'John']]),
+            'Projects' => collect([['name' => 'Alpha']]),
+        ];
+        $file = __DIR__.'/test_sheet_context.xlsx';
+        (new FastExcel(new SheetCollection($collections)))->export($file);
+
+        $seenSheets = [];
+        $sheets = (new FastExcel())
+            ->withSheetsNames()
+            ->withSheetContext()
+            ->importSheets($file, function ($sheetName, $row) use (&$seenSheets) {
+                $seenSheets[] = $sheetName;
+
+                // Tag each row with the sheet it came from.
+                return $row + ['_sheet' => $sheetName];
+            });
+
+        // The callback received the sheet name for every row.
+        $this->assertSame(['Users', 'Users', 'Projects'], $seenSheets);
+        $this->assertSame('Users', $sheets->get('Users')[0]['_sheet']);
+        $this->assertSame('Jane', $sheets->get('Users')[0]['name']);
+        $this->assertSame('Projects', $sheets->get('Projects')[0]['_sheet']);
+
+        unlink($file);
+    }
+
+    /**
      * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
