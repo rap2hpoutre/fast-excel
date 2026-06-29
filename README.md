@@ -218,6 +218,25 @@ Reading speed is the same either way — it is dominated by the underlying
 returned. The difference above is memory, which is what lets very large files finish
 at all.
 
+If you would rather keep working with the rows than process them inside a callback,
+`importLazy` returns a [`LazyCollection`](https://laravel.com/docs/collections#lazy-collections)
+that streams rows one at a time — you get the full Collection API while memory stays
+flat:
+
+```php
+use Illuminate\Support\LazyCollection;
+
+(new FastExcel)->importLazy('file.xlsx')
+    ->chunk(1000)
+    ->each(function (LazyCollection $chunk) {
+        User::insert($chunk->all());
+    });
+```
+
+`importLazy` accepts the same optional callback as `import`, and honors `sheet()`,
+`withoutHeaders()`, and header de-duplication. Transposing (`transpose()`) is not
+supported with lazy import.
+
 ### Add header and rows style
 
 Add header and rows style with `headerStyle` and `rowsStyle` methods.
