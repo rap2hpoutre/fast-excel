@@ -247,6 +247,11 @@ trait Exportable
         return new SheetCollection($transposedData);
     }
 
+    /**
+     * Write collection rows to the writer, streaming row by row.
+     *
+     * @SuppressWarnings(PHPMD.StaticAccess)
+     */
     private function writeRowsFromCollection($writer, Collection $collection, ?callable $callback = null)
     {
         // Apply callback
