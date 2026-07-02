@@ -11,7 +11,6 @@
  * export/import paths. Memory numbers are stable across runs; time on
  * shared CI runners is noisy, so deltas under ~10% should be ignored.
  */
-
 $autoload = getenv('BENCH_AUTOLOAD') ?: __DIR__.'/../vendor/autoload.php';
 
 require $autoload;
@@ -60,13 +59,13 @@ rmdir($dir);
 if ($json) {
     echo json_encode(['rows' => $rows, 'runs' => $runs, 'php' => PHP_VERSION, 'results' => $results], JSON_PRETTY_PRINT).PHP_EOL;
 } else {
-    printf("%d rows, median of %d runs (PHP %s)%s", $rows, $runs, PHP_VERSION, PHP_EOL);
-    foreach ($results as $name => $r) {
-        printf("  %-18s %8.3fs  %8.1f MB peak%s", $name, $r['median_s'], $r['peak_mb'], PHP_EOL);
+    printf('%d rows, median of %d runs (PHP %s)%s', $rows, $runs, PHP_VERSION, PHP_EOL);
+    foreach ($results as $name => $result) {
+        printf('  %-18s %8.3fs  %8.1f MB peak%s', $name, $result['median_s'], $result['peak_mb'], PHP_EOL);
     }
 }
 
-function bench(int $runs, callable $fn): array
+function bench(int $runs, callable $callback): array
 {
     $times = [];
     $peak = 0;
@@ -77,7 +76,7 @@ function bench(int $runs, callable $fn): array
             memory_reset_peak_usage();
         }
         $start = hrtime(true);
-        $fn();
+        $callback();
         $times[] = (hrtime(true) - $start) / 1e9;
         $peak = max($peak, memory_get_peak_usage(true));
     }
@@ -101,27 +100,27 @@ function compareResults(string $baseFile, string $headFile): int
 
     $regression = false;
 
-    foreach ($head['results'] as $name => $h) {
-        $b = $base['results'][$name] ?? null;
-        if (!$b) {
-            printf("| %s | – | %.3fs | new | – | %.1f MB | new |\n", $name, $h['median_s'], $h['peak_mb']);
+    foreach ($head['results'] as $name => $headResult) {
+        $baseResult = $base['results'][$name] ?? null;
+        if (!$baseResult) {
+            printf("| %s | – | %.3fs | new | – | %.1f MB | new |\n", $name, $headResult['median_s'], $headResult['peak_mb']);
             continue;
         }
-        $dt = pct($b['median_s'], $h['median_s']);
-        $dm = pct($b['peak_mb'], $h['peak_mb']);
+        $timeDelta = pct($baseResult['median_s'], $headResult['median_s']);
+        $memDelta = pct($baseResult['peak_mb'], $headResult['peak_mb']);
         // Time on shared runners is noisy; only flag clear regressions.
-        if ($dt > 20 || $dm > 10) {
+        if ($timeDelta > 20 || $memDelta > 10) {
             $regression = true;
         }
         printf(
             "| %s | %.3fs | %.3fs | %+.1f%% | %.1f MB | %.1f MB | %+.1f%% |\n",
             $name,
-            $b['median_s'],
-            $h['median_s'],
-            $dt,
-            $b['peak_mb'],
-            $h['peak_mb'],
-            $dm
+            $baseResult['median_s'],
+            $headResult['median_s'],
+            $timeDelta,
+            $baseResult['peak_mb'],
+            $headResult['peak_mb'],
+            $memDelta
         );
     }
 
