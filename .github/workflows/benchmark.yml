@@ -1,0 +1,57 @@
+name: Benchmark
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, libxml, mbstring, zip
+          coverage: none
+
+      - name: Install dependencies
+        uses: "ramsey/composer-install@v2"
+        with:
+          composer-options: "--prefer-dist --no-cache"
+
+      - name: Check bench script exists
+        id: bench
+        run: echo "exists=$([ -f bench/bench.php ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Benchmark PR head
+        if: steps.bench.outputs.exists == 'true'
+        run: php bench/bench.php 30000 5 --json | tee /tmp/head.json
+
+      - name: Benchmark base branch
+        if: github.event_name == 'pull_request' && steps.bench.outputs.exists == 'true'
+        run: |
+          # Keep vendor/ and the bench script from the PR head; only swap the
+          # library code, so both sides run under identical dependencies.
+          cp bench/bench.php /tmp/bench.php
+          git checkout ${{ github.event.pull_request.base.sha }} -- src/
+          php /tmp/bench.php 30000 5 --json | tee /tmp/base.json
+
+      - name: Compare
+        if: github.event_name == 'pull_request' && steps.bench.outputs.exists == 'true'
+        run: php /tmp/bench.php --compare /tmp/base.json /tmp/head.json | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Single-run summary
+        if: github.event_name != 'pull_request' && steps.bench.outputs.exists == 'true'
+        run: |
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          php bench/bench.php 30000 5 >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
