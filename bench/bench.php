@@ -12,16 +12,15 @@
  * shared CI runners is noisy, so deltas under ~10% should be ignored.
  */
 
-$autoload = getenv('BENCH_AUTOLOAD') ?: __DIR__.'/../vendor/autoload.php';
-
-require $autoload;
-
 use OpenSpout\Common\Entity\Style\Style;
 use Rap2hpoutre\FastExcel\FastExcel;
 
+// Compare mode is pure PHP; only benchmark mode needs the autoloader.
 if (($argv[1] ?? '') === '--compare') {
     exit(compareResults($argv[2], $argv[3]));
 }
+
+require getenv('BENCH_AUTOLOAD') ?: __DIR__.'/../vendor/autoload.php';
 
 $rows = max(1, (int) ($argv[1] ?? 30000));
 $runs = max(1, (int) ($argv[2] ?? 3));
