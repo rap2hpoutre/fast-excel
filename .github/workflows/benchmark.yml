@@ -34,20 +34,24 @@ jobs:
 
       - name: Benchmark PR head
         if: steps.bench.outputs.exists == 'true'
-        run: php bench/bench.php 30000 5 --json | tee /tmp/head.json
+        run: |
+          set -o pipefail
+          php bench/bench.php 30000 5 --json | tee /tmp/head.json
 
       - name: Benchmark base branch
         if: github.event_name == 'pull_request' && steps.bench.outputs.exists == 'true'
         run: |
-          # Keep vendor/ and the bench script from the PR head; only swap the
-          # library code, so both sides run under identical dependencies.
-          cp bench/bench.php /tmp/bench.php
+          set -o pipefail
+          # Only swap the library code; vendor/ and the bench script stay from
+          # the PR head, so both sides run under identical dependencies.
           git checkout ${{ github.event.pull_request.base.sha }} -- src/
-          php /tmp/bench.php 30000 5 --json | tee /tmp/base.json
+          php bench/bench.php 30000 5 --json | tee /tmp/base.json
 
       - name: Compare
         if: github.event_name == 'pull_request' && steps.bench.outputs.exists == 'true'
-        run: php /tmp/bench.php --compare /tmp/base.json /tmp/head.json | tee -a "$GITHUB_STEP_SUMMARY"
+        run: |
+          set -o pipefail
+          php bench/bench.php --compare /tmp/base.json /tmp/head.json | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Single-run summary
         if: github.event_name != 'pull_request' && steps.bench.outputs.exists == 'true'
