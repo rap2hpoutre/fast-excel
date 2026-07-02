@@ -8,7 +8,6 @@ use InvalidArgumentException;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\Common\AbstractOptions;
-use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
 use OpenSpout\Writer\WriterInterface;
 use Traversable;
 
@@ -165,6 +164,8 @@ trait Exportable
         // It can export one sheet (Collection) or N sheets (SheetCollection)
         $data = $this->transpose ? $this->transposeData() : ($this->data instanceof SheetCollection ? $this->data : collect([$this->data]));
 
+        $last_key = $data->keys()->last();
+
         foreach ($data as $key => $collection) {
             if ($collection instanceof Collection) {
                 $this->writeRowsFromCollection($writer, $collection, $callback);
@@ -178,7 +179,7 @@ trait Exportable
             if ($has_sheets && is_string($key)) {
                 $writer->getCurrentSheet()->setName($key);
             }
-            if ($has_sheets && $data->keys()->last() !== $key) {
+            if ($has_sheets && $last_key !== $key) {
                 $writer->addNewSheetAndMakeItCurrent();
             }
         }
@@ -284,32 +285,25 @@ trait Exportable
             $this->writeHeader($writer, $collection->first());
         }
 
-        // createRowFromArray works only with arrays
+        // Row::fromValues works only with arrays
         if (!is_array($collection->first())) {
             $collection = $collection->map(function ($value) {
-                return $value->toArray();
+                return is_array($value) ? $value : $value->toArray();
             });
         }
 
-        // is_array($first_row) ? $first_row : $first_row->toArray())
-        $all_rows = $collection->map(function ($value) {
-            return Row::fromValues($value);
-        })->toArray();
-        if ($this->rows_style || count($this->column_styles)) {
-            $this->addRowsWithStyle($writer, $all_rows, $this->rows_style, $this->column_styles);
+        if ($this->rows_style || $this->column_styles) {
+            // Column styles are matched against the value keys; use positional
+            // keys so numeric style indexes work with associative rows.
+            $all_rows = $collection->map(function ($values) {
+                return $this->createRow(array_values($values), $this->rows_style, $this->column_styles);
+            })->all();
         } else {
-            $writer->addRows($all_rows);
+            $all_rows = $collection->map(function ($values) {
+                return Row::fromValues($values);
+            })->all();
         }
-    }
-
-    private function addRowsWithStyle($writer, $all_rows, $rows_style, $column_styles)
-    {
-        $styled_rows = [];
-        // Style rows one by one
-        foreach ($all_rows as $row) {
-            $styled_rows[] = $this->createRow($row->toArray(), $rows_style, $column_styles);
-        }
-        $writer->addRows($styled_rows);
+        $writer->addRows($all_rows);
     }
 
     private function writeRowsFromGenerator($writer, Traversable $generator, ?callable $callback = null)
@@ -331,7 +325,7 @@ trait Exportable
                 $this->writeHeader($writer, $item);
             }
             // Write rows (one by one).
-            $writer->addRow($this->createRow($item->toArray(), $this->rows_style, $this->column_styles));
+            $writer->addRow($this->createRow($item, $this->rows_style, $this->column_styles));
         }
 
         if (!$hasRows && $this->data instanceof SheetCollection) {
@@ -365,7 +359,6 @@ trait Exportable
 
         $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
         $writer->addRow($this->createRow($keys, $this->header_style, $this->header_column_styles));
-        //        $writer->addRow(WriterEntityFactory::createRowFromArray($keys, $this->header_style));
     }
 
     /**
@@ -383,9 +376,10 @@ trait Exportable
         foreach ($first_row as $item) {
             if (!is_string($item)) {
                 $need_conversion = true;
+                break;
             }
         }
-        if ($need_conversion || $this->string_values || count($this->column_formats)) {
+        if ($need_conversion || $this->string_values || $this->column_formats) {
             $this->transform($collection);
         }
     }
@@ -403,17 +397,17 @@ trait Exportable
     /**
      * Transform one row (i.e remove non-string).
      */
-    private function transformRow($data)
+    private function transformRow($data): array
     {
-        return collect($data)->map(function ($value, $key) {
-            if (is_null($value)) {
-                return (string) $value;
+        $row = [];
+        foreach (collect($data)->all() as $key => $value) {
+            $value = is_null($value) ? '' : $this->formatValue($value, $key);
+            if (is_string($value) || is_int($value) || is_float($value) || $value instanceof DateTimeInterface) {
+                $row[$key] = $value;
             }
+        }
 
-            return $this->formatValue($value, $key);
-        })->filter(function ($value) {
-            return is_string($value) || is_int($value) || is_float($value) || $value instanceof DateTimeInterface;
-        });
+        return $row;
     }
 
     /**
