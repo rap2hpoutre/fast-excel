@@ -68,7 +68,7 @@ trait Importable
         $reader = $this->reader($path);
 
         $collections = [];
-        foreach ($reader->getSheetIterator() as $key => $sheet) {
+        foreach ($reader->getSheetIterator() as $sheet) {
             if ($this->with_sheets_names) {
                 $collections[$sheet->getName()] = $this->importSheet($sheet, $callback);
             } else {
@@ -287,14 +287,7 @@ trait Importable
 
         foreach ($array as $row => $columns) {
             foreach ($columns as $column => $value) {
-                data_set(
-                    $collection,
-                    implode('.', [
-                        $column,
-                        $row,
-                    ]),
-                    $value
-                );
+                $collection[$column][$row] = $value;
             }
         }
 
@@ -314,33 +307,33 @@ trait Importable
         $count_header = 0;
 
         foreach ($sheet->getRowIterator() as $k => $rowAsObject) {
-            $row = array_map(function (Cell $cell) {
-                return match (true) {
-                    $cell instanceof Cell\FormulaCell => $cell->getComputedValue(),
-                    default                           => $cell->getValue(),
-                };
-            }, $rowAsObject->getCells());
+            if ($k < $this->start_row) {
+                continue;
+            }
 
-            if ($k >= $this->start_row) {
-                if ($this->with_header) {
-                    if ($k == $this->start_row) {
-                        $headers = $this->uniqueHeaders($this->toStrings($row));
-                        $count_header = count($headers);
-                        continue;
-                    }
-                    if ($count_header > $count_row = count($row)) {
-                        $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
-                    } elseif ($count_header < $count_row = count($row)) {
-                        $row = array_slice($row, 0, $count_header);
-                    }
+            $row = [];
+            foreach ($rowAsObject->getCells() as $cell) {
+                $row[] = $cell instanceof Cell\FormulaCell ? $cell->getComputedValue() : $cell->getValue();
+            }
+
+            if ($this->with_header) {
+                if ($k == $this->start_row) {
+                    $headers = $this->uniqueHeaders($this->toStrings($row));
+                    $count_header = count($headers);
+                    continue;
                 }
-                if ($callback) {
-                    if ($result = $callback(empty($headers) ? $row : array_combine($headers, $row))) {
-                        $collection[] = $result;
-                    }
-                } else {
-                    $collection[] = empty($headers) ? $row : array_combine($headers, $row);
+                if ($count_header > $count_row = count($row)) {
+                    $row = array_merge($row, array_fill(0, $count_header - $count_row, null));
+                } elseif ($count_header < $count_row = count($row)) {
+                    $row = array_slice($row, 0, $count_header);
                 }
+            }
+            if ($callback) {
+                if ($result = $callback(empty($headers) ? $row : array_combine($headers, $row))) {
+                    $collection[] = $result;
+                }
+            } else {
+                $collection[] = empty($headers) ? $row : array_combine($headers, $row);
             }
         }
 

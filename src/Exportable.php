@@ -245,15 +245,7 @@ trait Exportable
         foreach ($data as $key => $collection) {
             foreach ($collection as $row => $columns) {
                 foreach ($columns as $column => $value) {
-                    data_set(
-                        $transposedData,
-                        implode('.', [
-                            $key,
-                            $column,
-                            $row,
-                        ]),
-                        $value
-                    );
+                    $transposedData[$key][$column][$row] = $value;
                 }
             }
         }
@@ -400,7 +392,7 @@ trait Exportable
     private function transformRow($data): array
     {
         $row = [];
-        foreach (collect($data)->all() as $key => $value) {
+        foreach (is_array($data) ? $data : collect($data)->all() as $key => $value) {
             $value = is_null($value) ? '' : $this->formatValue($value, $key);
             if (is_string($value) || is_int($value) || is_float($value) || $value instanceof DateTimeInterface) {
                 $row[$key] = $value;
