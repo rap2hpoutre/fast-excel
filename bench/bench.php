@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * FastExcel micro-benchmark.
  *
  * Usage:
@@ -11,6 +11,7 @@
  * export/import paths. Memory numbers are stable across runs; time on
  * shared CI runners is noisy, so deltas under ~10% should be ignored.
  */
+
 $autoload = getenv('BENCH_AUTOLOAD') ?: __DIR__.'/../vendor/autoload.php';
 
 require $autoload;
