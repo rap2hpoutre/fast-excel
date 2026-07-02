@@ -43,10 +43,10 @@ trait Importable
         $reader = $this->reader($path);
 
         foreach ($reader->getSheetIterator() as $key => $sheet) {
-            if ($this->sheet_number != $key) {
-                continue;
+            if ($this->sheet_number == $key) {
+                $collection = $this->importSheet($sheet, $callback);
+                break;
             }
-            $collection = $this->importSheet($sheet, $callback);
         }
         $reader->close();
 
@@ -92,21 +92,20 @@ trait Importable
     {
         $type = $this->readerType($path);
 
-        if ($type === 'csv') {
-            $options = new \OpenSpout\Reader\CSV\Options();
-            $this->setOptions($options);
-            $reader = new \OpenSpout\Reader\CSV\Reader($options);
-        } elseif ($type === 'ods') {
-            $options = new \OpenSpout\Reader\ODS\Options();
-            $this->setOptions($options);
-            $reader = new \OpenSpout\Reader\ODS\Reader($options);
-        } else {
-            $options = new \OpenSpout\Reader\XLSX\Options();
-            $this->setOptions($options);
-            $reader = new \OpenSpout\Reader\XLSX\Reader($options);
-        }
+        $options = match ($type) {
+            'csv'   => new \OpenSpout\Reader\CSV\Options(),
+            'ods'   => new \OpenSpout\Reader\ODS\Options(),
+            default => new \OpenSpout\Reader\XLSX\Options(),
+        };
 
-        /* @var \OpenSpout\Reader\ReaderInterface $reader */
+        $this->setOptions($options);
+
+        $reader = match ($type) {
+            'csv'   => new \OpenSpout\Reader\CSV\Reader($options),
+            'ods'   => new \OpenSpout\Reader\ODS\Reader($options),
+            default => new \OpenSpout\Reader\XLSX\Reader($options),
+        };
+
         $reader->open($this->readerPath($path));
 
         return $reader;
@@ -352,9 +351,7 @@ trait Importable
     private function toStrings($values)
     {
         foreach ($values as &$value) {
-            if ($value instanceof \DateTime) {
-                $value = $value->format('Y-m-d H:i:s');
-            } elseif ($value instanceof \DateTimeImmutable) {
+            if ($value instanceof \DateTimeInterface) {
                 $value = $value->format('Y-m-d H:i:s');
             } elseif ($value) {
                 $value = (string) $value;

@@ -190,13 +190,11 @@ trait Exportable
     {
         $extension = $this->resolveWriterExtension($path);
 
-        if ($extension === 'csv') {
-            $options = new \OpenSpout\Writer\CSV\Options();
-        } elseif ($extension === 'ods') {
-            $options = new \OpenSpout\Writer\ODS\Options();
-        } else {
-            $options = new \OpenSpout\Writer\XLSX\Options();
-        }
+        $options = match ($extension) {
+            'csv'   => new \OpenSpout\Writer\CSV\Options(),
+            'ods'   => new \OpenSpout\Writer\ODS\Options(),
+            default => new \OpenSpout\Writer\XLSX\Options(),
+        };
 
         $this->setOptions($options);
 
@@ -208,15 +206,11 @@ trait Exportable
             }
         }
 
-        if ($extension === 'csv') {
-            return new \OpenSpout\Writer\CSV\Writer($options);
-        }
-
-        if ($extension === 'ods') {
-            return new \OpenSpout\Writer\ODS\Writer($options);
-        }
-
-        return new \OpenSpout\Writer\XLSX\Writer($options);
+        return match ($extension) {
+            'csv'   => new \OpenSpout\Writer\CSV\Writer($options),
+            'ods'   => new \OpenSpout\Writer\ODS\Writer($options),
+            default => new \OpenSpout\Writer\XLSX\Writer($options),
+        };
     }
 
     private function resolveWriterExtension(string $path): string
@@ -328,18 +322,14 @@ trait Exportable
     {
         $collection = collect($array);
 
-        if ($collection->isEmpty()) {
-            if ($this->data instanceof SheetCollection) {
-                $this->writePlaceholderRowForEmptySheet($writer);
-            }
-
+        // Rows must be arrays or objects; anything else (e.g. a flat list of
+        // scalars) is silently skipped, as before. Empty-sheet placeholder
+        // handling is done by writeRowsFromCollection.
+        if ($collection->isNotEmpty() && !is_object($collection->first()) && !is_array($collection->first())) {
             return;
         }
 
-        if (is_object($collection->first()) || is_array($collection->first())) {
-            // provided $array was valid and could be converted to a collection
-            $this->writeRowsFromCollection($writer, $collection, $callback);
-        }
+        $this->writeRowsFromCollection($writer, $collection, $callback);
     }
 
     private function writeHeader($writer, $first_row)
@@ -371,18 +361,8 @@ trait Exportable
             }
         }
         if ($need_conversion || $this->string_values || $this->column_formats) {
-            $this->transform($collection);
+            $collection->transform(fn ($data) => $this->transformRow($data));
         }
-    }
-
-    /**
-     * Transform the collection.
-     */
-    private function transform(Collection $collection)
-    {
-        $collection->transform(function ($data) {
-            return $this->transformRow($data);
-        });
     }
 
     /**
