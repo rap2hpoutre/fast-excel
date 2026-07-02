@@ -277,25 +277,24 @@ trait Exportable
             $this->writeHeader($writer, $collection->first());
         }
 
-        // Row::fromValues works only with arrays
-        if (!is_array($collection->first())) {
-            $collection = $collection->map(function ($value) {
-                return is_array($value) ? $value : $value->toArray();
-            });
-        }
+        $use_styles = $this->rows_style || $this->column_styles;
 
-        if ($this->rows_style || $this->column_styles) {
-            // Column styles are matched against the value keys; use positional
-            // keys so numeric style indexes work with associative rows.
-            $all_rows = $collection->map(function ($values) {
-                return $this->createRow(array_values($values), $this->rows_style, $this->column_styles);
-            })->all();
-        } else {
-            $all_rows = $collection->map(function ($values) {
-                return Row::fromValues($values);
-            })->all();
+        // Write rows one by one so Row objects can be garbage-collected as
+        // they are written, instead of materializing them all up front.
+        foreach ($collection as $values) {
+            // Row::fromValues works only with arrays
+            if (!is_array($values)) {
+                $values = $values->toArray();
+            }
+
+            if ($use_styles) {
+                // Column styles are matched against the value keys; use positional
+                // keys so numeric style indexes work with associative rows.
+                $writer->addRow($this->createRow(array_values($values), $this->rows_style, $this->column_styles));
+            } else {
+                $writer->addRow(Row::fromValues($values));
+            }
         }
-        $writer->addRows($all_rows);
     }
 
     private function writeRowsFromGenerator($writer, Traversable $generator, ?callable $callback = null)
