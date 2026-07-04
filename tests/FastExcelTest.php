@@ -44,6 +44,41 @@ class FastExcelTest extends TestCase
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
      */
+    public function testTransposeImport()
+    {
+        $collection = (new FastExcel())->transpose()->import(__DIR__.'/test1.xlsx');
+
+        $this->assertEquals([
+            'col1' => ['row1 col1', 'row2 col1', 'row3 col1'],
+            'col2' => ['row1 col2', '', 'row3 col2'],
+        ], $collection->toArray());
+    }
+
+    /**
+     * @throws IOException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     */
+    public function testTransposeExport()
+    {
+        $file = __DIR__.'/test-transpose-export.xlsx';
+        (new FastExcel($this->collection()))->transpose()->export($file);
+
+        // Each original column becomes a row; the header holds the original row indexes.
+        $this->assertEquals([
+            [0 => 'row1 col1', 1 => 'row2 col1', 2 => 'row3 col1'],
+            [0 => 'row1 col2', 1 => '', 2 => 'row3 col2'],
+        ], (new FastExcel())->import($file)->toArray());
+        unlink($file);
+    }
+
+    /**
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
     public function testImportXlsx()
     {
         $collection = (new FastExcel())->import(__DIR__.'/test1.xlsx');
