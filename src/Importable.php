@@ -18,7 +18,7 @@ use OpenSpout\Writer\Common\AbstractOptions;
 trait Importable
 {
     /**
-     * @var int
+     * @var int|string
      */
     private $sheet_number = 1;
 
@@ -44,7 +44,7 @@ trait Importable
         $reader = $this->reader($path);
 
         foreach ($reader->getSheetIterator() as $key => $sheet) {
-            if ($this->sheet_number == $key) {
+            if ($this->sheetMatches($key, $sheet)) {
                 $collection = $this->importSheet($sheet, $callback);
                 break;
             }
@@ -73,7 +73,7 @@ trait Importable
 
             try {
                 foreach ($reader->getSheetIterator() as $key => $sheet) {
-                    if ($this->sheet_number != $key) {
+                    if (!$this->sheetMatches($key, $sheet)) {
                         continue;
                     }
                     if ($this->transpose) {
@@ -88,6 +88,24 @@ trait Importable
                 $reader->close();
             }
         });
+    }
+
+    /**
+     * Whether the given sheet is the one selected via sheet().
+     * Selection accepts a 1-based index (int) or a sheet name (string).
+     *
+     * @param int            $key
+     * @param SheetInterface $sheet
+     *
+     * @return bool
+     */
+    private function sheetMatches(int $key, SheetInterface $sheet): bool
+    {
+        if (is_string($this->sheet_number)) {
+            return $this->sheet_number === $sheet->getName();
+        }
+
+        return (int) $this->sheet_number === $key;
     }
 
     /**
