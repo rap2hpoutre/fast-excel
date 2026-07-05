@@ -513,4 +513,49 @@ class IssuesTest extends TestCase
 
         unlink($file);
     }
+
+    /**
+     * A string value starting with "=" must be written as literal text (an
+     * inline string) when escapeFormulas() is enabled, instead of a live
+     * formula cell. This protects against CSV/formula injection and the
+     * "corrupt file" errors reported in issue #356.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testIssue356()
+    {
+        $file = __DIR__.'/issue356.xlsx';
+        $rows = new Collection([['formula' => '=1+2']]);
+
+        // With escapeFormulas(): the value is stored as literal inline-string
+        // text, so no live formula element ("<f>...</f>") is written.
+        (new FastExcel(clone $rows))->escapeFormulas()->export($file);
+        $xml = $this->readXlsxSheetXml($file);
+        $this->assertStringContainsString('<t>=1+2</t>', $xml);
+        $this->assertStringNotContainsString('<f>', $xml);
+        unlink($file);
+
+        // Without escapeFormulas(): the same value is emitted as a live
+        // formula cell (the pre-existing, unsafe behavior).
+        (new FastExcel(clone $rows))->export($file);
+        $xml = $this->readXlsxSheetXml($file);
+        $this->assertStringContainsString('<f>1+2</f>', $xml);
+        unlink($file);
+    }
+
+    /**
+     * Read the first worksheet XML out of an XLSX file (a zip archive).
+     */
+    private function readXlsxSheetXml(string $file): string
+    {
+        $zip = new \ZipArchive();
+        $zip->open($file);
+        $xml = $zip->getFromName('xl/worksheets/sheet1.xml');
+        $zip->close();
+
+        return $xml;
+    }
 }

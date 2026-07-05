@@ -297,6 +297,16 @@ precedence over `stringValues()`:
     ->export('users.xlsx');
 ```
 
+### Escape formulas (prevent formula injection)
+
+By default any string starting with `=` (e.g. `=1+2`) is written as a live
+formula cell, which can corrupt the file or enable CSV/formula injection. Call
+`escapeFormulas()` to write string values as literal text cells instead:
+
+```php
+(new FastExcel($rows))->escapeFormulas()->export('file.xlsx');
+```
+
 ## Why?
 
 FastExcel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout):
