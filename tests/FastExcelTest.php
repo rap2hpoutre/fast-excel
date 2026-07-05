@@ -2,6 +2,7 @@
 
 namespace Rap2hpoutre\FastExcel\Tests;
 
+use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Common\Entity\Style\Color;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Common\Exception\IOException;
@@ -36,6 +37,61 @@ class FastExcelTest extends TestCase
             ->export($file);
 
         $this->assertEquals($collection, (new FastExcel())->import($file));
+        unlink($file);
+    }
+
+    /**
+     * A row value may be an OpenSpout Cell instance; it must be written
+     * through as-is instead of being dropped or stringified.
+     *
+     * @throws IOException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     */
+    public function testExportWithCellInstances()
+    {
+        $collection = collect([
+            ['col1' => Cell::fromValue('hello'), 'col2' => 'world'],
+            ['col1' => 'foo', 'col2' => Cell::fromValue('bar')],
+        ]);
+
+        $file = __DIR__.'/test-cell-instances.xlsx';
+        (new FastExcel(clone $collection))->export($file);
+
+        $this->assertEquals([
+            ['col1' => 'hello', 'col2' => 'world'],
+            ['col1' => 'foo', 'col2' => 'bar'],
+        ], (new FastExcel())->import($file)->toArray());
+        unlink($file);
+    }
+
+    /**
+     * Cell instances must also survive the styled export path (setColumnStyles).
+     *
+     * @throws IOException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     */
+    public function testExportWithCellInstancesAndColumnStyles()
+    {
+        $collection = collect([
+            ['col1' => Cell::fromValue('hello'), 'col2' => 'world'],
+        ]);
+
+        $file = __DIR__.'/test-cell-instances-styled.xlsx';
+        (new FastExcel(clone $collection))
+            ->setColumnStyles([
+                1 => (new Style())->setFontBold(),
+            ])
+            ->export($file);
+
+        $this->assertEquals([
+            ['col1' => 'hello', 'col2' => 'world'],
+        ], (new FastExcel())->import($file)->toArray());
         unlink($file);
     }
 
