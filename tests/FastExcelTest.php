@@ -210,6 +210,45 @@ class FastExcelTest extends TestCase
     }
 
     /**
+     * Columns whose key starts with an underscore are excluded from the file
+     * (both header and data), so they can be used for callback-only logic.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testExportExcludesUnderscorePrefixedColumns()
+    {
+        $file = __DIR__.'/test_underscore.xlsx';
+        $collection = collect([
+            ['name' => 'Alice', '_secret' => 'hidden1', 'age' => '30'],
+            ['name' => 'Bob', '_secret' => 'hidden2', 'age' => '25'],
+        ]);
+
+        (new FastExcel(clone $collection))->export($file);
+
+        $imported = (new FastExcel())->import($file);
+
+        $this->assertEquals(
+            collect([
+                ['name' => 'Alice', 'age' => '30'],
+                ['name' => 'Bob', 'age' => '25'],
+            ]),
+            $imported
+        );
+
+        foreach ($imported as $row) {
+            $this->assertArrayNotHasKey('_secret', $row);
+            $this->assertArrayHasKey('name', $row);
+            $this->assertArrayHasKey('age', $row);
+        }
+
+        unlink($file);
+    }
+
+    /**
      * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException

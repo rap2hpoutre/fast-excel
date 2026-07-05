@@ -286,6 +286,8 @@ trait Exportable
                 $values = $values->toArray();
             }
 
+            $values = $this->removeHiddenColumns($values);
+
             if ($use_styles) {
                 // Column styles are matched against the value keys; use positional
                 // keys so numeric style indexes work with associative rows.
@@ -309,6 +311,7 @@ trait Exportable
 
             // Prepare row (i.e remove non-string)
             $item = $this->transformRow($item);
+            $item = $this->removeHiddenColumns($item);
 
             // Add header row.
             if ($this->with_header && $key === 0) {
@@ -343,8 +346,33 @@ trait Exportable
             return;
         }
 
-        $keys = array_keys(is_array($first_row) ? $first_row : $first_row->toArray());
+        $row = is_array($first_row) ? $first_row : $first_row->toArray();
+        $keys = array_keys($this->removeHiddenColumns($row));
         $writer->addRow($this->createRow($keys, $this->header_style, $this->header_column_styles));
+    }
+
+    /**
+     * Remove "hidden" columns from a row before it is written. By convention,
+     * any associative (string) column key that starts with an underscore is
+     * treated as callback-only data and excluded from the exported file, so it
+     * can be used for logic inside the export callback without appearing in the
+     * output. Because the header is derived from the first row's keys, hidden
+     * columns are dropped from the header automatically as well.
+     *
+     * Numeric keys are always kept, so positional/list rows (and rows with no
+     * underscore-prefixed keys) are left untouched.
+     *
+     * @param array $row
+     *
+     * @return array
+     */
+    private function removeHiddenColumns(array $row): array
+    {
+        return array_filter(
+            $row,
+            static fn ($key) => !is_string($key) || !str_starts_with($key, '_'),
+            ARRAY_FILTER_USE_KEY
+        );
     }
 
     /**
