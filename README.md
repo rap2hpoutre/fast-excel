@@ -96,6 +96,12 @@ $users = (new FastExcel)->import('file.xlsx', function ($line) {
 });
 ```
 
+Limit the number of data rows imported with `limitRows` (headers excluded). It works with both `import` and `importLazy`:
+
+```php
+$collection = (new FastExcel)->limitRows(100)->import('file.xlsx');
+```
+
 ## Facades
 
 You may use FastExcel with the optional Facade. Add the following line to ``config/app.php`` under the ``aliases`` key.
