@@ -502,4 +502,72 @@ class FastExcelTest extends TestCase
             ['col1' => '1/3/2022'],
         ]), $collection);
     }
+
+    /**
+     * limitRows() stops the eager import after N data rows (headers excluded).
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportWithLimitRows()
+    {
+        $collection = (new FastExcel())->limitRows(2)->import(__DIR__.'/test1.xlsx');
+
+        // Only the first two data rows are returned, still keyed by their headers.
+        $this->assertEquals(collect([
+            ['col1' => 'row1 col1', 'col2' => 'row1 col2'],
+            ['col1' => 'row2 col1', 'col2' => ''],
+        ]), $collection);
+    }
+
+    /**
+     * limitRows(null) removes the limit and imports every data row.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportWithoutLimitRows()
+    {
+        $collection = (new FastExcel())->limitRows(null)->import(__DIR__.'/test1.xlsx');
+
+        $this->assertEquals($this->collection(), $collection);
+    }
+
+    /**
+     * limitRows() counts data rows, not raw iterator keys, so it composes with startRow().
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportWithLimitRowsAndStartRow()
+    {
+        $collection = (new FastExcel())
+            ->startRow(2)
+            ->withoutHeaders()
+            ->limitRows(1)
+            ->import(__DIR__.'/test1.xlsx');
+
+        $this->assertCount(1, $collection);
+        $this->assertEquals(['row1 col1', 'row1 col2'], $collection->first());
+    }
+
+    /**
+     * The lazy import path honors limitRows() identically to the eager path.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportLazyWithLimitRows()
+    {
+        $collection = (new FastExcel())->limitRows(2)->importLazy(__DIR__.'/test1.xlsx')->collect();
+
+        $this->assertEquals(collect([
+            ['col1' => 'row1 col1', 'col2' => 'row1 col2'],
+            ['col1' => 'row2 col1', 'col2' => ''],
+        ]), $collection);
+    }
 }
