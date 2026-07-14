@@ -24,6 +24,11 @@ trait Importable
     private $sheet_number = 1;
 
     /**
+     * @var bool
+     */
+    private $with_sheet_context = false;
+
+    /**
      * @param AbstractOptions $options
      *
      * @return mixed
@@ -380,6 +385,7 @@ trait Importable
         $headers = [];
         $collection = [];
         $count_header = 0;
+        $sheetName = $sheet->getName();
         $count_rows = 0;
 
         foreach ($sheet->getRowIterator() as $key => $rowAsObject) {
@@ -396,7 +402,8 @@ trait Importable
             }
 
             if ($callback) {
-                if ($result = $callback($current)) {
+                $result = $this->with_sheet_context ? $callback($sheetName, $current) : $callback($current);
+                if ($result) {
                     $collection[] = $result;
                 }
             } else {

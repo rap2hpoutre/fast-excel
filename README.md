@@ -172,6 +172,22 @@ Import multiple sheets with sheets names:
 $sheets = (new FastExcel)->withSheetsNames()->importSheets('file.xlsx');
 ```
 
+Use `withSheetContext()` to receive the current sheet name as the first argument
+of the `importSheets` callback — handy when the same field names need to be
+handled differently per sheet:
+
+```php
+$sheets = (new FastExcel)
+    ->withSheetContext()
+    ->importSheets('file.xlsx', function ($sheetName, $row) {
+        if ($sheetName === 'Users' && empty($row['email'])) {
+            return null; // skip rows without an email on the Users sheet
+        }
+
+        return $row + ['_sheet' => $sheetName];
+    });
+```
+
 ### Export large collections with chunk
 
 Export rows one by one to avoid `memory_limit` issues [using `yield`](https://www.php.net/manual/en/language.generators.syntax.php):
