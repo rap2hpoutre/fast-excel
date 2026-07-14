@@ -96,6 +96,12 @@ $users = (new FastExcel)->import('file.xlsx', function ($line) {
 });
 ```
 
+Limit the number of data rows imported with `limitRows` (headers excluded). It works with both `import` and `importLazy`:
+
+```php
+$collection = (new FastExcel)->limitRows(100)->import('file.xlsx');
+```
+
 ## Facades
 
 You may use FastExcel with the optional Facade. Add the following line to ``config/app.php`` under the ``aliases`` key.
@@ -323,12 +329,19 @@ Use it only for simple tasks.
 
 ## Benchmarks
 
-> Tested on a MacBook Pro 2015 2,7 GHz Intel Core i5 16 Go 1867 MHz DDR3.
-Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iterations, 2018-04-05. **Don't trust benchmarks.**
+XLSX export of 10,000 rows × 20 columns of random data, average of 10 runs (PHP 8.4, July 2026). **Don't trust benchmarks.**
 
-|   | Average memory peak usage  | Execution time |
+![FastExcel vs Laravel Excel — memory and time benchmark](bench/benchmark.svg)
+
+|   | Peak memory | Execution time |
 |---|---|---|
-| Laravel Excel  | 123.56 M  | 11.56 s |
-| FastExcel  | 2.09 M | 2.76 s |
+| Laravel Excel 3.1 | 218 MB | 2.53 s |
+| FastExcel — collection | 42 MB | 0.90 s |
+| **FastExcel — generator** | **4 MB** | **0.93 s** |
+
+FastExcel streams rows through [OpenSpout](https://github.com/openspout/openspout) instead of building the whole
+spreadsheet in memory. Feed it a generator (or `importLazy()` on the read side) and peak memory stays flat no matter how
+many rows you export — here about **55× less** than Laravel Excel. Reproduce with
+[`bench/readme-export-bench.php`](bench/readme-export-bench.php).
 
 Still, remember that [Laravel Excel](https://laravel-excel.com/) **has many more features.**

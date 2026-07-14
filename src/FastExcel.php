@@ -37,6 +37,11 @@ class FastExcel
     private $start_row = 1;
 
     /**
+     * @var int|null
+     */
+    private $end_row = null;
+
+    /**
      * @var bool
      */
     private $transpose = false;
@@ -135,6 +140,20 @@ class FastExcel
     public function startRow(int $row)
     {
         $this->start_row = $row;
+
+        return $this;
+    }
+
+    /**
+     * Limit the number of data rows imported. Pass null to remove the limit.
+     *
+     * @param int|null $rows
+     *
+     * @return $this
+     */
+    public function limitRows(?int $rows = null)
+    {
+        $this->end_row = $rows;
 
         return $this;
     }
