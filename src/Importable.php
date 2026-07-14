@@ -12,6 +12,7 @@ use OpenSpout\Writer\Common\AbstractOptions;
  * Trait Importable.
  *
  * @property int  $start_row
+ * @property ?int $end_row
  * @property bool $transpose
  * @property bool $with_header
  */
@@ -379,6 +380,7 @@ trait Importable
         $headers = [];
         $collection = [];
         $count_header = 0;
+        $count_rows = 0;
 
         foreach ($sheet->getRowIterator() as $key => $rowAsObject) {
             $row = array_map(function (Cell $cell) {
@@ -399,6 +401,10 @@ trait Importable
                 }
             } else {
                 $collection[] = $current;
+            }
+
+            if ($this->end_row !== null && ++$count_rows >= $this->end_row) {
+                break;
             }
         }
 
@@ -421,6 +427,7 @@ trait Importable
     {
         $headers = [];
         $count_header = 0;
+        $count_rows = 0;
 
         foreach ($sheet->getRowIterator() as $key => $rowAsObject) {
             $row = array_map(function (Cell $cell) {
@@ -442,6 +449,10 @@ trait Importable
                 }
             } else {
                 yield $current;
+            }
+
+            if ($this->end_row !== null && ++$count_rows >= $this->end_row) {
+                break;
             }
         }
     }

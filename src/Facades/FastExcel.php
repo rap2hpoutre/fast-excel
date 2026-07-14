@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Illuminate\Support\Collection   import($path, callable $callback = null)
  * @method static string                           export($path, callable $callback = null)
  * @method static \Illuminate\Support\Collection   importSheets($path, callable $callback = null)
+ * @method static \Rap2hpoutre\FastExcel\FastExcel limitRows(?int $rows = null)
  * @method static \Rap2hpoutre\FastExcel\FastExcel escapeFormulas($enabled = true)
  * @method static \Rap2hpoutre\FastExcel\FastExcel configureCsv($delimiter = ',', $enclosure = '"', $encoding = 'UTF-8', $bom = false)
  * @method static \Rap2hpoutre\FastExcel\FastExcel configureReaderUsing(?callable $callback = null)
