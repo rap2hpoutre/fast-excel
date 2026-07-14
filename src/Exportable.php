@@ -5,6 +5,8 @@ namespace Rap2hpoutre\FastExcel;
 use DateTimeInterface;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Cell\StringCell;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\Common\AbstractOptions;
@@ -35,6 +37,9 @@ trait Exportable
 
     /** @var bool */
     private $string_values = false;
+
+    /** @var bool */
+    private $escape_formulas = false;
 
     /** @var array<string, string> */
     private $column_formats = [];
@@ -73,6 +78,20 @@ trait Exportable
     public function stringValues(bool $enabled = true): static
     {
         $this->string_values = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Write string values as explicit text cells so a value starting with "="
+     * (or other formula-triggering input) is never emitted as a live formula
+     * cell. Protects against CSV/formula injection and "corrupt file" errors.
+     *
+     * @param bool $enabled
+     */
+    public function escapeFormulas(bool $enabled = true): static
+    {
+        $this->escape_formulas = $enabled;
 
         return $this;
     }
@@ -276,7 +295,7 @@ trait Exportable
             $this->writeHeader($writer, $collection->first());
         }
 
-        $use_styles = $this->rows_style || $this->column_styles;
+        $use_styles = $this->rows_style || $this->column_styles || $this->escape_formulas;
 
         // Write rows one by one so Row objects can be garbage-collected as
         // they are written, instead of materializing them all up front.
@@ -457,6 +476,18 @@ trait Exportable
      */
     private function createRow(array $values = [], ?Style $rows_style = null, array $column_styles = []): Row
     {
-        return Row::fromValuesWithStyles($values, $rows_style, $column_styles);
+        if (!$this->escape_formulas) {
+            return Row::fromValuesWithStyles($values, $rows_style, $column_styles);
+        }
+
+        $cells = [];
+        foreach ($values as $key => $value) {
+            $style = $column_styles[$key] ?? null;
+            $cells[] = is_string($value)
+                ? new StringCell($value, $style)
+                : Cell::fromValue($value, $style);
+        }
+
+        return new Row($cells, $rows_style);
     }
 }
