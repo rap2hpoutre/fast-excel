@@ -65,19 +65,23 @@ Export only some attributes specifying columns names:
 });
 ```
 
-Prefix a column key with an underscore (`_`) to keep it out of the exported file
-while still being able to use it inside the callback. This is handy for
-callback-only data (lookups, computed flags, etc.) that should not appear as a
-column:
+Hide columns from the exported file while still being able to use them inside the
+callback, using `hideColumnsPrefixedWith()`. This is handy for callback-only data
+(lookups, computed flags, etc.) that should not appear as a column:
 
 ```php
-(new FastExcel(User::all()))->export('users.csv', function ($user) {
+(new FastExcel(User::all()))->hideColumnsPrefixedWith()->export('users.csv', function ($user) {
     return [
         'Name'  => $user->name,
         '_role' => $user->role, // used for logic below, never written to the file
     ];
 });
 ```
+
+Columns are hidden from both the header row and every data row. The prefix
+defaults to `_`, and any other one can be used — `hideColumnsPrefixedWith('tmp_')`.
+Hiding is opt-in: unless you call this method, every column is exported, so
+columns that already start with an underscore keep working as before.
 
 Download (from a controller method):
 

@@ -39,12 +39,42 @@ trait Exportable
     /** @var array<string, string> */
     private $column_formats = [];
 
+    /** @var string|null */
+    private $hidden_column_prefix = null;
+
     /**
      * @param AbstractOptions $options
      *
      * @return mixed
      */
     abstract protected function setOptions(&$options);
+
+    /**
+     * Exclude columns whose key starts with the given prefix from the exported
+     * file (both the header row and every data row). This is opt-in: without
+     * calling it, every column is exported, so existing columns that happen to
+     * start with an underscore keep working as before.
+     *
+     * It is meant for callback-only data (lookups, computed flags, etc.) that
+     * you need inside the export callback but do not want in the output:
+     *
+     *     (new FastExcel($users))->hideColumnsPrefixedWith()->export('users.xlsx', fn ($user) => [
+     *         'Name'  => $user->name,
+     *         '_role' => $user->role, // used for logic, never written to the file
+     *     ]);
+     *
+     * Only string keys are considered, so positional/list rows are never
+     * affected. Column styles are matched against the remaining (visible)
+     * columns.
+     *
+     * @param string $prefix
+     */
+    public function hideColumnsPrefixedWith(string $prefix = '_'): static
+    {
+        $this->hidden_column_prefix = $prefix;
+
+        return $this;
+    }
 
     /** @param Style[] $styles */
     public function setHeaderColumnStyles($styles): static
@@ -352,15 +382,12 @@ trait Exportable
     }
 
     /**
-     * Remove "hidden" columns from a row before it is written. By convention,
-     * any associative (string) column key that starts with an underscore is
-     * treated as callback-only data and excluded from the exported file, so it
-     * can be used for logic inside the export callback without appearing in the
-     * output. Because the header is derived from the first row's keys, hidden
-     * columns are dropped from the header automatically as well.
+     * Remove "hidden" columns from a row before it is written. Does nothing
+     * unless hideColumnsPrefixedWith() has been called, so exports are
+     * unchanged by default. Because the header is derived from the first row's
+     * keys, hidden columns are dropped from the header automatically as well.
      *
-     * Numeric keys are always kept, so positional/list rows (and rows with no
-     * underscore-prefixed keys) are left untouched.
+     * Numeric keys are always kept, so positional/list rows are left untouched.
      *
      * @param array $row
      *
@@ -368,9 +395,14 @@ trait Exportable
      */
     private function removeHiddenColumns(array $row): array
     {
+        $prefix = $this->hidden_column_prefix;
+        if ($prefix === null || $prefix === '') {
+            return $row;
+        }
+
         return array_filter(
             $row,
-            static fn ($key) => !is_string($key) || !str_starts_with($key, '_'),
+            static fn ($key) => !is_string($key) || !str_starts_with($key, $prefix),
             ARRAY_FILTER_USE_KEY
         );
     }

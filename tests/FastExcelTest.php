@@ -227,7 +227,7 @@ class FastExcelTest extends TestCase
             ['name' => 'Bob', '_secret' => 'hidden2', 'age' => '25'],
         ]);
 
-        (new FastExcel(clone $collection))->export($file);
+        (new FastExcel(clone $collection))->hideColumnsPrefixedWith()->export($file);
 
         $imported = (new FastExcel())->import($file);
 
@@ -244,6 +244,64 @@ class FastExcelTest extends TestCase
             $this->assertArrayHasKey('name', $row);
             $this->assertArrayHasKey('age', $row);
         }
+
+        unlink($file);
+    }
+
+    /**
+     * Hiding is opt-in: without hideColumnsPrefixedWith(), a legitimate column
+     * whose name starts with an underscore (e.g. Mongo's _id) is still exported.
+     */
+    public function testExportKeepsUnderscorePrefixedColumnsByDefault()
+    {
+        $file = __DIR__.'/test_underscore_default.xlsx';
+        $collection = collect([
+            ['_id' => '507f1f77', 'name' => 'Alice'],
+            ['_id' => '507f191e', 'name' => 'Bob'],
+        ]);
+
+        (new FastExcel(clone $collection))->export($file);
+
+        $this->assertEquals($collection, (new FastExcel())->import($file));
+
+        unlink($file);
+    }
+
+    public function testExportHidesColumnsWithCustomPrefix()
+    {
+        $file = __DIR__.'/test_underscore_custom.xlsx';
+        $collection = collect([
+            ['name' => 'Alice', 'tmp_score' => '9', '_id' => '1'],
+            ['name' => 'Bob', 'tmp_score' => '7', '_id' => '2'],
+        ]);
+
+        (new FastExcel(clone $collection))->hideColumnsPrefixedWith('tmp_')->export($file);
+
+        // Only the tmp_ column is dropped; _id is untouched by a custom prefix.
+        $this->assertEquals(
+            collect([
+                ['name' => 'Alice', '_id' => '1'],
+                ['name' => 'Bob', '_id' => '2'],
+            ]),
+            (new FastExcel())->import($file)
+        );
+
+        unlink($file);
+    }
+
+    public function testHiddenColumnsLeavePositionalRowsUntouched()
+    {
+        $file = __DIR__.'/test_underscore_positional.csv';
+        $collection = collect([
+            ['Alice', '30'],
+            ['Bob', '25'],
+        ]);
+
+        (new FastExcel(clone $collection))->hideColumnsPrefixedWith()->export($file);
+
+        // Numeric keys are never hidden, so every value survives the export.
+        $this->assertStringContainsString('Alice', file_get_contents($file));
+        $this->assertStringContainsString('25', file_get_contents($file));
 
         unlink($file);
     }
