@@ -293,8 +293,10 @@ trait Exportable
                 $writer->addRow($this->createRow(array_values($values), $this->rows_style, $this->column_styles));
             } elseif ($this->rowHasCell($values)) {
                 // Row::fromValues() cannot accept Cell instances; build the row
-                // manually so pre-built cells are written through as-is.
-                $writer->addRow($this->createRow(array_values($values)));
+                // manually so pre-built cells are written through as-is. We
+                // already know it has a cell, so call the builder directly
+                // instead of createRow() to avoid a second rowHasCell() scan.
+                $writer->addRow($this->buildRowFromCells(array_values($values)));
             } else {
                 $writer->addRow(Row::fromValues($values));
             }
@@ -467,9 +469,19 @@ trait Exportable
             return Row::fromValuesWithStyles($values, $rows_style, $column_styles);
         }
 
-        // A value is already a Cell: use it as-is and convert the remaining
-        // scalars, preserving any per-column style. Row::fromValuesWithStyles()
-        // cannot be used here because it calls Cell::fromValue() on every value.
+        return $this->buildRowFromCells($values, $rows_style, $column_styles);
+    }
+
+    /**
+     * Build a Row when at least one value is already a Cell: use those cells
+     * as-is and convert the remaining scalars, preserving any per-column style.
+     * Row::fromValuesWithStyles() cannot be used here because it calls
+     * Cell::fromValue() on every value.
+     *
+     * @SuppressWarnings(PHPMD.StaticAccess)
+     */
+    private function buildRowFromCells(array $values, ?Style $rows_style = null, array $column_styles = []): Row
+    {
         $cells = [];
         foreach ($values as $key => $value) {
             $cells[] = $value instanceof Cell
