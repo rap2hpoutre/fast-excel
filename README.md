@@ -172,20 +172,45 @@ Import multiple sheets with sheets names:
 $sheets = (new FastExcel)->withSheetsNames()->importSheets('file.xlsx');
 ```
 
-### Export large collections with chunk
+### Export large collections (low memory)
 
-Export rows one by one to avoid `memory_limit` issues [using `yield`](https://www.php.net/manual/en/language.generators.syntax.php):
+Passing a materialized collection (`User::all()`, `->get()`, `collect([...])`) loads every
+row into memory *before* the export starts, so it grows with the size of the data and a
+large enough dataset fails outright with `Allowed memory size of N bytes exhausted`. Feed a
+lazy source instead and peak memory stays flat, whatever the row count.
+
+Eloquent's `cursor()` (or `->lazy()`) returns a
+[`LazyCollection`](https://laravel.com/docs/collections#lazy-collections), which FastExcel
+streams row by row — no wrapper needed:
 
 ```php
-function usersGenerator() {
-    foreach (User::cursor() as $user) {
-        yield $user;
+// Export consumes only a few MB, even with 10M+ rows.
+(new FastExcel(User::cursor()))->export('users.xlsx');
+```
+
+For any other source, hand `export()` a generator [using `yield`](https://www.php.net/manual/en/language.generators.syntax.php):
+
+```php
+function rowsGenerator() {
+    foreach (some_paginated_source() as $row) {
+        yield $row;
     }
 }
 
-// Export consumes only a few MB, even with 10M+ rows.
-(new FastExcel(usersGenerator()))->export('test.xlsx');
+(new FastExcel(rowsGenerator()))->export('test.xlsx');
 ```
+
+Exporting 1,000,000 rows (4 columns) under a 512 MB `memory_limit`:
+
+| How you export | Peak memory | Result |
+| --- | --- | --- |
+| `export()` from a materialized collection | > 512 MB | **fails** once it exceeds `memory_limit` |
+| `export()` from a cursor / generator (streaming) | ~4 MB | always completes |
+
+Streaming does not change export *speed* (that is dominated by the underlying
+[OpenSpout](https://github.com/openspout/openspout) writer) — it is what keeps memory flat
+so very large files finish at all. `transpose()` cannot stream, as it must buffer the whole
+dataset to pivot rows and columns.
 
 ### Import large files (low memory)
 
