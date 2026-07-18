@@ -44,13 +44,16 @@ trait Importable
     {
         $reader = $this->reader($path);
 
-        foreach ($reader->getSheetIterator() as $key => $sheet) {
-            if ($this->sheet_number == $key) {
-                $collection = $this->importSheet($sheet, $callback);
-                break;
+        try {
+            foreach ($reader->getSheetIterator() as $key => $sheet) {
+                if ($this->sheet_number == $key) {
+                    $collection = $this->importSheet($sheet, $callback);
+                    break;
+                }
             }
+        } finally {
+            $reader->close();
         }
-        $reader->close();
 
         return collect($collection ?? []);
     }
@@ -106,14 +109,18 @@ trait Importable
         $reader = $this->reader($path);
 
         $collections = [];
-        foreach ($reader->getSheetIterator() as $sheet) {
-            if ($this->with_sheets_names) {
-                $collections[$sheet->getName()] = $this->importSheet($sheet, $callback);
-            } else {
-                $collections[] = $this->importSheet($sheet, $callback);
+
+        try {
+            foreach ($reader->getSheetIterator() as $sheet) {
+                if ($this->with_sheets_names) {
+                    $collections[$sheet->getName()] = $this->importSheet($sheet, $callback);
+                } else {
+                    $collections[] = $this->importSheet($sheet, $callback);
+                }
             }
+        } finally {
+            $reader->close();
         }
-        $reader->close();
 
         return new SheetCollection($collections);
     }
