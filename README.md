@@ -346,6 +346,24 @@ precedence over `stringValues()`:
     ->export('users.xlsx');
 ```
 
+### Use raw OpenSpout Cell instances
+
+For full control over a single cell's type or style, a row value may be an
+`OpenSpout\Common\Entity\Cell` instance. It is written through as-is, while the
+other (scalar) values in the row keep their normal handling:
+
+```php
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Style\Style;
+
+$users = collect([
+    ['name' => 'John', 'note' => Cell::fromValue('paid', (new Style())->setFontBold())],
+    ['name' => 'Jane', 'note' => 'pending'],
+]);
+
+(new FastExcel($users))->export('users.xlsx');
+```
+
 ## Why?
 
 FastExcel is intended at being Laravel-flavoured [Spout](https://github.com/box/spout):
