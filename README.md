@@ -184,6 +184,12 @@ You can also import a specific sheet by its number:
 $users = (new FastExcel)->sheet(3)->import('file.xlsx');
 ```
 
+`sheet()` also accepts a sheet name, so you can select a sheet without knowing its position:
+
+```php
+$users = (new FastExcel)->sheet('Users')->import('file.xlsx');
+```
+
 Import multiple sheets with sheets names:
 
 ```php
