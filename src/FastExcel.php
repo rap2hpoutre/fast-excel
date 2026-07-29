@@ -39,6 +39,11 @@ class FastExcel
     /**
      * @var int|null
      */
+    private $header_row = null;
+
+    /**
+     * @var int|null
+     */
     private $end_row = null;
 
     /**
@@ -128,6 +133,28 @@ class FastExcel
     public function startRow(int $row)
     {
         $this->start_row = $row;
+
+        return $this;
+    }
+
+    /**
+     * Read the headers from a specific row instead of from startRow().
+     *
+     * By default `startRow(155)` also takes the headers from row 155. Set the
+     * header row explicitly to keep the real headers while reading data further
+     * down the file, which is what makes chunked imports possible:
+     *
+     *     (new FastExcel)->headerRow(1)->startRow(155)->limitRows(100)->import($file);
+     *
+     * Pass null to go back to taking the headers from startRow().
+     *
+     * @param int|null $row 1-based row index
+     *
+     * @return $this
+     */
+    public function headerRow(?int $row = 1)
+    {
+        $this->header_row = $row;
 
         return $this;
     }
