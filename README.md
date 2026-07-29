@@ -65,6 +65,24 @@ Export only some attributes specifying columns names:
 });
 ```
 
+Hide columns from the exported file while still being able to use them inside the
+callback, using `hideColumnsPrefixedWith()`. This is handy for callback-only data
+(lookups, computed flags, etc.) that should not appear as a column:
+
+```php
+(new FastExcel(User::all()))->hideColumnsPrefixedWith()->export('users.csv', function ($user) {
+    return [
+        'Name'  => $user->name,
+        '_role' => $user->role, // used for logic below, never written to the file
+    ];
+});
+```
+
+Columns are hidden from both the header row and every data row. The prefix
+defaults to `_`, and any other one can be used — `hideColumnsPrefixedWith('tmp_')`.
+Hiding is opt-in: unless you call this method, every column is exported, so
+columns that already start with an underscore keep working as before.
+
 Download (from a controller method):
 
 ```php
@@ -94,6 +112,12 @@ $users = (new FastExcel)->import('file.xlsx', function ($line) {
         'email' => $line['Email']
     ]);
 });
+```
+
+Limit the number of data rows imported with `limitRows` (headers excluded). It works with both `import` and `importLazy`:
+
+```php
+$collection = (new FastExcel)->limitRows(100)->import('file.xlsx');
 ```
 
 ## Facades
@@ -160,26 +184,57 @@ You can also import a specific sheet by its number:
 $users = (new FastExcel)->sheet(3)->import('file.xlsx');
 ```
 
+`sheet()` also accepts a sheet name, so you can select a sheet without knowing its position:
+
+```php
+$users = (new FastExcel)->sheet('Users')->import('file.xlsx');
+```
+
 Import multiple sheets with sheets names:
 
 ```php
 $sheets = (new FastExcel)->withSheetsNames()->importSheets('file.xlsx');
 ```
 
-### Export large collections with chunk
+### Export large collections (low memory)
 
-Export rows one by one to avoid `memory_limit` issues [using `yield`](https://www.php.net/manual/en/language.generators.syntax.php):
+Passing a materialized collection (`User::all()`, `->get()`, `collect([...])`) loads every
+row into memory *before* the export starts, so it grows with the size of the data and a
+large enough dataset fails outright with `Allowed memory size of N bytes exhausted`. Feed a
+lazy source instead and peak memory stays flat, whatever the row count.
+
+Eloquent's `cursor()` (or `->lazy()`) returns a
+[`LazyCollection`](https://laravel.com/docs/collections#lazy-collections), which FastExcel
+streams row by row — no wrapper needed:
 
 ```php
-function usersGenerator() {
-    foreach (User::cursor() as $user) {
-        yield $user;
+// Export consumes only a few MB, even with 10M+ rows.
+(new FastExcel(User::cursor()))->export('users.xlsx');
+```
+
+For any other source, hand `export()` a generator [using `yield`](https://www.php.net/manual/en/language.generators.syntax.php):
+
+```php
+function rowsGenerator() {
+    foreach (some_paginated_source() as $row) {
+        yield $row;
     }
 }
 
-// Export consumes only a few MB, even with 10M+ rows.
-(new FastExcel(usersGenerator()))->export('test.xlsx');
+(new FastExcel(rowsGenerator()))->export('test.xlsx');
 ```
+
+Exporting 1,000,000 rows (4 columns) under a 512 MB `memory_limit`:
+
+| How you export | Peak memory | Result |
+| --- | --- | --- |
+| `export()` from a materialized collection | > 512 MB | **fails** once it exceeds `memory_limit` |
+| `export()` from a cursor / generator (streaming) | ~4 MB | always completes |
+
+Streaming does not change export *speed* (that is dominated by the underlying
+[OpenSpout](https://github.com/openspout/openspout) writer) — it is what keeps memory flat
+so very large files finish at all. `transpose()` cannot stream, as it must buffer the whole
+dataset to pivot rows and columns.
 
 ### Import large files (low memory)
 
@@ -307,12 +362,19 @@ Use it only for simple tasks.
 
 ## Benchmarks
 
-> Tested on a MacBook Pro 2015 2,7 GHz Intel Core i5 16 Go 1867 MHz DDR3.
-Testing a XLSX export for 10000 lines, 20 columns with random data, 10 iterations, 2018-04-05. **Don't trust benchmarks.**
+XLSX export of 10,000 rows × 20 columns of random data, average of 10 runs (PHP 8.4, July 2026). **Don't trust benchmarks.**
 
-|   | Average memory peak usage  | Execution time |
+![FastExcel vs Laravel Excel — memory and time benchmark](bench/benchmark.svg)
+
+|   | Peak memory | Execution time |
 |---|---|---|
-| Laravel Excel  | 123.56 M  | 11.56 s |
-| FastExcel  | 2.09 M | 2.76 s |
+| Laravel Excel 3.1 | 218 MB | 2.53 s |
+| FastExcel — collection | 42 MB | 0.90 s |
+| **FastExcel — generator** | **4 MB** | **0.93 s** |
+
+FastExcel streams rows through [OpenSpout](https://github.com/openspout/openspout) instead of building the whole
+spreadsheet in memory. Feed it a generator (or `importLazy()` on the read side) and peak memory stays flat no matter how
+many rows you export — here about **55× less** than Laravel Excel. Reproduce with
+[`bench/readme-export-bench.php`](bench/readme-export-bench.php).
 
 Still, remember that [Laravel Excel](https://laravel-excel.com/) **has many more features.**

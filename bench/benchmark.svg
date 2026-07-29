@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" width="900" height="540" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" role="img" aria-label="Benchmark: FastExcel versus Laravel Excel exporting 10,000 rows by 20 columns to XLSX. Peak memory: Laravel Excel 218 MB, FastExcel collection 42 MB, FastExcel generator 4 MB. Execution time: Laravel Excel 2.53 s, FastExcel collection 0.90 s, FastExcel generator 0.93 s.">
+  <defs>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f6f8fa"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6d94df"/>
+      <stop offset="1" stop-color="#4f7cc9"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1eb681"/>
+      <stop offset="1" stop-color="#0f9d63"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0f9d63"/>
+      <stop offset="1" stop-color="#4f7cc9"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-40%" width="140%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#0f2038" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <!-- card -->
+  <rect x="3" y="3" width="894" height="534" rx="22" fill="url(#card)" stroke="#e6e8eb" stroke-width="1.5"/>
+
+  <!-- header -->
+  <text x="40" y="56" font-size="26" font-weight="800" fill="#141d2b" letter-spacing="-0.3">FastExcel <tspan fill="#9aa4ad" font-weight="600">vs</tspan> Laravel Excel</text>
+  <rect x="40" y="70" width="54" height="4" rx="2" fill="url(#accent)"/>
+  <text x="40" y="98" font-size="13.5" fill="#7b8794">XLSX export &#183; 10,000 rows &#215; 20 columns &#183; PHP 8.4 &#183; average of 10 runs &#183; Jul 2026</text>
+
+  <!-- hero stat tiles -->
+  <g>
+    <rect x="556" y="24" width="150" height="70" rx="16" fill="#e9f6ef"/>
+    <text x="631" y="62" font-size="30" font-weight="800" fill="#0f7a4f" text-anchor="middle" letter-spacing="-0.5">55&#215;</text>
+    <text x="631" y="82" font-size="11.5" font-weight="600" fill="#3f8063" text-anchor="middle" letter-spacing="0.3">LESS MEMORY</text>
+
+    <rect x="714" y="24" width="150" height="70" rx="16" fill="#e9f1fb"/>
+    <text x="789" y="62" font-size="30" font-weight="800" fill="#2f5fa8" text-anchor="middle" letter-spacing="-0.5">&#8776;3&#215;</text>
+    <text x="789" y="82" font-size="11.5" font-weight="600" fill="#476aa0" text-anchor="middle" letter-spacing="0.3">FASTER</text>
+  </g>
+
+  <!-- legend -->
+  <g font-size="13" fill="#55606e">
+    <rect x="40" y="112" width="13" height="13" rx="3.5" fill="url(#blue)"/>
+    <text x="60" y="123">Laravel Excel</text>
+    <rect x="170" y="112" width="13" height="13" rx="3.5" fill="url(#green)"/>
+    <text x="190" y="123">FastExcel</text>
+  </g>
+
+  <!-- ===== Panel A: Peak memory ===== -->
+  <text x="40" y="162" font-size="15" font-weight="700" fill="#2b3440">Peak memory <tspan fill="#9aa4ad" font-weight="400">&#183; MB &#183; lower is better</tspan></text>
+
+  <!-- winner highlight (generator) -->
+  <rect x="30" y="248" width="840" height="30" rx="9" fill="#f0faf5"/>
+  <!-- baseline -->
+  <line x1="270" y1="176" x2="270" y2="278" stroke="#dbe1e6" stroke-width="1.5"/>
+
+  <!-- row 1: Laravel Excel 218 -->
+  <text x="255" y="192" font-size="13" fill="#6b7280" text-anchor="end">Laravel Excel</text>
+  <rect x="270" y="177" width="560" height="21" rx="7" fill="#eef1f3"/>
+  <rect x="270" y="177" width="560" height="21" rx="7" fill="url(#blue)" filter="url(#soft)"/>
+  <text x="819" y="192" font-size="13" font-weight="700" fill="#ffffff" text-anchor="end">218 MB</text>
+
+  <!-- row 2: FastExcel collection 42 -->
+  <text x="255" y="230" font-size="13" fill="#6b7280" text-anchor="end">FastExcel &#183; collection</text>
+  <rect x="270" y="215" width="560" height="21" rx="7" fill="#eef1f3"/>
+  <rect x="270" y="215" width="108" height="21" rx="7" fill="url(#green)" filter="url(#soft)"/>
+  <text x="389" y="230" font-size="13" font-weight="700" fill="#0f7a4f" text-anchor="start">42 MB</text>
+
+  <!-- row 3: FastExcel generator 4 -->
+  <text x="255" y="268" font-size="13" fill="#3f8063" font-weight="600" text-anchor="end">FastExcel &#183; generator</text>
+  <rect x="270" y="253" width="560" height="21" rx="7" fill="#e3f3ea"/>
+  <rect x="270" y="253" width="10" height="21" rx="5" fill="url(#green)" filter="url(#soft)"/>
+  <text x="290" y="268" font-size="13" font-weight="700" fill="#0f7a4f" text-anchor="start">4 MB</text>
+
+  <!-- ===== Panel B: Execution time ===== -->
+  <text x="40" y="336" font-size="15" font-weight="700" fill="#2b3440">Execution time <tspan fill="#9aa4ad" font-weight="400">&#183; seconds &#183; lower is better</tspan></text>
+
+  <rect x="30" y="420" width="840" height="30" rx="9" fill="#f0faf5"/>
+  <line x1="270" y1="350" x2="270" y2="450" stroke="#dbe1e6" stroke-width="1.5"/>
+
+  <!-- row 1: Laravel Excel 2.53 -->
+  <text x="255" y="365" font-size="13" fill="#6b7280" text-anchor="end">Laravel Excel</text>
+  <rect x="270" y="350" width="560" height="21" rx="7" fill="#eef1f3"/>
+  <rect x="270" y="350" width="560" height="21" rx="7" fill="url(#blue)" filter="url(#soft)"/>
+  <text x="819" y="365" font-size="13" font-weight="700" fill="#ffffff" text-anchor="end">2.53 s</text>
+
+  <!-- row 2: FastExcel collection 0.90 -->
+  <text x="255" y="403" font-size="13" fill="#6b7280" text-anchor="end">FastExcel &#183; collection</text>
+  <rect x="270" y="388" width="560" height="21" rx="7" fill="#eef1f3"/>
+  <rect x="270" y="388" width="199" height="21" rx="7" fill="url(#green)" filter="url(#soft)"/>
+  <text x="479" y="403" font-size="13" font-weight="700" fill="#0f7a4f" text-anchor="start">0.90 s</text>
+
+  <!-- row 3: FastExcel generator 0.93 -->
+  <text x="255" y="441" font-size="13" fill="#3f8063" font-weight="600" text-anchor="end">FastExcel &#183; generator</text>
+  <rect x="270" y="426" width="560" height="21" rx="7" fill="#e3f3ea"/>
+  <rect x="270" y="426" width="206" height="21" rx="7" fill="url(#green)" filter="url(#soft)"/>
+  <text x="486" y="441" font-size="13" font-weight="700" fill="#0f7a4f" text-anchor="start">0.93 s</text>
+
+  <!-- footer -->
+  <line x1="40" y1="486" x2="860" y2="486" stroke="#edf0f2" stroke-width="1.5"/>
+  <text x="40" y="512" font-size="11.5" fill="#9aa4ad">Laravel Excel 3.1 (PhpSpreadsheet 1.30) &#183; FastExcel 5.x (OpenSpout) &#183; reproduce with bench/readme-export-bench.php &#183; don&#8217;t trust benchmarks.</text>
+</svg>

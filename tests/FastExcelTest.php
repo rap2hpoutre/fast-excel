@@ -210,6 +210,103 @@ class FastExcelTest extends TestCase
     }
 
     /**
+     * Columns whose key starts with an underscore are excluded from the file
+     * (both header and data), so they can be used for callback-only logic.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testExportExcludesUnderscorePrefixedColumns()
+    {
+        $file = __DIR__.'/test_underscore.xlsx';
+        $collection = collect([
+            ['name' => 'Alice', '_secret' => 'hidden1', 'age' => '30'],
+            ['name' => 'Bob', '_secret' => 'hidden2', 'age' => '25'],
+        ]);
+
+        (new FastExcel(clone $collection))->hideColumnsPrefixedWith()->export($file);
+
+        $imported = (new FastExcel())->import($file);
+
+        $this->assertEquals(
+            collect([
+                ['name' => 'Alice', 'age' => '30'],
+                ['name' => 'Bob', 'age' => '25'],
+            ]),
+            $imported
+        );
+
+        foreach ($imported as $row) {
+            $this->assertArrayNotHasKey('_secret', $row);
+            $this->assertArrayHasKey('name', $row);
+            $this->assertArrayHasKey('age', $row);
+        }
+
+        unlink($file);
+    }
+
+    /**
+     * Hiding is opt-in: without hideColumnsPrefixedWith(), a legitimate column
+     * whose name starts with an underscore (e.g. Mongo's _id) is still exported.
+     */
+    public function testExportKeepsUnderscorePrefixedColumnsByDefault()
+    {
+        $file = __DIR__.'/test_underscore_default.xlsx';
+        $collection = collect([
+            ['_id' => '507f1f77', 'name' => 'Alice'],
+            ['_id' => '507f191e', 'name' => 'Bob'],
+        ]);
+
+        (new FastExcel(clone $collection))->export($file);
+
+        $this->assertEquals($collection, (new FastExcel())->import($file));
+
+        unlink($file);
+    }
+
+    public function testExportHidesColumnsWithCustomPrefix()
+    {
+        $file = __DIR__.'/test_underscore_custom.xlsx';
+        $collection = collect([
+            ['name' => 'Alice', 'tmp_score' => '9', '_id' => '1'],
+            ['name' => 'Bob', 'tmp_score' => '7', '_id' => '2'],
+        ]);
+
+        (new FastExcel(clone $collection))->hideColumnsPrefixedWith('tmp_')->export($file);
+
+        // Only the tmp_ column is dropped; _id is untouched by a custom prefix.
+        $this->assertEquals(
+            collect([
+                ['name' => 'Alice', '_id' => '1'],
+                ['name' => 'Bob', '_id' => '2'],
+            ]),
+            (new FastExcel())->import($file)
+        );
+
+        unlink($file);
+    }
+
+    public function testHiddenColumnsLeavePositionalRowsUntouched()
+    {
+        $file = __DIR__.'/test_underscore_positional.csv';
+        $collection = collect([
+            ['Alice', '30'],
+            ['Bob', '25'],
+        ]);
+
+        (new FastExcel(clone $collection))->hideColumnsPrefixedWith()->export($file);
+
+        // Numeric keys are never hidden, so every value survives the export.
+        $this->assertStringContainsString('Alice', file_get_contents($file));
+        $this->assertStringContainsString('25', file_get_contents($file));
+
+        unlink($file);
+    }
+
+    /**
      * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
@@ -273,6 +370,39 @@ class FastExcelTest extends TestCase
 
         $this->assertEquals($collections['Sheet with name A'], collect($sheets->get('Sheet with name A')));
         $this->assertEquals($collections['Sheet with name B'], collect($sheets->get('Sheet with name B')));
+
+        unlink($file);
+    }
+
+    /**
+     * A sheet can be selected for import by its name, not only by its 1-based index.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testImportSheetByName()
+    {
+        $first = collect([['test' => 'row1 col1'], ['test' => 'row2 col1'], ['test' => 'row3 col1']]);
+        $second = $this->collection();
+
+        $file = __DIR__.'/test_import_sheet_by_name.xlsx';
+        $sheets = new SheetCollection([
+            'First sheet'  => $first,
+            'Second sheet' => $second,
+        ]);
+        (new FastExcel($sheets))->export($file);
+
+        // Select the second sheet by its NAME (proves name selection, not index).
+        $this->assertEquals($second, (new FastExcel())->sheet('Second sheet')->import($file));
+
+        // Selecting the first sheet by name returns the first sheet's data.
+        $this->assertEquals($first, (new FastExcel())->sheet('First sheet')->import($file));
+
+        // Index selection still works: sheet 2 is the second sheet.
+        $this->assertEquals($second, (new FastExcel())->sheet(2)->import($file));
 
         unlink($file);
     }
@@ -403,6 +533,74 @@ class FastExcelTest extends TestCase
         $this->assertEquals(collect([
             ['col1' => '1/2/2022'],
             ['col1' => '1/3/2022'],
+        ]), $collection);
+    }
+
+    /**
+     * limitRows() stops the eager import after N data rows (headers excluded).
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportWithLimitRows()
+    {
+        $collection = (new FastExcel())->limitRows(2)->import(__DIR__.'/test1.xlsx');
+
+        // Only the first two data rows are returned, still keyed by their headers.
+        $this->assertEquals(collect([
+            ['col1' => 'row1 col1', 'col2' => 'row1 col2'],
+            ['col1' => 'row2 col1', 'col2' => ''],
+        ]), $collection);
+    }
+
+    /**
+     * limitRows(null) removes the limit and imports every data row.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportWithoutLimitRows()
+    {
+        $collection = (new FastExcel())->limitRows(null)->import(__DIR__.'/test1.xlsx');
+
+        $this->assertEquals($this->collection(), $collection);
+    }
+
+    /**
+     * limitRows() counts data rows, not raw iterator keys, so it composes with startRow().
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportWithLimitRowsAndStartRow()
+    {
+        $collection = (new FastExcel())
+            ->startRow(2)
+            ->withoutHeaders()
+            ->limitRows(1)
+            ->import(__DIR__.'/test1.xlsx');
+
+        $this->assertCount(1, $collection);
+        $this->assertEquals(['row1 col1', 'row1 col2'], $collection->first());
+    }
+
+    /**
+     * The lazy import path honors limitRows() identically to the eager path.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportLazyWithLimitRows()
+    {
+        $collection = (new FastExcel())->limitRows(2)->importLazy(__DIR__.'/test1.xlsx')->collect();
+
+        $this->assertEquals(collect([
+            ['col1' => 'row1 col1', 'col2' => 'row1 col2'],
+            ['col1' => 'row2 col1', 'col2' => ''],
         ]), $collection);
     }
 }
