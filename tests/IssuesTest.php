@@ -513,4 +513,36 @@ class IssuesTest extends TestCase
 
         unlink($file);
     }
+
+    /**
+     * Issue #241: when the row callback throws, import() (and importSheets())
+     * must still close the reader. Previously close() ran after the loop, so an
+     * exception in the callback leaked the open reader (and XLSX temp files).
+     * Wrapping the loop in try/finally releases the reader; a follow-up import
+     * of the same file must then succeed.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testIssue241ReaderClosedWhenCallbackThrows()
+    {
+        $file = __DIR__.'/test1.xlsx';
+
+        // The callback throws mid-import; the exception must propagate.
+        try {
+            (new FastExcel())->import($file, function () {
+                throw new \RuntimeException('boom');
+            });
+            $this->fail('Expected RuntimeException was not thrown.');
+        } catch (\RuntimeException $e) {
+            $this->assertSame('boom', $e->getMessage());
+        }
+
+        // Regression guard: the reader was released, so re-importing the same
+        // file works and returns the expected rows.
+        $rows = (new FastExcel())->import($file);
+        $this->assertInstanceOf(Collection::class, $rows);
+        $this->assertEquals($this->collection(), $rows);
+    }
 }
