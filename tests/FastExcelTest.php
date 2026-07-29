@@ -375,6 +375,39 @@ class FastExcelTest extends TestCase
     }
 
     /**
+     * A sheet can be selected for import by its name, not only by its 1-based index.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testImportSheetByName()
+    {
+        $first = collect([['test' => 'row1 col1'], ['test' => 'row2 col1'], ['test' => 'row3 col1']]);
+        $second = $this->collection();
+
+        $file = __DIR__.'/test_import_sheet_by_name.xlsx';
+        $sheets = new SheetCollection([
+            'First sheet'  => $first,
+            'Second sheet' => $second,
+        ]);
+        (new FastExcel($sheets))->export($file);
+
+        // Select the second sheet by its NAME (proves name selection, not index).
+        $this->assertEquals($second, (new FastExcel())->sheet('Second sheet')->import($file));
+
+        // Selecting the first sheet by name returns the first sheet's data.
+        $this->assertEquals($first, (new FastExcel())->sheet('First sheet')->import($file));
+
+        // Index selection still works: sheet 2 is the second sheet.
+        $this->assertEquals($second, (new FastExcel())->sheet(2)->import($file));
+
+        unlink($file);
+    }
+
+    /**
      * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
