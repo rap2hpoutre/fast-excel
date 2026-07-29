@@ -91,7 +91,7 @@ class FastExcel
     }
 
     /**
-     * @param $sheet_number
+     * @param int|string $sheet_number 1-based index or sheet name
      *
      * @return $this
      */
