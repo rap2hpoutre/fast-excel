@@ -5,6 +5,7 @@ namespace Rap2hpoutre\FastExcel;
 use DateTimeInterface;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\Common\AbstractOptions;
@@ -322,6 +323,12 @@ trait Exportable
                 // Column styles are matched against the value keys; use positional
                 // keys so numeric style indexes work with associative rows.
                 $writer->addRow($this->createRow(array_values($values), $this->rows_style, $this->column_styles));
+            } elseif ($this->rowHasCell($values)) {
+                // Row::fromValues() cannot accept Cell instances; build the row
+                // manually so pre-built cells are written through as-is. We
+                // already know it has a cell, so call the builder directly
+                // instead of createRow() to avoid a second rowHasCell() scan.
+                $writer->addRow($this->buildRowFromCells(array_values($values)));
             } else {
                 $writer->addRow(Row::fromValues($values));
             }
@@ -438,7 +445,7 @@ trait Exportable
         $row = [];
         foreach (is_array($data) ? $data : collect($data)->all() as $key => $value) {
             $value = is_null($value) ? '' : $this->formatValue($value, $key);
-            if (is_string($value) || is_int($value) || is_float($value) || $value instanceof DateTimeInterface) {
+            if (is_string($value) || is_int($value) || is_float($value) || $value instanceof DateTimeInterface || $value instanceof Cell) {
                 $row[$key] = $value;
             }
         }
@@ -517,6 +524,45 @@ trait Exportable
      */
     private function createRow(array $values = [], ?Style $rows_style = null, array $column_styles = []): Row
     {
-        return Row::fromValuesWithStyles($values, $rows_style, $column_styles);
+        // Fast path: no pre-built cells, let OpenSpout build them from scalars.
+        if (!$this->rowHasCell($values)) {
+            return Row::fromValuesWithStyles($values, $rows_style, $column_styles);
+        }
+
+        return $this->buildRowFromCells($values, $rows_style, $column_styles);
+    }
+
+    /**
+     * Build a Row when at least one value is already a Cell: use those cells
+     * as-is and convert the remaining scalars, preserving any per-column style.
+     * Row::fromValuesWithStyles() cannot be used here because it calls
+     * Cell::fromValue() on every value.
+     *
+     * @SuppressWarnings(PHPMD.StaticAccess)
+     */
+    private function buildRowFromCells(array $values, ?Style $rows_style = null, array $column_styles = []): Row
+    {
+        $cells = [];
+        foreach ($values as $key => $value) {
+            $cells[] = $value instanceof Cell
+                ? $value
+                : Cell::fromValue($value, $column_styles[$key] ?? null);
+        }
+
+        return new Row($cells, $rows_style);
+    }
+
+    /**
+     * Whether any value in the given row is already an OpenSpout Cell instance.
+     */
+    private function rowHasCell(array $row): bool
+    {
+        foreach ($row as $value) {
+            if ($value instanceof Cell) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
