@@ -12,12 +12,12 @@ use OpenSpout\Writer\Common\AbstractOptions;
 /**
  * Trait Importable.
  *
- * @property int  $start_row
- * @property ?int $end_row
- * @property ?int $end_column
+ * @property int        $start_row
+ * @property ?int       $end_row
+ * @property ?int       $end_column
  * @property int[]|null $only_columns
- * @property bool $transpose
- * @property bool $with_header
+ * @property bool       $transpose
+ * @property bool       $with_header
  */
 trait Importable
 {
@@ -358,7 +358,7 @@ trait Importable
 
                 return match (true) {
                     $cell instanceof Cell\FormulaCell => $cell->getComputedValue(),
-                    default => $cell->getValue(),
+                    default                           => $cell->getValue(),
                 };
             }, $this->only_columns);
         }
@@ -370,7 +370,7 @@ trait Importable
         return array_map(function (Cell $cell) {
             return match (true) {
                 $cell instanceof Cell\FormulaCell => $cell->getComputedValue(),
-                default => $cell->getValue(),
+                default                           => $cell->getValue(),
             };
         }, $cells);
     }
