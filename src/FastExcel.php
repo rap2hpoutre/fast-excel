@@ -230,20 +230,21 @@ class FastExcel
     {
         if (is_int($column) || ctype_digit($column)) {
             $index = (int) $column;
-        } else {
-            $letters = strtoupper(trim($column));
-            if ($letters === '' || !ctype_alpha($letters)) {
-                throw new InvalidArgumentException("Invalid column reference [$column].");
+            if ($index < 1) {
+                throw new InvalidArgumentException("Column reference [$column] must be greater than zero.");
             }
 
-            $index = 0;
-            foreach (str_split($letters) as $letter) {
-                $index = $index * 26 + ord($letter) - ord('A') + 1;
-            }
+            return $index;
         }
 
-        if ($index < 1) {
-            throw new InvalidArgumentException("Column reference [$column] must be greater than zero.");
+        $letters = strtoupper(trim($column));
+        if ($letters === '' || !ctype_alpha($letters)) {
+            throw new InvalidArgumentException("Invalid column reference [$column].");
+        }
+
+        $index = 0;
+        foreach (str_split($letters) as $letter) {
+            $index = $index * 26 + ord($letter) - ord('A') + 1;
         }
 
         return $index;
