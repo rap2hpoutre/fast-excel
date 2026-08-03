@@ -3,6 +3,7 @@
 namespace Rap2hpoutre\FastExcel;
 
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 use OpenSpout\Reader\CSV\Options as CsvReaderOptions;
 use OpenSpout\Writer\Common\AbstractOptions;
 use OpenSpout\Writer\CSV\Options as CsvWriterOptions;
@@ -40,6 +41,18 @@ class FastExcel
      * @var int|null
      */
     private $end_row = null;
+
+    /**
+     * @var int|null
+     */
+    private $end_column = null;
+
+    /**
+     * 1-based column indexes to keep when importing. Null means no allowlist.
+     *
+     * @var int[]|null
+     */
+    private $only_columns = null;
 
     /**
      * @var bool
@@ -156,6 +169,97 @@ class FastExcel
         $this->end_row = $rows;
 
         return $this;
+    }
+
+    /**
+     * Stop reading each row after the given column, given either as a number of
+     * columns (8) or as a column reference ('H'). Pass null to remove the limit.
+     * Setting a limit clears any onlyColumns() allowlist; clearing with null does not.
+     *
+     * @param int|string|null $column
+     *
+     * @return $this
+     */
+    public function limitColumns(int|string|null $column = null)
+    {
+        if ($column === null) {
+            $this->end_column = null;
+
+            return $this;
+        }
+
+        $this->only_columns = null;
+        $this->end_column = $this->columnIndex($column);
+
+        return $this;
+    }
+
+    /**
+     * Keep only the given columns when importing (letters or 1-based indexes).
+     * Order is preserved. Pass null to clear the allowlist.
+     * Setting an allowlist clears any limitColumns() cap; clearing with null does not.
+     *
+     * @param array<int, int|string>|null $columns
+     *
+     * @return $this
+     */
+    public function onlyColumns(?array $columns = null)
+    {
+        if ($columns === null) {
+            $this->only_columns = null;
+
+            return $this;
+        }
+
+        if ($columns === []) {
+            throw new InvalidArgumentException('onlyColumns() requires at least one column.');
+        }
+
+        $this->end_column = null;
+        $indexes = array_values(array_map(
+            fn ($column) => $this->columnIndex($column),
+            $columns
+        ));
+
+        if (count($indexes) !== count(array_unique($indexes))) {
+            throw new InvalidArgumentException('onlyColumns() does not allow duplicate columns.');
+        }
+
+        $this->only_columns = $indexes;
+
+        return $this;
+    }
+
+    /**
+     * Resolve a column reference to its 1-based index: both 8 and 'H' give 8,
+     * 'AA' gives 27.
+     *
+     * @param int|string $column
+     *
+     * @return int
+     */
+    private function columnIndex(int|string $column)
+    {
+        if (is_int($column) || ctype_digit($column)) {
+            $index = (int) $column;
+            if ($index < 1) {
+                throw new InvalidArgumentException("Column reference [$column] must be greater than zero.");
+            }
+
+            return $index;
+        }
+
+        $letters = strtoupper(trim($column));
+        if ($letters === '' || !ctype_alpha($letters)) {
+            throw new InvalidArgumentException("Invalid column reference [$column].");
+        }
+
+        $index = 0;
+        foreach (str_split($letters) as $letter) {
+            $index = $index * 26 + ord($letter) - ord('A') + 1;
+        }
+
+        return $index;
     }
 
     /**

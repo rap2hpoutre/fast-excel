@@ -120,6 +120,31 @@ Limit the number of data rows imported with `limitRows` (headers excluded). It w
 $collection = (new FastExcel)->limitRows(100)->import('file.xlsx');
 ```
 
+Truncate each imported row after a given column with `limitColumns`, which takes
+either a column reference or a number of columns:
+
+```php
+$collection = (new FastExcel)->limitColumns('H')->import('file.xlsx');
+$collection = (new FastExcel)->limitColumns(8)->import('file.xlsx');
+```
+
+This is useful for files where formatting has been applied to entire rows: the
+spreadsheet then reports thousands of trailing cells that look like real columns,
+and importing them yields empty `column_9`, `column_10`… entries on every row.
+Those cells are dropped from the imported collection (OpenSpout still parses the
+sheet). Like `limitRows`, it works with both `import` and `importLazy`.
+
+Keep specific columns (and drop everything else, including middle empties) with
+`onlyColumns`. Letters and 1-based indexes can be mixed; order is preserved:
+
+```php
+$collection = (new FastExcel)->onlyColumns(['A', 'B', 'H'])->import('file.xlsx');
+$collection = (new FastExcel)->onlyColumns([1, 2, 8])->import('file.xlsx');
+```
+
+`onlyColumns` and `limitColumns` cannot both be active — setting one clears the other.
+Passing `null` only clears that setter and leaves the other alone.
+
 ## Facades
 
 You may use FastExcel with the optional Facade. Add the following line to ``config/app.php`` under the ``aliases`` key.

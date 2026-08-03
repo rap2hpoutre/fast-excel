@@ -5,16 +5,19 @@ namespace Rap2hpoutre\FastExcel;
 use Illuminate\Support\Collection;
 use Illuminate\Support\LazyCollection;
 use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
 use OpenSpout\Reader\SheetInterface;
 use OpenSpout\Writer\Common\AbstractOptions;
 
 /**
  * Trait Importable.
  *
- * @property int  $start_row
- * @property ?int $end_row
- * @property bool $transpose
- * @property bool $with_header
+ * @property int        $start_row
+ * @property ?int       $end_row
+ * @property ?int       $end_column
+ * @property int[]|null $only_columns
+ * @property bool       $transpose
+ * @property bool       $with_header
  */
 trait Importable
 {
@@ -362,6 +365,47 @@ trait Importable
     }
 
     /**
+     * Read the values of a row, optionally filtered by only_columns or end_column.
+     *
+     * only_columns picks specific positions (and can skip a middle gap).
+     * end_column truncates after a given column. Filtering happens before values
+     * are read so trailing formatted-empty cells are not materialised.
+     *
+     * @param Row $rowAsObject
+     *
+     * @return array
+     */
+    private function rowValues(Row $rowAsObject): array
+    {
+        $cells = $rowAsObject->getCells();
+
+        if ($this->only_columns !== null) {
+            return array_map(function (int $column) use ($cells) {
+                $cell = $cells[$column - 1] ?? null;
+                if ($cell === null) {
+                    return null;
+                }
+
+                return match (true) {
+                    $cell instanceof Cell\FormulaCell => $cell->getComputedValue(),
+                    default                           => $cell->getValue(),
+                };
+            }, $this->only_columns);
+        }
+
+        if ($this->end_column !== null) {
+            $cells = array_slice($cells, 0, $this->end_column);
+        }
+
+        return array_map(function (Cell $cell) {
+            return match (true) {
+                $cell instanceof Cell\FormulaCell => $cell->getComputedValue(),
+                default                           => $cell->getValue(),
+            };
+        }, $cells);
+    }
+
+    /**
      * Normalize a row according to start_row and headers.
      * - Updates $headers and $count_header when encountering header row.
      * - Pads/truncates rows to header size when headers exist.
@@ -414,14 +458,7 @@ trait Importable
         $count_rows = 0;
 
         foreach ($sheet->getRowIterator() as $key => $rowAsObject) {
-            $row = array_map(function (Cell $cell) {
-                return match (true) {
-                    $cell instanceof Cell\FormulaCell => $cell->getComputedValue(),
-                    default                           => $cell->getValue(),
-                };
-            }, $rowAsObject->getCells());
-
-            $current = $this->normalizeRow($key, $row, $headers, $count_header);
+            $current = $this->normalizeRow($key, $this->rowValues($rowAsObject), $headers, $count_header);
             if ($current === null) {
                 continue;
             }
@@ -462,14 +499,7 @@ trait Importable
         $count_rows = 0;
 
         foreach ($sheet->getRowIterator() as $key => $rowAsObject) {
-            $row = array_map(function (Cell $cell) {
-                return match (true) {
-                    $cell instanceof Cell\FormulaCell => $cell->getComputedValue(),
-                    default                           => $cell->getValue(),
-                };
-            }, $rowAsObject->getCells());
-
-            $current = $this->normalizeRow($key, $row, $headers, $count_header);
+            $current = $this->normalizeRow($key, $this->rowValues($rowAsObject), $headers, $count_header);
             if ($current === null) {
                 continue;
             }
@@ -509,10 +539,10 @@ trait Importable
 
     /**
      * Make header names usable as array keys. Empty headers get a positional
-     * name (`column_N`) and duplicated headers are de-duplicated: the first
-     * occurrence is kept and later ones get a numeric suffix (`Name`, `Name_2`).
-     * Without this, columns that share a name collide in array_combine() and
-     * their values are silently lost.
+     * name (`column_N`, using the sheet column number) and duplicated headers
+     * are de-duplicated: the first occurrence is kept and later ones get a
+     * numeric suffix (`Name`, `Name_2`). Without this, columns that share a
+     * name collide in array_combine() and their values are silently lost.
      *
      * @param array $headers
      *
@@ -524,7 +554,10 @@ trait Importable
         foreach ($headers as $index => $header) {
             $header = (string) $header;
             if ($header === '') {
-                $header = 'column_'.($index + 1);
+                // Prefer the original sheet column (1-based) when an allowlist
+                // remapped positions, so onlyColumns(['B']) yields column_2.
+                $columnNumber = $this->only_columns[$index] ?? ($index + 1);
+                $header = 'column_'.$columnNumber;
             }
 
             $base = $header;
