@@ -5,6 +5,7 @@ namespace Rap2hpoutre\FastExcel\Tests;
 use Illuminate\Support\Collection;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
+use ZipArchive;
 
 /**
  * Class IssuesTest.
@@ -545,4 +546,60 @@ class IssuesTest extends TestCase
         $this->assertInstanceOf(Collection::class, $rows);
         $this->assertEquals($this->collection(), $rows);
     }
+
+    /**
+     * Issue #420: exporting a sheet with right-to-left content (e.g. Arabic) 
+     * had no way to set the sheet's reading direction. openspout's
+     * SheetView already supports this via setRightToLeft(); rightToLeft()
+     * exposes it, applied once the writer is opened (the sheet does not exist
+     * yet inside configureWriterUsing()).
+     *
+     * @see https://github.com/rap2hpoutre/fast-excel/issues/420
+     */
+    public function testIssue420()
+    {
+        $file = __DIR__.'/issue420.xlsx';
+
+        (new FastExcel(collect([['name' => 'محمد', 'value' => 100]])))
+            ->rightToLeft()
+            ->export($file);
+
+        $zip = new ZipArchive();
+        $zip->open($file);
+        $sheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
+        $zip->close();
+
+        $this->assertStringContainsString('rightToLeft="true"', $sheetXml);
+
+        unlink($file);
+    }
+
+    /**
+     * rightToLeft() must apply to every sheet in a SheetCollection export, not
+     * only the first — SheetView has to be re-applied after each
+     * addNewSheetAndMakeItCurrent() call.
+     */
+    public function testIssue420MultiSheet()
+    {
+        $file = __DIR__.'/issue420_multisheet.xlsx';
+
+        (new FastExcel(new SheetCollection([
+            'Sheet A' => collect([['name' => 'محمد']]),
+            'Sheet B' => collect([['name' => 'محمود']]),
+            'Sheet C' => collect([['name' => 'احمد']]),
+            'Sheet D' => collect([['name' => 'عماد']]),
+        ])))->rightToLeft()->export($file);
+
+        $zip = new ZipArchive();
+        $zip->open($file);
+        $sheet1 = $zip->getFromName('xl/worksheets/sheet1.xml');
+        $sheet2 = $zip->getFromName('xl/worksheets/sheet2.xml');
+        $zip->close();
+
+        $this->assertStringContainsString('rightToLeft="true"', $sheet1);
+        $this->assertStringContainsString('rightToLeft="true"', $sheet2);
+
+        unlink($file);
+    }
+
 }

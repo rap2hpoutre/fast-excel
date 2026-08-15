@@ -230,6 +230,13 @@ class FastExcel
         return $this;
     }
 
+    public function rightToLeft(bool $value = true): static
+    {
+        $this->right_to_left = $value;
+
+        return $this;
+    }
+
     /**
      * @param AbstractOptions $options
      */
