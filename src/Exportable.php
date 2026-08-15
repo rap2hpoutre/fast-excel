@@ -223,11 +223,11 @@ trait Exportable
             if ($has_sheets && $last_key !== $key) {
                 $writer->addNewSheetAndMakeItCurrent();
             }
-                if ($this->right_to_left && $writer instanceof Writer) {
-                    $sheetView = new SheetView();
-                    $sheetView->setRightToLeft(true);
-                    $writer->getCurrentSheet()->setSheetView($sheetView);
-                }
+            if ($this->right_to_left && $writer instanceof Writer) {
+                $sheetView = new SheetView();
+                $sheetView->setRightToLeft(true);
+                $writer->getCurrentSheet()->setSheetView($sheetView);
+            }
         }
         $writer->close();
     }

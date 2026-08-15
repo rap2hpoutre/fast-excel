@@ -548,7 +548,7 @@ class IssuesTest extends TestCase
     }
 
     /**
-     * Issue #420: exporting a sheet with right-to-left content (e.g. Arabic) 
+     * Issue #420: exporting a sheet with right-to-left content (e.g. Arabic)
      * had no way to set the sheet's reading direction. openspout's
      * SheetView already supports this via setRightToLeft(); rightToLeft()
      * exposes it, applied once the writer is opened (the sheet does not exist
