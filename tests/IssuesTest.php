@@ -601,5 +601,4 @@ class IssuesTest extends TestCase
 
         unlink($file);
     }
-
 }
