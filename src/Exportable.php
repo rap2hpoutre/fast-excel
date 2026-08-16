@@ -9,6 +9,8 @@ use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\Common\AbstractOptions;
 use OpenSpout\Writer\WriterInterface;
+use OpenSpout\Writer\XLSX\Entity\SheetView;
+use OpenSpout\Writer\XLSX\Writer;
 use Traversable;
 
 /**
@@ -41,6 +43,9 @@ trait Exportable
 
     /** @var string|null */
     private $hidden_column_prefix = null;
+
+    /** @var bool */
+    private $right_to_left = false;
 
     /**
      * @param AbstractOptions $options
@@ -191,6 +196,12 @@ trait Exportable
 
         $writer->$function($path);
 
+        if ($this->right_to_left && $writer instanceof Writer) {
+            $sheetView = new SheetView();
+            $sheetView->setRightToLeft(true);
+            $writer->getCurrentSheet()->setSheetView($sheetView);
+        }
+
         // It can export one sheet (Collection) or N sheets (SheetCollection)
         $data = $this->transpose ? $this->transposeData() : ($this->data instanceof SheetCollection ? $this->data : collect([$this->data]));
 
@@ -211,6 +222,11 @@ trait Exportable
             }
             if ($has_sheets && $last_key !== $key) {
                 $writer->addNewSheetAndMakeItCurrent();
+            }
+            if ($this->right_to_left && $writer instanceof Writer) {
+                $sheetView = new SheetView();
+                $sheetView->setRightToLeft(true);
+                $writer->getCurrentSheet()->setSheetView($sheetView);
             }
         }
         $writer->close();
