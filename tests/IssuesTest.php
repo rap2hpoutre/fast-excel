@@ -594,10 +594,14 @@ class IssuesTest extends TestCase
         $zip->open($file);
         $sheet1 = $zip->getFromName('xl/worksheets/sheet1.xml');
         $sheet2 = $zip->getFromName('xl/worksheets/sheet2.xml');
+        $sheet3 = $zip->getFromName('xl/worksheets/sheet3.xml');
+        $sheet4 = $zip->getFromName('xl/worksheets/sheet4.xml');
         $zip->close();
 
         $this->assertStringContainsString('rightToLeft="true"', $sheet1);
         $this->assertStringContainsString('rightToLeft="true"', $sheet2);
+        $this->assertStringContainsString('rightToLeft="true"', $sheet3);
+        $this->assertStringContainsString('rightToLeft="true"', $sheet4);
 
         unlink($file);
     }
