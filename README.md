@@ -369,6 +369,49 @@ return (new FastExcel($list))
     ->download('file.xlsx');
 ```
 
+### Set column widths
+
+Column widths are an OpenSpout writer option, so they are set through
+`configureOptionsUsing`. Widths are expressed in Excel's own unit (roughly the
+number of characters that fit), and column numbers are **1-based**:
+
+```php
+(new FastExcel($list))
+    ->configureOptionsUsing(function ($options) {
+        $options->setColumnWidth(40, 1);      // first column
+        $options->setColumnWidth(15, 2, 3);   // second and third columns
+    })
+    ->export('file.xlsx');
+```
+
+Use `setColumnWidthForRange` for a contiguous span:
+
+```php
+(new FastExcel($list))
+    ->configureOptionsUsing(function ($options) {
+        $options->setColumnWidthForRange(20, 1, 4); // columns 1 through 4
+    })
+    ->export('file.xlsx');
+```
+
+This works with streaming exports (cursors and generators) as well, since widths
+are written when the file is finalized rather than per row.
+
+Only `xlsx` and `ods` support widths. `csv` has no notion of column width, and
+`OpenSpout\Writer\CSV\Options` does not define `setColumnWidth()` at all — calling
+it on a csv export raises `Error: Call to undefined method`. If the same code path
+can export either format, guard the call:
+
+```php
+->configureOptionsUsing(function ($options) {
+    if (method_exists($options, 'setColumnWidth')) {
+        $options->setColumnWidth(40, 1);
+    }
+})
+```
+
+Note that widths are explicit — there is no automatic sizing to fit the content.
+
 ### Export values as strings or numbers
 
 By default numbers are written as numbers and strings as strings. Use
