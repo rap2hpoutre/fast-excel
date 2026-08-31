@@ -204,10 +204,13 @@ class FastExcel
         }
 
         $this->end_column = null;
-        $indexes = array_values(array_map(
-            fn ($column) => $this->columnIndex($column),
-            $columns
-        ));
+        $indexes = array_values(array_map(function ($column) {
+            if (!is_int($column) && !is_string($column)) {
+                throw new InvalidArgumentException('onlyColumns() accepts column letters or 1-based indexes.');
+            }
+
+            return $this->columnIndex($column);
+        }, $columns));
 
         if (count($indexes) !== count(array_unique($indexes))) {
             throw new InvalidArgumentException('onlyColumns() does not allow duplicate columns.');

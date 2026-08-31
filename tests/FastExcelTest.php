@@ -747,6 +747,22 @@ class FastExcelTest extends TestCase
         (new FastExcel())->onlyColumns(['A', 'A']);
     }
 
+    public function testOnlyColumnsRejectsNonIntOrStringMembers()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('onlyColumns() accepts column letters or 1-based indexes.');
+
+        (new FastExcel())->onlyColumns([1.7]);
+    }
+
+    public function testOnlyColumnsRejectsNullMembers()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('onlyColumns() accepts column letters or 1-based indexes.');
+
+        (new FastExcel())->onlyColumns([null]);
+    }
+
     /**
      * Empty headers keep the sheet column number after an allowlist remap.
      *
