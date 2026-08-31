@@ -393,6 +393,16 @@ precedence over `stringValues()`:
     ->export('users.xlsx');
 ```
 
+### Escape formulas (prevent formula injection)
+
+By default any string starting with `=` (e.g. `=1+2`) is written as a live
+formula cell, which can corrupt the file or enable CSV/formula injection. Call
+`escapeFormulas()` to write string values as literal text cells instead:
+
+```php
+(new FastExcel($rows))->escapeFormulas()->export('file.xlsx');
+```
+
 ### Use raw OpenSpout Cell instances
 
 For full control over a single cell's type or style, a row value may be an
