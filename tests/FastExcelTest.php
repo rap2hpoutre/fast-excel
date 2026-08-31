@@ -2,6 +2,7 @@
 
 namespace Rap2hpoutre\FastExcel\Tests;
 
+use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Common\Entity\Style\Color;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Common\Exception\IOException;
@@ -36,6 +37,61 @@ class FastExcelTest extends TestCase
             ->export($file);
 
         $this->assertEquals($collection, (new FastExcel())->import($file));
+        unlink($file);
+    }
+
+    /**
+     * A row value may be an OpenSpout Cell instance; it must be written
+     * through as-is instead of being dropped or stringified.
+     *
+     * @throws IOException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     */
+    public function testExportWithCellInstances()
+    {
+        $collection = collect([
+            ['col1' => Cell::fromValue('hello'), 'col2' => 'world'],
+            ['col1' => 'foo', 'col2' => Cell::fromValue('bar')],
+        ]);
+
+        $file = __DIR__.'/test-cell-instances.xlsx';
+        (new FastExcel(clone $collection))->export($file);
+
+        $this->assertEquals([
+            ['col1' => 'hello', 'col2' => 'world'],
+            ['col1' => 'foo', 'col2' => 'bar'],
+        ], (new FastExcel())->import($file)->toArray());
+        unlink($file);
+    }
+
+    /**
+     * Cell instances must also survive the styled export path (setColumnStyles).
+     *
+     * @throws IOException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     */
+    public function testExportWithCellInstancesAndColumnStyles()
+    {
+        $collection = collect([
+            ['col1' => Cell::fromValue('hello'), 'col2' => 'world'],
+        ]);
+
+        $file = __DIR__.'/test-cell-instances-styled.xlsx';
+        (new FastExcel(clone $collection))
+            ->setColumnStyles([
+                1 => (new Style())->setFontBold(),
+            ])
+            ->export($file);
+
+        $this->assertEquals([
+            ['col1' => 'hello', 'col2' => 'world'],
+        ], (new FastExcel())->import($file)->toArray());
         unlink($file);
     }
 
@@ -408,6 +464,46 @@ class FastExcelTest extends TestCase
     }
 
     /**
+     * Issue #366: withSheetContext() makes the importSheets callback receive the
+     * current sheet name as its first argument, so the same field names can be
+     * handled differently per sheet.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testImportSheetsWithSheetContext()
+    {
+        $collections = [
+            'Users'    => collect([['name' => 'Jane'], ['name' => 'John']]),
+            'Projects' => collect([['name' => 'Alpha']]),
+        ];
+        $file = __DIR__.'/test_sheet_context.xlsx';
+        (new FastExcel(new SheetCollection($collections)))->export($file);
+
+        $seenSheets = [];
+        $sheets = (new FastExcel())
+            ->withSheetsNames()
+            ->withSheetContext()
+            ->importSheets($file, function ($sheetName, $row) use (&$seenSheets) {
+                $seenSheets[] = $sheetName;
+
+                // Tag each row with the sheet it came from.
+                return $row + ['_sheet' => $sheetName];
+            });
+
+        // The callback received the sheet name for every row.
+        $this->assertSame(['Users', 'Users', 'Projects'], $seenSheets);
+        $this->assertSame('Users', $sheets->get('Users')[0]['_sheet']);
+        $this->assertSame('Jane', $sheets->get('Users')[0]['name']);
+        $this->assertSame('Projects', $sheets->get('Projects')[0]['_sheet']);
+
+        unlink($file);
+    }
+
+    /**
      * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\InvalidArgumentException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
@@ -602,5 +698,351 @@ class FastExcelTest extends TestCase
             ['col1' => 'row1 col1', 'col2' => 'row1 col2'],
             ['col1' => 'row2 col1', 'col2' => ''],
         ]), $collection);
+    }
+
+    /**
+     * Formatting applied past the data makes the reader report trailing columns
+     * that hold nothing, and they end up as positional headers on every row.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportWithoutLimitColumnsKeepsFormattedEmptyColumns()
+    {
+        $collection = (new FastExcel())->import($this->createFileWithFormattedEmptyColumns());
+
+        $this->assertEquals(
+            ['col1', 'col2', 'column_3', 'column_4', 'column_5'],
+            array_keys($collection->first())
+        );
+    }
+
+    /**
+     * limitColumns() drops those columns, whether given as a reference or a count.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportWithLimitColumns()
+    {
+        $file = $this->createFileWithFormattedEmptyColumns();
+
+        $expected = collect([
+            ['col1' => 'row1 col1', 'col2' => 'row1 col2'],
+            ['col1' => 'row2 col1', 'col2' => 'row2 col2'],
+        ]);
+
+        $this->assertEquals($expected, (new FastExcel())->limitColumns('B')->import($file));
+        $this->assertEquals($expected, (new FastExcel())->limitColumns(2)->import($file));
+    }
+
+    /**
+     * A limit wider than the sheet, and limitColumns(null), leave the row untouched.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportWithLimitColumnsWiderThanSheet()
+    {
+        $this->assertEquals($this->collection(), (new FastExcel())->limitColumns('Z')->import(__DIR__.'/test1.xlsx'));
+        $this->assertEquals($this->collection(), (new FastExcel())->limitColumns(null)->import(__DIR__.'/test1.xlsx'));
+    }
+
+    /**
+     * Column references past Z resolve to their real position: 'AA' is the 27th.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportWithMultiLetterLimitColumns()
+    {
+        $collection = (new FastExcel())->limitColumns('AA')->import(
+            $this->createFileWithFormattedEmptyColumns(40)
+        );
+
+        $this->assertCount(27, $collection->first());
+        $this->assertEquals('column_27', array_key_last($collection->first()));
+    }
+
+    /**
+     * The lazy import path honors limitColumns() identically to the eager path.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportLazyWithLimitColumns()
+    {
+        $collection = (new FastExcel())
+            ->limitColumns('B')
+            ->importLazy($this->createFileWithFormattedEmptyColumns())
+            ->collect();
+
+        $this->assertEquals(collect([
+            ['col1' => 'row1 col1', 'col2' => 'row1 col2'],
+            ['col1' => 'row2 col1', 'col2' => 'row2 col2'],
+        ]), $collection);
+    }
+
+    /**
+     * Anything that is neither a positive count nor a column reference is rejected.
+     */
+    public function testLimitColumnsRejectsInvalidReferences()
+    {
+        foreach ([0, -1, '', 'A1', '-'] as $column) {
+            try {
+                (new FastExcel())->limitColumns($column);
+                $this->fail("Expected [$column] to be rejected.");
+            } catch (\InvalidArgumentException $e) {
+                $this->assertStringContainsString("[$column]", $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * onlyColumns() keeps an allowlist and can skip a middle band of empties.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportWithOnlyColumnsSkipsMiddleEmpties()
+    {
+        $collection = (new FastExcel())
+            ->onlyColumns(['A', 'B', 'H'])
+            ->import($this->createFileWithMiddleEmptyColumnsAndTrailingData());
+
+        $this->assertEquals(collect([
+            ['col1' => 'row1 col1', 'col2' => 'row1 col2', 'extra' => 'h1'],
+            ['col1' => 'row2 col1', 'col2' => 'row2 col2', 'extra' => 'h2'],
+        ]), $collection);
+    }
+
+    /**
+     * onlyColumns() preserves allowlist order and accepts 1-based indexes.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportWithOnlyColumnsPreservesOrder()
+    {
+        $collection = (new FastExcel())
+            ->onlyColumns([8, 1])
+            ->import($this->createFileWithMiddleEmptyColumnsAndTrailingData());
+
+        $this->assertEquals(collect([
+            ['extra' => 'h1', 'col1' => 'row1 col1'],
+            ['extra' => 'h2', 'col1' => 'row2 col1'],
+        ]), $collection);
+    }
+
+    /**
+     * The lazy import path honors onlyColumns() identically to the eager path.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testImportLazyWithOnlyColumns()
+    {
+        $collection = (new FastExcel())
+            ->onlyColumns(['A', 'H'])
+            ->importLazy($this->createFileWithMiddleEmptyColumnsAndTrailingData())
+            ->collect();
+
+        $this->assertEquals(collect([
+            ['col1' => 'row1 col1', 'extra' => 'h1'],
+            ['col1' => 'row2 col1', 'extra' => 'h2'],
+        ]), $collection);
+    }
+
+    public function testOnlyColumnsRejectsEmptyAllowlist()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        (new FastExcel())->onlyColumns([]);
+    }
+
+    public function testOnlyColumnsRejectsDuplicates()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('duplicate');
+
+        (new FastExcel())->onlyColumns(['A', 'A']);
+    }
+
+    public function testOnlyColumnsRejectsNonIntOrStringMembers()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('onlyColumns() accepts column letters or 1-based indexes.');
+
+        (new FastExcel())->onlyColumns([1.7]);
+    }
+
+    public function testOnlyColumnsRejectsNullMembers()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('onlyColumns() accepts column letters or 1-based indexes.');
+
+        (new FastExcel())->onlyColumns([null]);
+    }
+
+    /**
+     * Empty headers keep the sheet column number after an allowlist remap.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testOnlyColumnsEmptyHeaderUsesSheetColumnNumber()
+    {
+        $file = $this->tempXlsx('empty-header-b');
+        $writer = new \OpenSpout\Writer\XLSX\Writer();
+        $writer->openToFile($file);
+        $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['name', '', 'x']));
+        $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['alice', 'ignored', '1']));
+        $writer->close();
+
+        $row = (new FastExcel())->onlyColumns(['B'])->import($file)->first();
+
+        $this->assertSame(['column_2'], array_keys($row));
+        $this->assertSame('ignored', $row['column_2']);
+    }
+
+    /**
+     * onlyColumns() and limitColumns() cannot both be active — setting one clears the other.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testOnlyColumnsAndLimitColumnsLastCallWins()
+    {
+        $file = $this->createFileWithMiddleEmptyColumnsAndTrailingData();
+
+        $withOnly = (new FastExcel())
+            ->limitColumns('B')
+            ->onlyColumns(['A', 'H'])
+            ->import($file);
+
+        $this->assertEquals(['col1', 'extra'], array_keys($withOnly->first()));
+
+        $withLimit = (new FastExcel())
+            ->onlyColumns(['A', 'H'])
+            ->limitColumns('B')
+            ->import($file);
+
+        $this->assertEquals(['col1', 'col2'], array_keys($withLimit->first()));
+    }
+
+    /**
+     * Clearing with null only unsets that setter — it must not wipe the other mode.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testClearingOneColumnFilterLeavesTheOther()
+    {
+        $file = $this->createFileWithMiddleEmptyColumnsAndTrailingData();
+
+        $keptAllowlist = (new FastExcel())
+            ->onlyColumns(['A', 'H'])
+            ->limitColumns(null)
+            ->import($file);
+
+        $this->assertEquals(['col1', 'extra'], array_keys($keptAllowlist->first()));
+
+        $keptLimit = (new FastExcel())
+            ->limitColumns('B')
+            ->onlyColumns(null)
+            ->import($file);
+
+        $this->assertEquals(['col1', 'col2'], array_keys($keptLimit->first()));
+    }
+
+    /**
+     * onlyColumns() reindexes the allowlist so sparse input keys do not leak into rows.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function testOnlyColumnsReindexesSparseAllowlistKeys()
+    {
+        $row = (new FastExcel())
+            ->withoutHeaders()
+            ->onlyColumns([2 => 'A', 9 => 'H'])
+            ->import($this->createFileWithMiddleEmptyColumnsAndTrailingData())
+            ->first();
+
+        $this->assertSame([0, 1], array_keys($row));
+        $this->assertEquals(['col1', 'extra'], $row);
+    }
+
+    /**
+     * Write a sheet whose two data columns are followed by empty cells that exist
+     * only because a background fill was applied to them. Spreadsheet software
+     * records formatting this way, and unstyled empty cells are not written at all.
+     *
+     * @param int $empty_columns
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     *
+     * @return string
+     */
+    private function createFileWithFormattedEmptyColumns($empty_columns = 3)
+    {
+        $file = $this->tempXlsx('formatted-empty');
+        $styles = array_fill(2, $empty_columns, (new Style())->setBackgroundColor(Color::YELLOW));
+
+        $writer = new \OpenSpout\Writer\XLSX\Writer();
+        $writer->openToFile($file);
+        foreach ([['col1', 'col2'], ['row1 col1', 'row1 col2'], ['row2 col1', 'row2 col2']] as $values) {
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValuesWithStyles(
+                array_merge($values, array_fill(2, $empty_columns, '')),
+                null,
+                $styles
+            ));
+        }
+        $writer->close();
+
+        return $file;
+    }
+
+    /**
+     * A–B have data, C–G are yellow-filled empties, H has trailing data — the
+     * layout onlyColumns() is meant to handle by skipping the middle gap.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     *
+     * @return string
+     */
+    private function createFileWithMiddleEmptyColumnsAndTrailingData()
+    {
+        $file = $this->tempXlsx('middle-empty');
+        $emptyColumns = 5;
+        $styles = array_fill(2, $emptyColumns, (new Style())->setBackgroundColor(Color::YELLOW));
+
+        $writer = new \OpenSpout\Writer\XLSX\Writer();
+        $writer->openToFile($file);
+        $rows = [
+            ['col1', 'col2', '', '', '', '', '', 'extra'],
+            ['row1 col1', 'row1 col2', '', '', '', '', '', 'h1'],
+            ['row2 col1', 'row2 col2', '', '', '', '', '', 'h2'],
+        ];
+        foreach ($rows as $values) {
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValuesWithStyles($values, null, $styles));
+        }
+        $writer->close();
+
+        return $file;
     }
 }

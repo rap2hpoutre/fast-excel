@@ -120,6 +120,31 @@ Limit the number of data rows imported with `limitRows` (headers excluded). It w
 $collection = (new FastExcel)->limitRows(100)->import('file.xlsx');
 ```
 
+Truncate each imported row after a given column with `limitColumns`, which takes
+either a column reference or a number of columns:
+
+```php
+$collection = (new FastExcel)->limitColumns('H')->import('file.xlsx');
+$collection = (new FastExcel)->limitColumns(8)->import('file.xlsx');
+```
+
+This is useful for files where formatting has been applied to entire rows: the
+spreadsheet then reports thousands of trailing cells that look like real columns,
+and importing them yields empty `column_9`, `column_10`… entries on every row.
+Those cells are dropped from the imported collection (OpenSpout still parses the
+sheet). Like `limitRows`, it works with both `import` and `importLazy`.
+
+Keep specific columns (and drop everything else, including middle empties) with
+`onlyColumns`. Letters and 1-based indexes can be mixed; order is preserved:
+
+```php
+$collection = (new FastExcel)->onlyColumns(['A', 'B', 'H'])->import('file.xlsx');
+$collection = (new FastExcel)->onlyColumns([1, 2, 8])->import('file.xlsx');
+```
+
+`onlyColumns` and `limitColumns` cannot both be active — setting one clears the other.
+Passing `null` only clears that setter and leaves the other alone.
+
 ## Facades
 
 You may use FastExcel with the optional Facade. Add the following line to ``config/app.php`` under the ``aliases`` key.
@@ -194,6 +219,22 @@ Import multiple sheets with sheets names:
 
 ```php
 $sheets = (new FastExcel)->withSheetsNames()->importSheets('file.xlsx');
+```
+
+Use `withSheetContext()` to receive the current sheet name as the first argument
+of the `importSheets` callback — handy when the same field names need to be
+handled differently per sheet:
+
+```php
+$sheets = (new FastExcel)
+    ->withSheetContext()
+    ->importSheets('file.xlsx', function ($sheetName, $row) {
+        if ($sheetName === 'Users' && empty($row['email'])) {
+            return null; // skip rows without an email on the Users sheet
+        }
+
+        return $row + ['_sheet' => $sheetName];
+    });
 ```
 
 ### Export large collections (low memory)
@@ -360,6 +401,24 @@ formula cell, which can corrupt the file or enable CSV/formula injection. Call
 
 ```php
 (new FastExcel($rows))->escapeFormulas()->export('file.xlsx');
+```
+
+### Use raw OpenSpout Cell instances
+
+For full control over a single cell's type or style, a row value may be an
+`OpenSpout\Common\Entity\Cell` instance. It is written through as-is, while the
+other (scalar) values in the row keep their normal handling:
+
+```php
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Style\Style;
+
+$users = collect([
+    ['name' => 'John', 'note' => Cell::fromValue('paid', (new Style())->setFontBold())],
+    ['name' => 'Jane', 'note' => 'pending'],
+]);
+
+(new FastExcel($users))->export('users.xlsx');
 ```
 
 ## Why?
