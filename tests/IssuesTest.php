@@ -605,4 +605,110 @@ class IssuesTest extends TestCase
 
         unlink($file);
     }
+
+    /**
+     * Issue #349: startRow() alone also takes the headers from the start row, so
+     * reading a file from row N loses the real headers (row N's data is used as
+     * the header names). headerRow() decouples the two.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testIssue349HeaderRowSeparateFromStartRow()
+    {
+        // Row 1 holds the headers; rows 2..6 hold data 1..5.
+        $file = __DIR__.'/issue349.xlsx';
+        (new FastExcel($this->issue349Rows()))->export($file);
+
+        // Headers from row 1, data from row 4 (i.e. data 3, 4 and 5).
+        $rows = (new FastExcel())->headerRow(1)->startRow(4)->import($file);
+        $this->assertSame(['name', 'qty'], array_keys($rows->first()));
+        $this->assertSame(
+            [['name' => 'c', 'qty' => '3'], ['name' => 'd', 'qty' => '4'], ['name' => 'e', 'qty' => '5']],
+            $rows->toArray()
+        );
+
+        unlink($file);
+    }
+
+    /**
+     * headerRow() is what makes chunked imports work: each run reads the same
+     * headers but a different slice of data rows, with no overlap.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testIssue349ChunkedImportWithLimitRows()
+    {
+        $file = __DIR__.'/issue349_chunks.xlsx';
+        (new FastExcel($this->issue349Rows()))->export($file);
+
+        $chunks = [];
+        // Data starts on row 2, so chunk k starts at row 2 + (k * size).
+        foreach ([2, 4, 6] as $start) {
+            $chunks[] = (new FastExcel())->headerRow(1)->startRow($start)->limitRows(2)->import($file)->toArray();
+        }
+
+        $this->assertSame([['name' => 'a', 'qty' => '1'], ['name' => 'b', 'qty' => '2']], $chunks[0]);
+        $this->assertSame([['name' => 'c', 'qty' => '3'], ['name' => 'd', 'qty' => '4']], $chunks[1]);
+        $this->assertSame([['name' => 'e', 'qty' => '5']], $chunks[2]);
+
+        // Every data row appears exactly once across the chunks.
+        $this->assertCount(5, array_merge(...$chunks));
+
+        // The lazy path honours it identically.
+        $lazy = (new FastExcel())->headerRow(1)->startRow(4)->limitRows(2)->importLazy($file)->all();
+        $this->assertSame($chunks[1], $lazy);
+
+        unlink($file);
+    }
+
+    /**
+     * Without headerRow(), startRow() keeps its historical meaning: the start
+     * row is also the header row. This must not change.
+     *
+     * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\InvalidArgumentException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
+     * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
+     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
+     */
+    public function testIssue349StartRowBackwardCompatibility()
+    {
+        $file = __DIR__.'/issue349_bc.xlsx';
+        (new FastExcel($this->issue349Rows()))->export($file);
+
+        // Row 3 is data ('b', '2') and is still consumed as the header row.
+        $rows = (new FastExcel())->startRow(3)->import($file);
+        // '2' becomes int 2: PHP casts numeric-string array keys.
+        $this->assertSame(['b', 2], array_keys($rows->first()));
+        $this->assertSame([['b' => 'c', '2' => '3'], ['b' => 'd', '2' => '4'], ['b' => 'e', '2' => '5']], $rows->toArray());
+
+        // headerRow(null) explicitly restores that behaviour too.
+        $rows = (new FastExcel())->headerRow(null)->startRow(3)->import($file);
+        // '2' becomes int 2: PHP casts numeric-string array keys.
+        $this->assertSame(['b', 2], array_keys($rows->first()));
+
+        unlink($file);
+    }
+
+    /**
+     * Five data rows under a single header row, used by the #349 tests.
+     */
+    private function issue349Rows(): Collection
+    {
+        return collect([
+            ['name' => 'a', 'qty' => '1'],
+            ['name' => 'b', 'qty' => '2'],
+            ['name' => 'c', 'qty' => '3'],
+            ['name' => 'd', 'qty' => '4'],
+            ['name' => 'e', 'qty' => '5'],
+        ]);
+    }
 }

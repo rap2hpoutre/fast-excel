@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Illuminate\Support\Collection   import($path, callable $callback = null)
  * @method static string                           export($path, callable $callback = null)
  * @method static \Illuminate\Support\Collection   importSheets($path, callable $callback = null)
+ * @method static \Rap2hpoutre\FastExcel\FastExcel headerRow(?int $row = 1)
  * @method static \Rap2hpoutre\FastExcel\FastExcel limitRows(?int $rows = null)
  * @method static \Rap2hpoutre\FastExcel\FastExcel limitColumns(int|string|null $column = null)
  * @method static \Rap2hpoutre\FastExcel\FastExcel onlyColumns(?array $columns = null)
