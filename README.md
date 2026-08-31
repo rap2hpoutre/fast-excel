@@ -143,6 +143,31 @@ $chunk = (new FastExcel)
 `headerRow` is opt-in: without it, `startRow` keeps its previous behaviour of
 using the start row as the header row.
 
+Truncate each imported row after a given column with `limitColumns`, which takes
+either a column reference or a number of columns:
+
+```php
+$collection = (new FastExcel)->limitColumns('H')->import('file.xlsx');
+$collection = (new FastExcel)->limitColumns(8)->import('file.xlsx');
+```
+
+This is useful for files where formatting has been applied to entire rows: the
+spreadsheet then reports thousands of trailing cells that look like real columns,
+and importing them yields empty `column_9`, `column_10`… entries on every row.
+Those cells are dropped from the imported collection (OpenSpout still parses the
+sheet). Like `limitRows`, it works with both `import` and `importLazy`.
+
+Keep specific columns (and drop everything else, including middle empties) with
+`onlyColumns`. Letters and 1-based indexes can be mixed; order is preserved:
+
+```php
+$collection = (new FastExcel)->onlyColumns(['A', 'B', 'H'])->import('file.xlsx');
+$collection = (new FastExcel)->onlyColumns([1, 2, 8])->import('file.xlsx');
+```
+
+`onlyColumns` and `limitColumns` cannot both be active — setting one clears the other.
+Passing `null` only clears that setter and leaves the other alone.
+
 ## Facades
 
 You may use FastExcel with the optional Facade. Add the following line to ``config/app.php`` under the ``aliases`` key.
@@ -217,6 +242,22 @@ Import multiple sheets with sheets names:
 
 ```php
 $sheets = (new FastExcel)->withSheetsNames()->importSheets('file.xlsx');
+```
+
+Use `withSheetContext()` to receive the current sheet name as the first argument
+of the `importSheets` callback — handy when the same field names need to be
+handled differently per sheet:
+
+```php
+$sheets = (new FastExcel)
+    ->withSheetContext()
+    ->importSheets('file.xlsx', function ($sheetName, $row) {
+        if ($sheetName === 'Users' && empty($row['email'])) {
+            return null; // skip rows without an email on the Users sheet
+        }
+
+        return $row + ['_sheet' => $sheetName];
+    });
 ```
 
 ### Export large collections (low memory)
@@ -351,6 +392,49 @@ return (new FastExcel($list))
     ->download('file.xlsx');
 ```
 
+### Set column widths
+
+Column widths are an OpenSpout writer option, so they are set through
+`configureOptionsUsing`. Widths are expressed in Excel's own unit (roughly the
+number of characters that fit), and column numbers are **1-based**:
+
+```php
+(new FastExcel($list))
+    ->configureOptionsUsing(function ($options) {
+        $options->setColumnWidth(40, 1);      // first column
+        $options->setColumnWidth(15, 2, 3);   // second and third columns
+    })
+    ->export('file.xlsx');
+```
+
+Use `setColumnWidthForRange` for a contiguous span:
+
+```php
+(new FastExcel($list))
+    ->configureOptionsUsing(function ($options) {
+        $options->setColumnWidthForRange(20, 1, 4); // columns 1 through 4
+    })
+    ->export('file.xlsx');
+```
+
+This works with streaming exports (cursors and generators) as well, since widths
+are written when the file is finalized rather than per row.
+
+Only `xlsx` and `ods` support widths. `csv` has no notion of column width, and
+`OpenSpout\Writer\CSV\Options` does not define `setColumnWidth()` at all — calling
+it on a csv export raises `Error: Call to undefined method`. If the same code path
+can export either format, guard the call:
+
+```php
+->configureOptionsUsing(function ($options) {
+    if (method_exists($options, 'setColumnWidth')) {
+        $options->setColumnWidth(40, 1);
+    }
+})
+```
+
+Note that widths are explicit — there is no automatic sizing to fit the content.
+
 ### Export values as strings or numbers
 
 By default numbers are written as numbers and strings as strings. Use
@@ -373,6 +457,24 @@ precedence over `stringValues()`:
         'phone' => 'string',                          // keep as text
     ])
     ->export('users.xlsx');
+```
+
+### Use raw OpenSpout Cell instances
+
+For full control over a single cell's type or style, a row value may be an
+`OpenSpout\Common\Entity\Cell` instance. It is written through as-is, while the
+other (scalar) values in the row keep their normal handling:
+
+```php
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Style\Style;
+
+$users = collect([
+    ['name' => 'John', 'note' => Cell::fromValue('paid', (new Style())->setFontBold())],
+    ['name' => 'Jane', 'note' => 'pending'],
+]);
+
+(new FastExcel($users))->export('users.xlsx');
 ```
 
 ## Why?
