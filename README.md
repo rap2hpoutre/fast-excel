@@ -354,8 +354,20 @@ Use `setColumnWidthForRange` for a contiguous span:
 ```
 
 This works with streaming exports (cursors and generators) as well, since widths
-are written when the file is finalized rather than per row. `xlsx` and `ods`
-support widths; `csv` has no notion of column width, so the option is ignored.
+are written when the file is finalized rather than per row.
+
+Only `xlsx` and `ods` support widths. `csv` has no notion of column width, and
+`OpenSpout\Writer\CSV\Options` does not define `setColumnWidth()` at all — calling
+it on a csv export raises `Error: Call to undefined method`. If the same code path
+can export either format, guard the call:
+
+```php
+->configureOptionsUsing(function ($options) {
+    if (method_exists($options, 'setColumnWidth')) {
+        $options->setColumnWidth(40, 1);
+    }
+})
+```
 
 Note that widths are explicit — there is no automatic sizing to fit the content.
 
