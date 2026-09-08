@@ -768,10 +768,17 @@ trait Exportable
             return 8.0;
         }
 
-        // A multi-line value only needs to fit its longest line: the newlines
-        // break the text regardless of how wide the column is.
+        return $this->longestLineLength((string) $value);
+    }
+
+    /**
+     * A multi-line value only needs to fit its longest line: the newlines
+     * break the text regardless of how wide the column is.
+     */
+    private function longestLineLength(string $value): float
+    {
         $longest = 0;
-        foreach (explode("\n", (string) $value) as $line) {
+        foreach (explode("\n", $value) as $line) {
             $length = mb_strlen(rtrim($line, "\r"));
             if ($length > $longest) {
                 $longest = $length;
