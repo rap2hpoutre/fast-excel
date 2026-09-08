@@ -120,6 +120,29 @@ Limit the number of data rows imported with `limitRows` (headers excluded). It w
 $collection = (new FastExcel)->limitRows(100)->import('file.xlsx');
 ```
 
+Start reading at a given row with `startRow`. On its own, `startRow` also treats
+that row as the header row. Use `headerRow` to read the headers from their real
+position while data starts further down:
+
+```php
+// Headers from row 1, data from row 155 onwards.
+$collection = (new FastExcel)->headerRow(1)->startRow(155)->import('file.xlsx');
+```
+
+Together with `limitRows`, that is how a large file is imported in chunks — one
+slice per job run, each with the correct header names:
+
+```php
+$chunk = (new FastExcel)
+    ->headerRow(1)
+    ->startRow(2 + ($page * 1000)) // data begins on row 2
+    ->limitRows(1000)
+    ->import('file.xlsx');
+```
+
+`headerRow` is opt-in: without it, `startRow` keeps its previous behaviour of
+using the start row as the header row.
+
 Truncate each imported row after a given column with `limitColumns`, which takes
 either a column reference or a number of columns:
 
@@ -368,6 +391,49 @@ return (new FastExcel($list))
     ])
     ->download('file.xlsx');
 ```
+
+### Set column widths
+
+Column widths are an OpenSpout writer option, so they are set through
+`configureOptionsUsing`. Widths are expressed in Excel's own unit (roughly the
+number of characters that fit), and column numbers are **1-based**:
+
+```php
+(new FastExcel($list))
+    ->configureOptionsUsing(function ($options) {
+        $options->setColumnWidth(40, 1);      // first column
+        $options->setColumnWidth(15, 2, 3);   // second and third columns
+    })
+    ->export('file.xlsx');
+```
+
+Use `setColumnWidthForRange` for a contiguous span:
+
+```php
+(new FastExcel($list))
+    ->configureOptionsUsing(function ($options) {
+        $options->setColumnWidthForRange(20, 1, 4); // columns 1 through 4
+    })
+    ->export('file.xlsx');
+```
+
+This works with streaming exports (cursors and generators) as well, since widths
+are written when the file is finalized rather than per row.
+
+Only `xlsx` and `ods` support widths. `csv` has no notion of column width, and
+`OpenSpout\Writer\CSV\Options` does not define `setColumnWidth()` at all — calling
+it on a csv export raises `Error: Call to undefined method`. If the same code path
+can export either format, guard the call:
+
+```php
+->configureOptionsUsing(function ($options) {
+    if (method_exists($options, 'setColumnWidth')) {
+        $options->setColumnWidth(40, 1);
+    }
+})
+```
+
+Note that widths are explicit — there is no automatic sizing to fit the content.
 
 ### Export values as strings or numbers
 
