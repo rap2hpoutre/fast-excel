@@ -2,6 +2,7 @@
 
 namespace Rap2hpoutre\FastExcel;
 
+use DateInterval;
 use DateTimeInterface;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -12,6 +13,7 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\Common\AbstractOptions;
 use OpenSpout\Writer\WriterInterface;
 use OpenSpout\Writer\XLSX\Entity\SheetView;
+use OpenSpout\Writer\XLSX\Options as XlsxOptions;
 use OpenSpout\Writer\XLSX\Writer;
 use Traversable;
 
@@ -51,6 +53,33 @@ trait Exportable
 
     /** @var bool */
     private $right_to_left = false;
+
+    /** @var bool */
+    private $auto_size_columns = false;
+
+    /** @var float */
+    private $auto_size_max_width = 60.0;
+
+    /** @var float */
+    private $auto_size_min_width = 0.0;
+
+    /**
+     * Whether the export in progress is actually measuring columns: auto-sizing
+     * is on and the writer is one that stores widths per sheet. Resolved once
+     * per export so csv and ods pay nothing per row.
+     *
+     * @var bool
+     */
+    private $auto_size_active = false;
+
+    /**
+     * Widest measured content per column for the sheet being written, keyed by
+     * 0-based column index. Reset after each sheet, so this holds one float per
+     * column, never per row.
+     *
+     * @var array<int, float>
+     */
+    private $auto_size_widths = [];
 
     /**
      * @param AbstractOptions $options
@@ -147,6 +176,41 @@ trait Exportable
     }
 
     /**
+     * Size each column to fit its widest value. Widths are measured while the
+     * rows stream past and written once, just before the file is finalized, so
+     * this costs one float per column and never buffers rows.
+     *
+     * This is a heuristic, not Excel's AutoFit: the width is a character count
+     * (adjusted for bold and font size) rather than real glyph metrics, so
+     * proportional fonts will be a little off. Use configureOptionsUsing() with
+     * setColumnWidth() when you need exact widths.
+     *
+     * xlsx only. ODS stores widths per workbook rather than per sheet and in
+     * points, and csv has no widths at all, so both are left untouched.
+     *
+     * @param bool  $enabled
+     * @param float $maxWidth Upper bound, so one huge cell cannot blow up a
+     *                        column. Excel itself refuses anything over 255.
+     * @param float $minWidth Lower bound; 0 lets narrow columns shrink freely.
+     */
+    public function autoSizeColumns(bool $enabled = true, float $maxWidth = 60.0, float $minWidth = 0.0): static
+    {
+        if ($maxWidth <= 0 || $maxWidth > 255) {
+            throw new InvalidArgumentException('autoSizeColumns() max width must be between 0 and 255.');
+        }
+
+        if ($minWidth < 0 || $minWidth > $maxWidth) {
+            throw new InvalidArgumentException('autoSizeColumns() min width must be between 0 and the max width.');
+        }
+
+        $this->auto_size_columns = $enabled;
+        $this->auto_size_max_width = $maxWidth;
+        $this->auto_size_min_width = $minWidth;
+
+        return $this;
+    }
+
+    /**
      * @param string        $path
      * @param callable|null $callback
      *
@@ -215,6 +279,9 @@ trait Exportable
 
         $writer->$function($path);
 
+        $this->auto_size_active = $this->auto_size_columns && $writer instanceof Writer;
+        $this->auto_size_widths = [];
+
         if ($this->right_to_left && $writer instanceof Writer) {
             $sheetView = new SheetView();
             $sheetView->setRightToLeft(true);
@@ -236,6 +303,7 @@ trait Exportable
             } else {
                 throw new InvalidArgumentException('Unsupported type for $data');
             }
+            $this->applyAutoSizeColumns($writer);
             if ($has_sheets && is_string($key)) {
                 $writer->getCurrentSheet()->setName($key);
             }
@@ -356,15 +424,15 @@ trait Exportable
             if ($use_styles) {
                 // Column styles are matched against the value keys; use positional
                 // keys so numeric style indexes work with associative rows.
-                $writer->addRow($this->createRow(array_values($values), $this->rows_style, $this->column_styles));
+                $this->writeRow($writer, $this->createRow(array_values($values), $this->rows_style, $this->column_styles));
             } elseif ($this->rowHasCell($values)) {
                 // Row::fromValues() cannot accept Cell instances; build the row
                 // manually so pre-built cells are written through as-is. We
                 // already know it has a cell, so call the builder directly
                 // instead of createRow() to avoid a second rowHasCell() scan.
-                $writer->addRow($this->buildRowFromCells(array_values($values)));
+                $this->writeRow($writer, $this->buildRowFromCells(array_values($values)));
             } else {
-                $writer->addRow(Row::fromValues($values));
+                $this->writeRow($writer, Row::fromValues($values));
             }
         }
     }
@@ -389,7 +457,7 @@ trait Exportable
                 $this->writeHeader($writer, $item);
             }
             // Write rows (one by one).
-            $writer->addRow($this->createRow($item, $this->rows_style, $this->column_styles));
+            $this->writeRow($writer, $this->createRow($item, $this->rows_style, $this->column_styles));
         }
 
         if (!$hasRows && $this->data instanceof SheetCollection) {
@@ -419,7 +487,7 @@ trait Exportable
 
         $row = is_array($first_row) ? $first_row : $first_row->toArray();
         $keys = array_keys($this->removeHiddenColumns($row));
-        $writer->addRow($this->createRow($keys, $this->header_style, $this->header_column_styles));
+        $this->writeRow($writer, $this->createRow($keys, $this->header_style, $this->header_column_styles));
     }
 
     /**
@@ -548,6 +616,8 @@ trait Exportable
             return;
         }
 
+        // Deliberately not writeRow(): this filler is not user data and must
+        // not influence auto-sized column widths.
         $writer->addRow($this->createRow([' ']));
     }
 
@@ -606,5 +676,152 @@ trait Exportable
         }
 
         return false;
+    }
+
+    /**
+     * Hand a row to the writer, measuring it first when auto-sizing is on.
+     * Every data row goes through here so the measurement cannot drift from
+     * what is actually written (hidden columns removed, cells already built).
+     *
+     * @param \OpenSpout\Writer\WriterInterface $writer
+     */
+    private function writeRow($writer, Row $row): void
+    {
+        if ($this->auto_size_active) {
+            $this->measureRow($row);
+        }
+
+        $writer->addRow($row);
+    }
+
+    /**
+     * Widen the running per-column maximum to fit this row. Only the maximum is
+     * kept, so memory is proportional to the number of columns, not rows.
+     */
+    private function measureRow(Row $row): void
+    {
+        $row_style = $row->getStyle();
+
+        foreach ($row->getCells() as $index => $cell) {
+            $cell_style = $cell->getStyle();
+
+            // Excel's AutoFit leaves wrapped columns alone and grows the row
+            // height instead; do the same rather than undoing the wrap.
+            if ($cell_style->shouldWrapText() || $row_style->shouldWrapText()) {
+                continue;
+            }
+
+            // A cell only carries a font of its own when one was set on it;
+            // otherwise the row's font applies, which is where headerStyle()
+            // and rowsStyle() land.
+            $font = $cell_style->shouldApplyFont() ? $cell_style : $row_style;
+            $width = $this->cellDisplayLength($cell) * $this->fontScale($font);
+
+            if ($width > ($this->auto_size_widths[$index] ?? 0.0)) {
+                $this->auto_size_widths[$index] = $width;
+            }
+        }
+    }
+
+    /**
+     * How much wider than a plain default-font cell this style renders. Bold
+     * Calibri is a few percent wider, and a larger font scales roughly with its
+     * size, since column width is expressed in characters of the normal font.
+     */
+    private function fontScale(Style $style): float
+    {
+        $scale = $style->isFontBold() ? 1.08 : 1.0;
+
+        if ($style->hasSetFontSize() && $style->getFontSize() > 0) {
+            $scale *= $style->getFontSize() / XlsxOptions::DEFAULT_FONT_SIZE;
+        }
+
+        return $scale;
+    }
+
+    /**
+     * Width, in characters, needed to show a cell's value. Dates and intervals
+     * are estimated from a typical rendering because the number format that
+     * Excel will actually apply is not visible from here.
+     */
+    private function cellDisplayLength(Cell $cell): float
+    {
+        $value = $cell->getValue();
+
+        if ($value === null) {
+            return 0.0;
+        }
+
+        if (is_bool($value)) {
+            return $value ? 4.0 : 5.0; // TRUE / FALSE
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (float) strlen((string) $value);
+        }
+
+        if ($value instanceof DateTimeInterface) {
+            return $value->format('His') === '000000' ? 10.0 : 19.0;
+        }
+
+        if ($value instanceof DateInterval) {
+            return 8.0;
+        }
+
+        return $this->longestLineLength((string) $value);
+    }
+
+    /**
+     * A multi-line value only needs to fit its longest line: the newlines
+     * break the text regardless of how wide the column is.
+     */
+    private function longestLineLength(string $value): float
+    {
+        $longest = 0;
+        foreach (explode("\n", $value) as $line) {
+            $length = mb_strlen(rtrim($line, "\r"));
+            if ($length > $longest) {
+                $longest = $length;
+            }
+        }
+
+        return (float) $longest;
+    }
+
+    /**
+     * Write the measured widths onto the sheet that was just filled, then reset
+     * the tracker for the next one. Safe to call after the last row because
+     * OpenSpout only emits the <cols> fragment when the file is finalized.
+     *
+     * ODS and csv never get here: ODS holds widths on the workbook options
+     * rather than the sheet, and in points instead of characters, and csv has
+     * no widths at all.
+     *
+     * @param \OpenSpout\Writer\WriterInterface $writer
+     */
+    private function applyAutoSizeColumns($writer): void
+    {
+        $widths = $this->auto_size_widths;
+        $this->auto_size_widths = [];
+
+        if (!$this->auto_size_active || $widths === []) {
+            return;
+        }
+
+        $sheet = $writer->getCurrentSheet();
+        ksort($widths);
+
+        foreach ($widths as $index => $width) {
+            // An entirely empty column keeps Excel's default width; forcing it
+            // to the minimum would be a change nobody asked for.
+            if ($width <= 0.0) {
+                continue;
+            }
+
+            // Two characters of padding, matching the breathing room Excel's
+            // own AutoFit leaves so the last glyph is not flush to the border.
+            $width = min(max($width + 2, $this->auto_size_min_width), $this->auto_size_max_width);
+            $sheet->setColumnWidth(round($width, 2), $index + 1);
+        }
     }
 }

@@ -3,6 +3,7 @@
 namespace Rap2hpoutre\FastExcel\Tests;
 
 use Illuminate\Support\Collection;
+use OpenSpout\Common\Entity\Style\Style;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Rap2hpoutre\FastExcel\SheetCollection;
 use ZipArchive;
@@ -755,5 +756,177 @@ class IssuesTest extends TestCase
             ['name' => 'd', 'qty' => '4'],
             ['name' => 'e', 'qty' => '5'],
         ]);
+    }
+
+    /**
+     * Issue #213: sizing columns to their content had to be done by hand with
+     * setColumnWidth(). autoSizeColumns() measures each column while the rows
+     * stream past and writes the widths just before the file is finalized.
+     *
+     * @see https://github.com/rap2hpoutre/fast-excel/issues/213
+     */
+    public function testIssue213()
+    {
+        $file = __DIR__.'/issue213.xlsx';
+
+        (new FastExcel(collect([
+            ['id' => 1, 'name' => 'Bob', 'description' => 'a fairly long description value'],
+            ['id' => 12345, 'name' => 'Alexandra', 'description' => 'short'],
+        ])))->autoSizeColumns()->export($file);
+
+        $cols = $this->columnsFragment($file);
+
+        // Widest value plus two characters of padding: "12345" -> 7,
+        // "Alexandra" -> 11, "a fairly long description value" -> 33.
+        $this->assertStringContainsString('<col min="1" max="1" width="7"', $cols);
+        $this->assertStringContainsString('<col min="2" max="2" width="11"', $cols);
+        $this->assertStringContainsString('<col min="3" max="3" width="33"', $cols);
+
+        unlink($file);
+    }
+
+    /**
+     * Auto-sizing is opt-in: an export that does not ask for it must be byte
+     * for byte what it was before, with no <cols> fragment at all.
+     */
+    public function testIssue213OffByDefault()
+    {
+        $file = __DIR__.'/issue213_default.xlsx';
+
+        (new FastExcel(collect([['name' => 'a value long enough to notice']])))->export($file);
+
+        $this->assertSame('', $this->columnsFragment($file));
+
+        unlink($file);
+    }
+
+    /**
+     * A single very long cell must not produce an unusable column, so widths
+     * are clamped; the bound is configurable and Excel's own limit is 255.
+     */
+    public function testIssue213ClampsWidthToBounds()
+    {
+        $file = __DIR__.'/issue213_clamp.xlsx';
+        $rows = collect([['big' => str_repeat('x', 500), 'tiny' => 'a']]);
+
+        (new FastExcel(clone $rows))->autoSizeColumns()->export($file);
+        $this->assertStringContainsString('<col min="1" max="1" width="60"', $this->columnsFragment($file));
+
+        (new FastExcel(clone $rows))->autoSizeColumns(true, 25.0, 15.0)->export($file);
+        $cols = $this->columnsFragment($file);
+        $this->assertStringContainsString('<col min="1" max="1" width="25"', $cols);
+        $this->assertStringContainsString('<col min="2" max="2" width="15"', $cols);
+
+        unlink($file);
+    }
+
+    public function testIssue213RejectsInvalidBounds()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        (new FastExcel(collect([['a' => 'b']])))->autoSizeColumns(true, 256.0);
+    }
+
+    public function testIssue213RejectsMinWiderThanMax()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        (new FastExcel(collect([['a' => 'b']])))->autoSizeColumns(true, 20.0, 30.0);
+    }
+
+    /**
+     * Widths are held on the sheet, not the workbook options, so each sheet of
+     * a SheetCollection is sized from its own content.
+     */
+    public function testIssue213MultiSheetSizesEachSheetSeparately()
+    {
+        $file = __DIR__.'/issue213_multisheet.xlsx';
+
+        (new FastExcel(new SheetCollection([
+            'Narrow' => collect([['col' => 'ab']]),
+            'Wide'   => collect([['col' => 'a considerably wider value here']]),
+        ])))->autoSizeColumns()->export($file);
+
+        $this->assertStringContainsString(
+            '<col min="1" max="1" width="5"',
+            $this->columnsFragment($file, 'xl/worksheets/sheet1.xml')
+        );
+        $this->assertStringContainsString(
+            '<col min="1" max="1" width="33"',
+            $this->columnsFragment($file, 'xl/worksheets/sheet2.xml')
+        );
+
+        unlink($file);
+    }
+
+    /**
+     * The whole point is that this survives streaming: a generator export must
+     * be sized without the rows ever being collected.
+     */
+    public function testIssue213WorksWhileStreaming()
+    {
+        $file = __DIR__.'/issue213_generator.xlsx';
+
+        $generator = (function () {
+            foreach ([['n' => 'a streamed value that is long'], ['n' => 'b']] as $index => $row) {
+                yield $index => $row;
+            }
+        })();
+
+        (new FastExcel($generator))->autoSizeColumns()->export($file);
+
+        $this->assertStringContainsString('<col min="1" max="1" width="31"', $this->columnsFragment($file));
+
+        unlink($file);
+    }
+
+    /**
+     * A wrapped column keeps the width it was given: Excel's AutoFit grows the
+     * row height there rather than the column, and widening it would undo the
+     * wrap the caller asked for.
+     */
+    public function testIssue213LeavesWrappedColumnsAlone()
+    {
+        $file = __DIR__.'/issue213_wrap.xlsx';
+
+        (new FastExcel(collect([['c' => str_repeat('y', 80)]])))
+            ->withoutHeaders()
+            ->rowsStyle((new Style())->setShouldWrapText())
+            ->autoSizeColumns()
+            ->export($file);
+
+        $this->assertSame('', $this->columnsFragment($file));
+
+        unlink($file);
+    }
+
+    /**
+     * csv has no notion of column width and ODS stores widths per workbook in
+     * points rather than per sheet in characters, so both are left untouched
+     * instead of being given a meaningless width.
+     */
+    public function testIssue213IgnoredByFormatsWithoutSheetWidths()
+    {
+        foreach (['csv', 'ods'] as $extension) {
+            $file = __DIR__.'/issue213_ignored.'.$extension;
+
+            $rows = collect([['name' => 'a value long enough to notice']]);
+            (new FastExcel(clone $rows))->autoSizeColumns()->export($file);
+
+            $this->assertEquals($rows, (new FastExcel())->import($file));
+
+            unlink($file);
+        }
+    }
+
+    /**
+     * Read the <cols> fragment of a worksheet, or '' when the sheet has none.
+     */
+    private function columnsFragment(string $file, string $sheet = 'xl/worksheets/sheet1.xml'): string
+    {
+        $zip = new ZipArchive();
+        $zip->open($file);
+        $xml = $zip->getFromName($sheet);
+        $zip->close();
+
+        return preg_match('#<cols>.*?</cols>#s', $xml, $matches) === 1 ? $matches[0] : '';
     }
 }
