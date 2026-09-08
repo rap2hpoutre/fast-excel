@@ -120,6 +120,29 @@ Limit the number of data rows imported with `limitRows` (headers excluded). It w
 $collection = (new FastExcel)->limitRows(100)->import('file.xlsx');
 ```
 
+Start reading at a given row with `startRow`. On its own, `startRow` also treats
+that row as the header row. Use `headerRow` to read the headers from their real
+position while data starts further down:
+
+```php
+// Headers from row 1, data from row 155 onwards.
+$collection = (new FastExcel)->headerRow(1)->startRow(155)->import('file.xlsx');
+```
+
+Together with `limitRows`, that is how a large file is imported in chunks — one
+slice per job run, each with the correct header names:
+
+```php
+$chunk = (new FastExcel)
+    ->headerRow(1)
+    ->startRow(2 + ($page * 1000)) // data begins on row 2
+    ->limitRows(1000)
+    ->import('file.xlsx');
+```
+
+`headerRow` is opt-in: without it, `startRow` keeps its previous behaviour of
+using the start row as the header row.
+
 Truncate each imported row after a given column with `limitColumns`, which takes
 either a column reference or a number of columns:
 
