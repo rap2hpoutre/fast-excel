@@ -756,4 +756,280 @@ class IssuesTest extends TestCase
             ['name' => 'e', 'qty' => '5'],
         ]);
     }
+
+    /**
+     * Issue #423: export callback returning null crashed for Collection input —
+     * transform() kept the null in place, then toArray() was called on it
+     * unconditionally. reject() now removes null/false rows entirely instead of
+     * mutating them in place.
+     *
+     * @see https://github.com/rap2hpoutre/fast-excel/issues/423
+     */
+    public function testIssue423NullCallbackCollection()
+    {
+        $file = __DIR__.'/issue423_collection.xlsx';
+
+        $data = collect([
+            ['col1' => 'row1'],
+            ['col1' => 'row2'],
+            ['col1' => 'row3'],
+        ]);
+
+        (new FastExcel($data))->export($file, function ($row) {
+            return $row['col1'] === 'row2' ? null : $row;
+        });
+
+        $result = (new FastExcel())->import($file);
+
+        $this->assertCount(2, $result);
+        $this->assertEquals(['row1', 'row3'], $result->pluck('col1')->all());
+
+        unlink($file);
+    }
+
+    /**
+     * Same as above, but the callback returns false instead of null — both
+     * are treated as "skip this row". Stricter than the import callback,
+     * which drops any falsy value via a loose if ($result) check; on export
+     * only null and false are dropped, so rows containing 0, '' or [] are not
+     * silently dropped.
+     */
+    public function testIssue423FalseCallbackCollection()
+    {
+        $file = __DIR__.'/issue423_false.xlsx';
+
+        $data = collect([
+            ['col1' => 'row1'],
+            ['col1' => 'row2'],
+            ['col1' => 'row3'],
+        ]);
+
+        (new FastExcel($data))->export($file, function ($row) {
+            return $row['col1'] === 'row2' ? false : $row;
+        });
+
+        $result = (new FastExcel())->import($file);
+
+        $this->assertCount(2, $result);
+        $this->assertEquals(['row1', 'row3'], $result->pluck('col1')->all());
+
+        unlink($file);
+    }
+
+    /**
+     * Array input delegates to writeRowsFromCollection() via
+     * writeRowsFromArray(); confirms the fix applies there too, not just to
+     * Collection instances.
+     */
+    public function testIssue423NullCallbackArray()
+    {
+        $file = __DIR__.'/issue423_array.xlsx';
+
+        $data = [
+            ['col1' => 'row1'],
+            ['col1' => 'row2'],
+            ['col1' => 'row3'],
+        ];
+
+        (new FastExcel($data))->export($file, function ($row) {
+            return $row['col1'] === 'row2' ? null : $row;
+        });
+
+        $result = (new FastExcel())->import($file);
+
+        $this->assertCount(2, $result);
+        $this->assertEquals(['row1', 'row3'], $result->pluck('col1')->all());
+
+        unlink($file);
+    }
+
+    /**
+     * Generator input previously didn't crash, but silently wrote a blank row
+     * instead of skipping, inconsistent with Collection/array. Now skips
+     * consistently across all three input types.
+     */
+    public function testIssue423NullCallbackGenerator()
+    {
+        $file = __DIR__.'/issue423_generator.xlsx';
+
+        $generator = (function () {
+            yield ['col1' => 'row1'];
+            yield ['col1' => 'row2'];
+            yield ['col1' => 'row3'];
+        })();
+
+        (new FastExcel($generator))->export($file, function ($row) {
+            return $row['col1'] === 'row2' ? null : $row;
+        });
+
+        $result = (new FastExcel())->import($file);
+
+        $this->assertCount(2, $result);
+        $this->assertEquals(['row1', 'row3'], $result->pluck('col1')->all());
+
+        unlink($file);
+    }
+
+    /**
+     * Generator parity check with false instead of null.
+     */
+    public function testIssue423FalseCallbackGenerator()
+    {
+        $file = __DIR__.'/issue423_generator_false.xlsx';
+
+        $generator = (function () {
+            yield ['col1' => 'row1'];
+            yield ['col1' => 'row2'];
+            yield ['col1' => 'row3'];
+        })();
+
+        (new FastExcel($generator))->export($file, function ($row) {
+            return $row['col1'] === 'row2' ? false : $row;
+        });
+
+        $result = (new FastExcel())->import($file);
+
+        $this->assertCount(2, $result);
+        $this->assertEquals(['row1', 'row3'], $result->pluck('col1')->all());
+
+        unlink($file);
+    }
+
+    /**
+     * The old code derived the header from $collection->first() after a
+     * mutating transform() call, if row 1 was the one filtered to null,
+     * first() returned null and writeHeader()'s null-guard silently skipped
+     * writing a header at all. reject()->values() guarantees first() is an
+     * actual surviving row.
+     */
+    public function testIssue423NullCallbackFirstRowCollection()
+    {
+        $file = __DIR__.'/issue423_first_collection.xlsx';
+
+        $data = collect([
+            ['col1' => 'row1'],
+            ['col1' => 'row2'],
+            ['col1' => 'row3'],
+        ]);
+
+        (new FastExcel($data))->export($file, function ($row) {
+            return $row['col1'] === 'row1' ? null : $row;
+        });
+
+        $result = (new FastExcel())->import($file);
+
+        $this->assertCount(2, $result);
+        $this->assertSame(['col1'], array_keys($result->first()));
+        $this->assertEquals(['row2', 'row3'], $result->pluck('col1')->all());
+
+        unlink($file);
+    }
+
+    /**
+     * Generator path used $key === 0 (the raw yielded index) to decide when
+     * to write the header. If the first yielded item was filtered out, that
+     * check still fired against a skipped item and no header got written.
+     * Now driven by a $written counter that only advances on rows that
+     * actually survive the callback.
+     */
+    public function testIssue423NullCallbackFirstRowGenerator()
+    {
+        $file = __DIR__.'/issue423_first_generator.xlsx';
+
+        $generator = (function () {
+            yield ['col1' => 'row1'];
+            yield ['col1' => 'row2'];
+            yield ['col1' => 'row3'];
+        })();
+
+        (new FastExcel($generator))->export($file, function ($row) {
+            return $row['col1'] === 'row1' ? null : $row;
+        });
+
+        $result = (new FastExcel())->import($file);
+
+        $this->assertCount(2, $result);
+        $this->assertSame(['col1'], array_keys($result->first()));
+        $this->assertEquals(['row2', 'row3'], $result->pluck('col1')->all());
+
+        unlink($file);
+    }
+
+    /**
+     * If the callback filters out every row, the old isEmpty() check ran
+     * against a still-mutated-but-full-of-nulls collection and returned
+     * false, so the crash-prone write loop still ran. Now the collection is
+     * genuinely empty and export exits cleanly with no rows.
+     */
+    public function testIssue423AllNullRowsExportEmptyFile()
+    {
+        $file = __DIR__.'/issue423_all_null.xlsx';
+
+        $data = collect([
+            ['col1' => 'row1'],
+            ['col1' => 'row2'],
+            ['col1' => 'row3'],
+        ]);
+
+        (new FastExcel($data))->export($file, function () {
+            return null;
+        });
+
+        $this->assertCount(0, (new FastExcel())->import($file));
+
+        unlink($file);
+    }
+
+    /**
+     * Bonus fix, not in the original bug report: the old transform()-based
+     * implementation mutated the caller's own collection in place, so
+     * exporting corrupted $data with nulls for the rest of the request.
+     * Switching to map()/reject() returns a new collection instead, leaving
+     * the source untouched.
+     */
+    public function testIssue423ExportDoesNotMutateSourceCollection()
+    {
+        $file = __DIR__.'/issue423_no_mutate.xlsx';
+
+        $data = collect([
+            ['col1' => 'row1'],
+            ['col1' => 'row2'],
+            ['col1' => 'row3'],
+        ]);
+
+        (new FastExcel($data))->export($file, function ($row) {
+            return $row['col1'] === 'row2' ? null : $row;
+        });
+
+        $this->assertCount(3, $data);
+        $this->assertSame('row2', $data->get(1)['col1']);
+
+        unlink($file);
+    }
+
+    /**
+     * Multi-sheet export where every row on a sheet gets filtered out must
+     * still produce a valid, placeholder-backed sheet rather than a corrupt
+     * file or a crash.
+     */
+    public function testIssue423SheetCollectionAllFilteredStillExportsPlaceholder()
+    {
+        $file = __DIR__.'/issue423_sheetcollection.xlsx';
+
+        $sheets = new SheetCollection([
+            'A' => collect([['a' => 'b']]),
+            'B' => collect([['a' => 'c'], ['a' => 'd']]),
+        ]);
+
+        (new FastExcel($sheets))->export($file, function () {
+            return null;
+        });
+
+        $result = (new FastExcel())->withSheetsNames()->importSheets($file);
+
+        $this->assertArrayHasKey('A', $result);
+        $this->assertArrayHasKey('B', $result);
+
+        unlink($file);
+    }
 }

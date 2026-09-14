@@ -469,6 +469,17 @@ formula cell, which can corrupt the file or enable CSV/formula injection. Call
 (new FastExcel($rows))->escapeFormulas()->export('file.xlsx');
 ```
 
+### Skip rows during export
+
+If the export callback returns `null` or `false` for a row, that row is
+skipped entirely and does not appear in the output file:
+
+```php
+(new FastExcel($users))->export('file.xlsx', function ($user) {
+    return $user->active ? ['name' => $user->name, 'email' => $user->email] : null;
+});
+```
+
 ### Use raw OpenSpout Cell instances
 
 For full control over a single cell's type or style, a row value may be an
