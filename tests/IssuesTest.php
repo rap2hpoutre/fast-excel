@@ -1032,4 +1032,81 @@ class IssuesTest extends TestCase
 
         unlink($file);
     }
+
+    /**
+     * Issue #425: limitRows() was silently ignored on export. Importable::importSheet()
+     * checks $this->end_row and breaks once the limit is reached, but Exportable's write
+     * methods (writeRowsFromCollection, writeRowsFromGenerator) had no equivalent check,
+     * so the full dataset was always written regardless of the limit.
+     *
+     * @see https://github.com/rap2hpoutre/fast-excel/issues/425
+     */
+    public function testIssue425LimitRowsOnExportCollection()
+    {
+        $file = __DIR__.'/issue424_collection.xlsx';
+
+        $data = collect([
+            ['id' => 1],
+            ['id' => 2],
+            ['id' => 3],
+            ['id' => 4],
+        ]);
+
+        (new FastExcel($data))->limitRows(2)->export($file);
+
+        $result = (new FastExcel())->import($file);
+
+        $this->assertCount(2, $result);
+        $this->assertEquals([1, 2], $result->pluck('id')->all());
+
+        unlink($file);
+    }
+
+    /**
+     * writeRowsFromGenerator() is a separate write path from
+     * writeRowsFromCollection() and needed its own fix, so it gets its own test.
+     */
+    public function testIssue425LimitRowsOnExportGenerator()
+    {
+        $file = __DIR__.'/issue424_generator.xlsx';
+
+        $generator = (function () {
+            for ($i = 1; $i <= 4; $i++) {
+                yield ['id' => $i];
+            }
+        })();
+
+        (new FastExcel($generator))->limitRows(2)->export($file);
+
+        $result = (new FastExcel())->import($file);
+
+        $this->assertCount(2, $result);
+        $this->assertEquals([1, 2], $result->pluck('id')->all());
+
+        unlink($file);
+    }
+
+    /**
+     * limit is applied per sheet, matching the existing per-sheet
+     * behavior of importSheet() on multi-sheet imports.
+     */
+    public function testIssue425LimitRowsPerSheetOnMultiSheetExport()
+    {
+        $file = __DIR__.'/issue424_multisheet.xlsx';
+
+        $sheets = new SheetCollection([
+            collect([['id' => 1], ['id' => 2], ['id' => 3]]),
+            collect([['id' => 1], ['id' => 2], ['id' => 3]]),
+        ]);
+
+        (new FastExcel($sheets))->limitRows(2)->export($file);
+
+        $sheet1 = (new FastExcel())->sheet(1)->import($file);
+        $sheet2 = (new FastExcel())->sheet(2)->import($file);
+
+        $this->assertCount(2, $sheet1);
+        $this->assertCount(2, $sheet2);
+
+        unlink($file);
+    }
 }

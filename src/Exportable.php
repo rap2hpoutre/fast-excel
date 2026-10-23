@@ -344,6 +344,8 @@ trait Exportable
 
         $use_styles = $this->rows_style || $this->column_styles || $this->escape_formulas;
 
+        $written = 0;
+
         // Write rows one by one so Row objects can be garbage-collected as
         // they are written, instead of materializing them all up front.
         foreach ($collection as $values) {
@@ -366,6 +368,10 @@ trait Exportable
                 $writer->addRow($this->buildRowFromCells(array_values($values)));
             } else {
                 $writer->addRow(Row::fromValues($values));
+            }
+
+            if ($this->end_row !== null && ++$written >= $this->end_row) {
+                break;
             }
         }
     }
@@ -394,6 +400,9 @@ trait Exportable
 
             $writer->addRow($this->createRow($item, $this->rows_style, $this->column_styles));
             $written++;
+            if ($this->end_row !== null && $written >= $this->end_row) {
+                break;
+            }
         }
 
         if (!$hasRows && $this->data instanceof SheetCollection) {
