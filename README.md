@@ -433,7 +433,42 @@ can export either format, guard the call:
 })
 ```
 
-Note that widths are explicit — there is no automatic sizing to fit the content.
+### Auto-size column widths
+
+`autoSizeColumns()` sizes every column to fit its widest value, so you do not
+have to know the widths up front:
+
+```php
+(new FastExcel($list))->autoSizeColumns()->export('file.xlsx');
+```
+
+Columns are measured as the rows stream past and the widths are written once,
+just before the file is finalized. That means it works with cursors and
+generators and costs one number per column — it does not buffer your rows.
+
+Widths are clamped so a single huge cell cannot produce an unusable column. The
+default cap is 60 characters, and you can set your own bounds:
+
+```php
+// never wider than 30 characters, never narrower than 12
+(new FastExcel($list))->autoSizeColumns(true, 30.0, 12.0)->export('file.xlsx');
+```
+
+A few things worth knowing:
+
+- **This is an estimate, not Excel's AutoFit.** The width is a character count
+  (adjusted for bold and font size) rather than real glyph measurements, so a
+  proportional font will be a little off. When you need exact widths, set them
+  explicitly with `setColumnWidth()` as shown above; for true AutoFit,
+  PhpSpreadsheet is the better tool.
+- **`xlsx` only.** Widths are stored per sheet, so each sheet of a
+  `SheetCollection` is sized from its own content. `ods` keeps widths on the
+  workbook rather than the sheet (and in points, not characters) and `csv` has
+  no widths at all, so both are left untouched instead of being given a
+  meaningless width.
+- **Wrapped columns are left alone.** A column styled with `setShouldWrapText()`
+  keeps its width, the same way Excel's AutoFit grows the row height instead.
+- Empty columns keep Excel's default width.
 
 ### Export values as strings or numbers
 
