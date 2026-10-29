@@ -389,9 +389,10 @@ trait Exportable
     {
         // Apply callback
         if ($callback) {
-            $collection->transform(function ($value) use ($callback) {
-                return $callback($value);
-            });
+            $collection = $collection
+                ->map($callback)
+                ->reject(fn ($value) => $value === null || $value === false)
+                ->values();
         }
 
         if ($collection->isEmpty()) {
@@ -410,6 +411,8 @@ trait Exportable
         }
 
         $use_styles = $this->rows_style || $this->column_styles || $this->escape_formulas;
+
+        $written = 0;
 
         // Write rows one by one so Row objects can be garbage-collected as
         // they are written, instead of materializing them all up front.
@@ -434,30 +437,40 @@ trait Exportable
             } else {
                 $this->writeRow($writer, Row::fromValues($values));
             }
+
+            if ($this->end_row !== null && ++$written >= $this->end_row) {
+                break;
+            }
         }
     }
 
     private function writeRowsFromGenerator($writer, Traversable $generator, ?callable $callback = null)
     {
         $hasRows = false;
+        $written = 0;
 
-        foreach ($generator as $key => $item) {
-            $hasRows = true;
-            // Apply callback
+        foreach ($generator as $item) {
             if ($callback) {
                 $item = $callback($item);
+                if ($item === null || $item === false) {
+                    continue;
+                }
             }
 
-            // Prepare row (i.e remove non-string)
+            $hasRows = true;
+
             $item = $this->transformRow($item);
             $item = $this->removeHiddenColumns($item);
 
-            // Add header row.
-            if ($this->with_header && $key === 0) {
+            if ($this->with_header && $written === 0) {
                 $this->writeHeader($writer, $item);
             }
-            // Write rows (one by one).
+
             $this->writeRow($writer, $this->createRow($item, $this->rows_style, $this->column_styles));
+            $written++;
+            if ($this->end_row !== null && $written >= $this->end_row) {
+                break;
+            }
         }
 
         if (!$hasRows && $this->data instanceof SheetCollection) {
